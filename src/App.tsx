@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Plus, Send, MessageCircle, Move, Maximize2, Minimize2, ChevronRight, ChevronLeft, User, Bot, Sparkles, Play, Pause, RotateCcw, ZoomIn, ZoomOut, Home } from 'lucide-react';
 
-const TreeChatMVP = () => {
+const App = () => {
   const [conversations, setConversations] = useState([
     {
       id: 'conv-1',
@@ -1311,4 +1311,4 @@ const TreeChatMVP = () => {
   );
 };
 
-export default TreeChatMVP;
+export default App;
