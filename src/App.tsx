@@ -1,44 +1,122 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Plus, Send, MessageCircle, Move, Maximize2, Minimize2, ChevronRight, ChevronLeft, User, Bot, Sparkles, Play, Pause, RotateCcw, ZoomIn, ZoomOut, Home } from 'lucide-react';
 import ReactFlow, {
+  MiniMap,
   Controls,
   Background,
   useNodesState,
   useEdgesState,
   addEdge,
-  ReactFlowProvider,
+  Panel,
   useReactFlow,
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
+  ReactFlowProvider,
+  Node,
+  Edge,
+  ConnectionLineType,
+  MarkerType
+} from 'reactflow';
+import 'reactflow/dist/style.css';
+import { Plus, Send, MessageCircle, Maximize2, Minimize2, User, Bot, Sparkles, Play, Pause, RotateCcw, History, GitBranch, Zap, Eye, EyeOff, Filter, Search, Bookmark, Share2, Download, Upload, Settings } from 'lucide-react';
 
-const CustomNode = ({ data }) => (
-  <div
-    className={`w-60 h-24 p-3 rounded-xl shadow-md border ${
-      data.isSelected ? 'border-yellow-400 border-2' : 'border-gray-200'
-    } ${data.isMultiSelected ? 'border-red-500 border-2' : ''} bg-white`}
-    onClick={(e) => data.handleNodeSelect(data.message.id, e)}
-    onDoubleClick={() => data.handleNodeDoubleClick(data.message.id)}
-  >
-    <div className={`h-7 rounded-t-lg -m-3 mb-2 ${data.message.type === 'user' ? 'bg-blue-100' : 'bg-green-100'}`}>
-      <div className="flex items-center p-2">
-        <div
-          className={`w-4 h-4 rounded-full mr-2 ${data.message.type === 'user' ? 'bg-blue-500' : 'bg-green-500'}`}
-        ></div>
-        <span className="text-xs font-semibold">{data.message.type === 'user' ? 'User' : 'Assistant'}</span>
-        <span className="text-xs text-gray-500 ml-auto">{data.formatTimestamp(data.message.timestamp)}</span>
+// Custom Node Component
+const MessageNode = ({ data, selected }) => {
+  const { message, onNodeClick, onNodeDoubleClick, isMultiSelected, truncateLength = 100 } = data;
+  
+  const handleClick = (e) => {
+    e.stopPropagation();
+    onNodeClick?.(message.id, e);
+  };
+
+  const handleDoubleClick = (e) => {
+    e.stopPropagation();
+    onNodeDoubleClick?.(message.id, e);
+  };
+
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const truncateText = (text, maxLength) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
+  const isMergedNode = message.mergedFrom && message.mergedFrom.length > 0;
+  
+  return (
+    <div
+      className={`relative bg-white rounded-xl shadow-lg border-2 transition-all cursor-pointer hover:shadow-xl min-w-[280px] max-w-[320px] ${
+        selected ? 'border-yellow-400 ring-2 ring-yellow-200' : 
+        isMultiSelected ? 'border-red-400 ring-2 ring-red-200' : 
+        'border-gray-200 hover:border-gray-300'
+      }`}
+      onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
+    >
+      {/* Header */}
+      <div className={`p-3 rounded-t-xl ${message.type === 'user' ? 'bg-blue-50' : 'bg-green-50'}`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className={`p-1.5 rounded-full ${message.type === 'user' ? 'bg-blue-500' : 'bg-green-500'}`}>
+              {message.type === 'user' ? (
+                <User size={12} className="text-white" />
+              ) : (
+                <Bot size={12} className="text-white" />
+              )}
+            </div>
+            <span className={`text-sm font-semibold ${message.type === 'user' ? 'text-blue-700' : 'text-green-700'}`}>
+              {message.type === 'user' ? 'User' : 'Assistant'}
+            </span>
+          </div>
+          <span className="text-xs text-gray-500">
+            {formatTimestamp(message.timestamp)}
+          </span>
+        </div>
       </div>
-    </div>
-    <div className="text-xs text-gray-700 leading-relaxed overflow-hidden">
-      {data.truncateText(data.message.content)}
-    </div>
-  </div>
-);
 
-const nodeTypes = {
-  custom: CustomNode,
+      {/* Content */}
+      <div className="p-4">
+        <div className="text-sm text-gray-800 leading-relaxed">
+          {truncateText(message.content, truncateLength)}
+        </div>
+        
+        {message.children.length > 0 && (
+          <div className="mt-3 flex items-center gap-1 text-xs text-gray-500">
+            <GitBranch size={12} />
+            <span>{message.children.length} response{message.children.length > 1 ? 's' : ''}</span>
+          </div>
+        )}
+        
+        {isMergedNode && (
+          <div className="mt-3 flex items-center gap-1 text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded">
+            <Sparkles size={12} />
+            <span>Synthesized from {message.mergedFrom.length} branches</span>
+          </div>
+        )}
+      </div>
+
+      {/* Indicators */}
+      {isMultiSelected && (
+        <div className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+          <span className="text-white text-xs">✓</span>
+        </div>
+      )}
+      
+      {isMergedNode && (
+        <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
+          <Sparkles size={12} className="text-white" />
+        </div>
+      )}
+    </div>
+  );
 };
 
-const App = () => {
+// Define node types
+const nodeTypes = {
+  message: MessageNode,
+};
+
+const TreeChatApp = () => {
   const [conversations, setConversations] = useState([
     {
       id: 'conv-1',
@@ -65,14 +143,14 @@ const App = () => {
                 {
                   id: 'msg-3',
                   type: 'user',
-                  content: 'It\'s a web application for task management',
+                  content: 'It\'s a web application for task management with real-time collaboration features.',
                   timestamp: new Date(Date.now() - 180000).toISOString(),
                   collapsed: false,
                   children: [
                     {
                       id: 'msg-4',
                       type: 'assistant',
-                      content: 'Great! Task management apps are very useful. What features do you want to include?',
+                      content: 'Great! Task management apps are very useful. What features do you want to include? Real-time collaboration is exciting - are you thinking about WebSocket integration?',
                       timestamp: new Date(Date.now() - 120000).toISOString(),
                       collapsed: false,
                       children: []
@@ -82,14 +160,14 @@ const App = () => {
                 {
                   id: 'msg-5',
                   type: 'user',
-                  content: 'Actually, it\'s a mobile app instead',
+                  content: 'Actually, it\'s a mobile app instead. I want to focus on React Native.',
                   timestamp: new Date(Date.now() - 150000).toISOString(),
                   collapsed: false,
                   children: [
                     {
                       id: 'msg-6',
                       type: 'assistant',
-                      content: 'Mobile apps are exciting! Are you thinking iOS, Android, or cross-platform?',
+                      content: 'Mobile apps are exciting! React Native is a great choice. Are you thinking iOS, Android, or cross-platform? What\'s your experience level with React Native?',
                       timestamp: new Date(Date.now() - 60000).toISOString(),
                       collapsed: false,
                       children: []
@@ -108,84 +186,179 @@ const App = () => {
   const [selectedMessageId, setSelectedMessageId] = useState('msg-4');
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedNodes, setSelectedNodes] = useState(new Set());
   const [isWhiteboardExpanded, setIsWhiteboardExpanded] = useState(false);
-  const { fitView } = useReactFlow();
-
+  
+  // Timeline and animation
+  const [timelinePosition, setTimelinePosition] = useState(1.0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const animationRef = useRef(null);
+  
+  // React Flow state
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const { fitView, getNodes, getEdges } = useReactFlow();
+  
+  // UI state
+  const [showMiniMap, setShowMiniMap] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState('all'); // 'all', 'user', 'assistant', 'merged'
+  const [bookmarkedNodes, setBookmarkedNodes] = useState(new Set());
+  const [showTimestamps, setShowTimestamps] = useState(true);
 
-  const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
+  // Convert conversation messages to React Flow nodes and edges
+  const convertToFlowElements = useCallback((messages) => {
+    const flowNodes = [];
+    const flowEdges = [];
+    const horizontalSpacing = 350;
+    const verticalSpacing = 200;
+    
+    const processNode = (message, x, y, level = 0) => {
+      // Apply timeline filter
+      const messageTime = new Date(message.timestamp).getTime();
+      const now = Date.now();
+      const oldestTime = Math.min(...getAllMessages(messages).map(m => new Date(m.timestamp).getTime()));
+      const cutoffTime = oldestTime + (now - oldestTime) * timelinePosition;
+      
+      if (timelinePosition < 1.0 && messageTime > cutoffTime) {
+        return;
+      }
 
+      // Apply search filter
+      if (searchTerm && !message.content.toLowerCase().includes(searchTerm.toLowerCase())) {
+        return;
+      }
 
-  useEffect(() => {
-    const conversation = conversations.find(c => c.id === activeConversation);
-    if (conversation) {
-      const { nodes: newNodes, edges: newEdges } = convertMessagesToFlowData(conversation.messages);
-      setNodes(newNodes);
-      setEdges(newEdges);
-      setTimeout(() => fitView({ padding: 0.2, duration: 200 }), 100);
-    }
-  }, [activeConversation, conversations, fitView]);
+      // Apply type filter
+      if (filterType !== 'all') {
+        if (filterType === 'merged' && (!message.mergedFrom || message.mergedFrom.length === 0)) {
+          return;
+        }
+        if (filterType !== 'merged' && message.type !== filterType) {
+          return;
+        }
+      }
 
-  const convertMessagesToFlowData = (messages, parentId = null, x = 0, y = 0, level = 0) => {
-    let nodes = [];
-    let edges = [];
-    let nextY = y;
+      const isSelected = selectedMessageId === message.id;
+      const isMultiSelected = selectedNodes.has(message.id);
+      const isBookmarked = bookmarkedNodes.has(message.id);
 
-    messages.forEach((msg, index) => {
-      const nodeId = msg.id;
-      const nodeX = x + (index * 300);
-
-      nodes.push({
-        id: nodeId,
-        type: 'custom',
-        position: { x: nodeX, y: nextY },
+      flowNodes.push({
+        id: message.id,
+        type: 'message',
+        position: { x, y },
         data: {
-          message: msg,
-          isSelected: selectedMessageId === msg.id,
-          isMultiSelected: selectedNodes.has(msg.id),
-          handleNodeSelect,
-          handleNodeDoubleClick,
-          truncateText,
-          formatTimestamp
+          message,
+          onNodeClick: handleNodeClick,
+          onNodeDoubleClick: handleNodeDoubleClick,
+          isMultiSelected,
+          truncateLength: isWhiteboardExpanded ? 150 : 100
         },
+        selected: isSelected,
+        className: `${isBookmarked ? 'bookmarked-node' : ''} ${message.type}-node`,
+        style: {
+          opacity: timelinePosition < 1.0 && messageTime > cutoffTime ? 0.3 : 1,
+        }
       });
 
-      if (parentId) {
-        edges.push({
-          id: `${parentId}-${nodeId}`,
-          source: parentId,
-          target: nodeId,
-          type: 'smoothstep',
+      // Process children
+      if (message.children && message.children.length > 0) {
+        const childrenWidth = (message.children.length - 1) * horizontalSpacing;
+        const startX = x - childrenWidth / 2;
+        
+        message.children.forEach((child, index) => {
+          const childX = startX + (index * horizontalSpacing);
+          const childY = y + verticalSpacing;
+          
+          // Create edge
+          flowEdges.push({
+            id: `${message.id}-${child.id}`,
+            source: message.id,
+            target: child.id,
+            type: 'smoothstep',
+            animated: child.mergedFrom && child.mergedFrom.includes(message.id),
+            style: {
+              stroke: child.mergedFrom && child.mergedFrom.includes(message.id) ? '#a855f7' : '#d1d5db',
+              strokeWidth: child.mergedFrom && child.mergedFrom.includes(message.id) ? 3 : 2,
+            },
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              color: child.mergedFrom && child.mergedFrom.includes(message.id) ? '#a855f7' : '#d1d5db',
+            }
+          });
+          
+          processNode(child, childX, childY, level + 1);
         });
       }
 
-      if (msg.children && msg.children.length > 0) {
-        const childData = convertMessagesToFlowData(msg.children, nodeId, nodeX, nextY + 150, level + 1);
-        nodes = nodes.concat(childData.nodes);
-        edges = edges.concat(childData.edges);
+      // Add merge edges for merged nodes
+      if (message.mergedFrom && message.mergedFrom.length > 0) {
+        message.mergedFrom.forEach(sourceId => {
+          if (sourceId !== message.id) { // Avoid self-loops
+            flowEdges.push({
+              id: `merge-${sourceId}-${message.id}`,
+              source: sourceId,
+              target: message.id,
+              type: 'smoothstep',
+              animated: true,
+              style: {
+                stroke: '#a855f7',
+                strokeWidth: 3,
+                strokeDasharray: '5,5',
+              },
+              markerEnd: {
+                type: MarkerType.ArrowClosed,
+                color: '#a855f7',
+              },
+              label: '✨ Merge',
+              labelStyle: { fontSize: 10, fill: '#a855f7' }
+            });
+          }
+        });
       }
+    };
+
+    // Start processing from root messages
+    const rootWidth = (messages.length - 1) * horizontalSpacing;
+    const startX = -rootWidth / 2;
+    
+    messages.forEach((message, index) => {
+      const x = startX + (index * horizontalSpacing);
+      processNode(message, x, 0);
     });
 
-    return { nodes, edges };
-  };
+    return { nodes: flowNodes, edges: flowEdges };
+  }, [selectedMessageId, selectedNodes, timelinePosition, searchTerm, filterType, bookmarkedNodes, isWhiteboardExpanded]);
 
-  const handleNodeDoubleClick = (messageId) => {
-    setSelectedMessageId(messageId);
-    if(isWhiteboardExpanded){
-        setIsWhiteboardExpanded(false);
+  // Update React Flow elements when conversation changes
+  useEffect(() => {
+    const currentConv = conversations.find(c => c.id === activeConversation);
+    if (currentConv && currentConv.messages.length > 0) {
+      const { nodes: newNodes, edges: newEdges } = convertToFlowElements(currentConv.messages);
+      setNodes(newNodes);
+      setEdges(newEdges);
+      
+      // Auto-fit view after a brief delay
+      setTimeout(() => {
+        fitView({ padding: 0.1, duration: 500 });
+      }, 100);
+    } else {
+      setNodes([]);
+      setEdges([]);
     }
-  };
+  }, [activeConversation, conversations, convertToFlowElements, setNodes, setEdges, fitView]);
 
-
-  const getEffectiveMergeNodes = () => {
-    const multiSelected = Array.from(selectedNodes);
-    if (multiSelected.length > 0 && selectedMessageId && !selectedNodes.has(selectedMessageId)) {
-      return [...multiSelected, selectedMessageId];
-    }
-    return multiSelected;
+  // Helper functions
+  const getAllMessages = (messages) => {
+    let allMessages = [];
+    const traverse = (msgs) => {
+      msgs.forEach(msg => {
+        allMessages.push(msg);
+        if (msg.children) traverse(msg.children);
+      });
+    };
+    traverse(messages);
+    return allMessages;
   };
 
   const findMessage = (messages, messageId) => {
@@ -193,7 +366,7 @@ const App = () => {
       if (message.id === messageId) {
         return message;
       }
-      const found = findMessage(message.children, messageId);
+      const found = findMessage(message.children || [], messageId);
       if (found) return found;
     }
     return null;
@@ -202,25 +375,25 @@ const App = () => {
   const addMessage = (conversationId, parentMessageId, newMessage) => {
     setConversations(prev => prev.map(conv => {
       if (conv.id !== conversationId) return conv;
-
+      
       if (!parentMessageId) {
         return {
           ...conv,
           messages: [...conv.messages, newMessage]
         };
       }
-
+      
       const addToMessages = (messages) => {
         return messages.map(msg => {
           if (msg.id === parentMessageId) {
             return {
               ...msg,
-              children: [...msg.children, newMessage]
+              children: [...(msg.children || []), newMessage]
             };
           }
           return {
             ...msg,
-            children: addToMessages(msg.children)
+            children: addToMessages(msg.children || [])
           };
         });
       };
@@ -232,11 +405,9 @@ const App = () => {
     }));
   };
 
-  const handleNodeSelect = (messageId, event) => {
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (event.ctrlKey || event.metaKey) {
+  // Event handlers
+  const handleNodeClick = (messageId, event) => {
+    if (event?.ctrlKey || event?.metaKey) {
       const newSelected = new Set(selectedNodes);
       if (newSelected.has(messageId)) {
         newSelected.delete(messageId);
@@ -248,6 +419,86 @@ const App = () => {
       setSelectedMessageId(messageId);
       setSelectedNodes(new Set());
     }
+  };
+
+  const handleNodeDoubleClick = (messageId, event) => {
+    setSelectedMessageId(messageId);
+    setSelectedNodes(new Set());
+  };
+
+  const toggleBookmark = (messageId) => {
+    const newBookmarks = new Set(bookmarkedNodes);
+    if (newBookmarks.has(messageId)) {
+      newBookmarks.delete(messageId);
+    } else {
+      newBookmarks.add(messageId);
+    }
+    setBookmarkedNodes(newBookmarks);
+  };
+
+  // Timeline animation
+  const startTimelineAnimation = () => {
+    if (isAnimating) {
+      setIsAnimating(false);
+      if (animationRef.current) {
+        clearInterval(animationRef.current);
+      }
+      return;
+    }
+    
+    setIsAnimating(true);
+    setTimelinePosition(0);
+    
+    animationRef.current = setInterval(() => {
+      setTimelinePosition(prev => {
+        if (prev >= 1.0) {
+          setIsAnimating(false);
+          clearInterval(animationRef.current);
+          return 1.0;
+        }
+        return prev + 0.02;
+      });
+    }, 100);
+  };
+
+  const resetTimeline = () => {
+    setTimelinePosition(1.0);
+    setIsAnimating(false);
+    if (animationRef.current) {
+      clearInterval(animationRef.current);
+    }
+  };
+
+  // Message thread and sending
+  const getMessageThread = () => {
+    const conversation = conversations.find(c => c.id === activeConversation);
+    if (!conversation || !selectedMessageId) return [];
+    
+    const getPath = (messages, targetId, path = []) => {
+      for (const msg of messages) {
+        const newPath = [...path, msg];
+        if (msg.id === targetId) {
+          return newPath;
+        }
+        const found = getPath(msg.children || [], targetId, newPath);
+        if (found) return found;
+      }
+      return null;
+    };
+
+    const fullPath = getPath(conversation.messages, selectedMessageId) || [];
+    
+    const selectedMessage = findMessage(conversation.messages, selectedMessageId);
+    if (selectedMessage && selectedMessage.isMergeRoot) {
+      return [selectedMessage];
+    }
+    
+    const mergeRootIndex = fullPath.findIndex(msg => msg.isMergeRoot);
+    if (mergeRootIndex !== -1) {
+      return fullPath.slice(mergeRootIndex);
+    }
+    
+    return fullPath;
   };
 
   const sendMessage = async () => {
@@ -264,19 +515,19 @@ const App = () => {
 
     addMessage(activeConversation, selectedMessageId, userMessage);
     setSelectedMessageId(userMessage.id);
-
+    
     const userInput = inputText;
     setInputText('');
     setIsLoading(true);
 
     try {
       const thread = getMessageThread();
-      const contextMessages = thread.map(msg =>
+      const contextMessages = thread.map(msg => 
         `${msg.type === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`
       ).join('\n');
-
+      
       const contextPrompt = `Here is our conversation history:\n\n${contextMessages}\n\nHuman: ${userInput}\n\nPlease respond naturally, taking into account the full conversation context above.`;
-
+      
       const apiResponse = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -284,14 +535,14 @@ const App = () => {
         },
         body: JSON.stringify({ prompt: contextPrompt }),
       });
-
+    
       if (!apiResponse.ok) {
         throw new Error(`HTTP error! status: ${apiResponse.status}`);
       }
-
+    
       const data = await apiResponse.json();
       const response = data.response;
-
+          
       const assistantMessage = {
         id: `msg-${Date.now() + 1}`,
         type: 'assistant',
@@ -303,7 +554,7 @@ const App = () => {
 
       addMessage(activeConversation, userMessage.id, assistantMessage);
       setSelectedMessageId(assistantMessage.id);
-
+      
     } catch (error) {
       console.error('Error:', error);
       const errorMessage = {
@@ -337,9 +588,129 @@ const App = () => {
     setSelectedNodes(new Set());
   };
 
-  const truncateText = (text, maxLength = 120) => {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
+  // Smart merge with AI
+  const performIntelligentMerge = async () => {
+    const effectiveMergeNodes = Array.from(selectedNodes);
+    if (selectedMessageId && !selectedNodes.has(selectedMessageId)) {
+      effectiveMergeNodes.push(selectedMessageId);
+    }
+
+    if (effectiveMergeNodes.length < 2) return;
+
+    setIsLoading(true);
+    try {
+      const conv = conversations.find(c => c.id === activeConversation);
+      
+      const getPathToNode = (messages, targetId, path = []) => {
+        for (const msg of messages) {
+          const newPath = [...path, msg];
+          if (msg.id === targetId) {
+            return newPath;
+          }
+          const found = getPathToNode(msg.children || [], targetId, newPath);
+          if (found) return found;
+        }
+        return null;
+      };
+      
+      const branchContexts = [];
+      for (let i = 0; i < effectiveMergeNodes.length; i++) {
+        const nodeId = effectiveMergeNodes[i];
+        const node = findMessage(conv.messages, nodeId);
+        
+        if (node) {
+          const pathToNode = getPathToNode(conv.messages, nodeId);
+          const conversationText = pathToNode ? pathToNode.map(msg => 
+            `${msg.type === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`
+          ).join('\n') : `${node.type === 'user' ? 'Human' : 'Assistant'}: ${node.content}`;
+          
+          branchContexts.push(`--- Conversation Branch ${i + 1} ---\n${conversationText}`);
+        }
+      }
+      
+      const allBranches = branchContexts.join('\n\n');
+      
+      const firstNodeForHistory = findMessage(conv.messages, effectiveMergeNodes[0]);
+      const pathToFirst = firstNodeForHistory ? getPathToNode(conv.messages, effectiveMergeNodes[0]) : [];
+      const commonHistory = pathToFirst.slice(0, -1);
+      const historyText = commonHistory.length > 0 
+        ? commonHistory.map(msg => `${msg.type === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`).join('\n')
+        : '';
+      
+      let mergePrompt = 'You are continuing a conversation. Here is the context:\n\n';
+      
+      if (historyText) {
+        mergePrompt += 'SHARED CONVERSATION HISTORY:\n' + historyText + '\n\n';
+      }
+      
+      mergePrompt += 'DIVERGENT BRANCHES TO MERGE:\n';
+      mergePrompt += `I have ${effectiveMergeNodes.length} different conversation branches that diverged from `;
+      mergePrompt += historyText ? 'the above conversation' : 'the start';
+      mergePrompt += '. Each represents a different direction our conversation took:\n\n';
+      mergePrompt += allBranches + '\n\n';
+      mergePrompt += 'Please synthesize these different paths into a coherent response that:\n\n';
+      mergePrompt += '1. Acknowledges the conversation history and maintains continuity\n';
+      mergePrompt += '2. Integrates insights from each branch meaningfully\n';
+      mergePrompt += '3. Resolves any contradictions by finding the most coherent perspective\n';
+      mergePrompt += '4. Creates a unified direction for continuing our conversation\n';
+      mergePrompt += '5. Maintains natural conversational flow\n\n';
+      mergePrompt += 'Your response should feel like a natural continuation that acknowledges the different directions we explored and synthesizes them into a coherent next step. Respond as the Assistant continuing our conversation, taking into account all the context and branches above.';
+
+      const apiResponse = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt: mergePrompt }),
+      });
+    
+      if (!apiResponse.ok) {
+          throw new Error('Failed to fetch from merge API');
+      }
+    
+      const data = await apiResponse.json();
+      const response = data.response;
+        
+      const mergedMessage = {
+        id: `merged-${Date.now()}`,
+        type: 'assistant',
+        content: response,
+        timestamp: new Date().toISOString(),
+        collapsed: false,
+        mergedFrom: effectiveMergeNodes,
+        isMergeRoot: true,
+        children: []
+      };
+
+      const parentNode = effectiveMergeNodes.map(id => findMessage(conv.messages, id))[0];
+      
+      if (parentNode) {
+        addMessage(activeConversation, parentNode.id, mergedMessage);
+        setSelectedMessageId(mergedMessage.id);
+        setSelectedNodes(new Set());
+      }
+      
+    } catch (error) {
+      console.error('Intelligent merge failed:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Export/Import functionality
+  const exportConversation = () => {
+    const conv = conversations.find(c => c.id === activeConversation);
+    if (conv) {
+      const dataStr = JSON.stringify(conv, null, 2);
+      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+      
+      const exportFileDefaultName = `${conv.name.replace(/\s+/g, '_')}_conversation.json`;
+      
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportFileDefaultName);
+      linkElement.click();
+    }
   };
 
   const formatTimestamp = (timestamp) => {
@@ -347,73 +718,327 @@ const App = () => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const getCurrentMessage = () => {
-    const conversation = conversations.find(c => c.id === activeConversation);
-    if (!conversation || !selectedMessageId) return null;
-    return findMessage(conversation.messages, selectedMessageId);
-  };
-
-  const getMessageThread = () => {
-    const conversation = conversations.find(c => c.id === activeConversation);
-    if (!conversation || !selectedMessageId) return [];
-
-    const getPath = (messages, targetId, path = []) => {
-      for (const msg of messages) {
-        const newPath = [...path, msg];
-        if (msg.id === targetId) {
-          return newPath;
-        }
-        const found = getPath(msg.children, targetId, newPath);
-        if (found) return found;
-      }
-      return null;
-    };
-
-    const fullPath = getPath(conversation.messages, selectedMessageId) || [];
-
-    const selectedMessage = findMessage(conversation.messages, selectedMessageId);
-    if (selectedMessage && selectedMessage.isMergeRoot) {
-      return [selectedMessage];
-    }
-
-    const mergeRootIndex = fullPath.findIndex(msg => msg.isMergeRoot);
-    if (mergeRootIndex !== -1) {
-      return fullPath.slice(mergeRootIndex);
-    }
-
-    return fullPath;
-  };
-
   const currentConversation = conversations.find(c => c.id === activeConversation);
   const messageThread = getMessageThread();
-  const effectiveMergeNodes = getEffectiveMergeNodes();
+  const getCurrentMessage = () => {
+    if (!selectedMessageId) return null;
+    return findMessage(currentConversation?.messages || [], selectedMessageId);
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <div className={`flex flex-col bg-white border-r border-gray-200 transition-all duration-300 ${isWhiteboardExpanded ? 'w-0' : 'w-2/5'}`}>
-        {!isWhiteboardExpanded &&
-          <>
-            <div className="bg-white border-b border-gray-200 p-6">
-              <h1 className="text-2xl font-semibold text-gray-900">
-                {currentConversation?.name || 'Select a conversation'}
-              </h1>
-              {selectedMessageId && (
-                <p className="text-sm text-gray-500 mt-2">
-                  Branching from: {getCurrentMessage()?.content.substring(0, 60)}...
-                </p>
-              )}
-            </div>
+      {isWhiteboardExpanded ? (
+        // Full whiteboard mode
+        <div className="w-full h-screen flex flex-col bg-gray-50">
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            nodeTypes={nodeTypes}
+            connectionLineType={ConnectionLineType.SmoothStep}
+            fitView
+            className="bg-gray-50"
+          >
+            <Controls showInteractive={false} />
+            {showMiniMap && (
+              <MiniMap 
+                nodeColor={(node) => {
+                  if (node.data?.message?.type === 'user') return '#3b82f6';
+                  if (node.data?.message?.mergedFrom) return '#a855f7';
+                  return '#10b981';
+                }}
+                className="bg-white border border-gray-200 rounded-lg"
+              />
+            )}
+            <Background variant="dots" gap={20} size={1} />
+            
+            {/* Top Panel */}
+            <Panel position="top-left">
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setIsWhiteboardExpanded(false)}
+                  className="p-3 bg-white text-gray-700 hover:bg-gray-100 rounded-xl shadow-lg border border-gray-200 transition-all"
+                  title="Exit Whiteboard Mode"
+                >
+                  <Minimize2 size={20} />
+                </button>
+              </div>
+            </Panel>
 
+            <Panel position="top-center">
+              <div className="flex items-center gap-3 bg-white rounded-xl shadow-lg border border-gray-200 p-3">
+                <button
+                  onClick={startTimelineAnimation}
+                  className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                  title={isAnimating ? "Pause Animation" : "Play Timeline Animation"}
+                >
+                  {isAnimating ? <Pause size={16} /> : <Play size={16} />}
+                </button>
+                
+                <button
+                  onClick={resetTimeline}
+                  className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                  title="Reset Timeline"
+                >
+                  <RotateCcw size={16} />
+                </button>
+                
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">Timeline:</span>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={timelinePosition}
+                    onChange={(e) => setTimelinePosition(parseFloat(e.target.value))}
+                  className="w-32"
+                  disabled={isAnimating}
+                />
+                <span className="text-xs text-gray-500 w-8">
+                  {Math.round(timelinePosition * 100)}%
+                </span>
+              </div>
+            </div>
+            </Panel>
+
+            <Panel position="top-right">
+              <div className="flex items-center gap-2 bg-white rounded-xl shadow-lg border border-gray-200 p-3">
+                <button
+                  onClick={() => setShowMiniMap(!showMiniMap)}
+                  className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                  title="Toggle MiniMap"
+                >
+                  {showMiniMap ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+                
+                <div className="w-px h-6 bg-gray-300"></div>
+                
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  className="text-xs border-none bg-transparent focus:outline-none"
+                >
+                  <option value="all">All</option>
+                  <option value="user">User</option>
+                  <option value="assistant">Assistant</option>
+                  <option value="merged">Merged</option>
+                </select>
+                
+                <button
+                  onClick={exportConversation}
+                  className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                  title="Export Conversation"
+                >
+                  <Download size={16} />
+                </button>
+              </div>
+            </Panel>
+            
+            {/* Merge Controls */}
+            <Panel position="bottom-left">
+              <div className="p-4 bg-white rounded-lg shadow-lg border border-gray-200 max-w-sm">
+                <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
+                  <GitBranch size={14} />
+                  <span>Ctrl+click for multi-select • Double-click to focus</span>
+                </div>
+                
+                <div className="text-sm mb-3">
+                  <span className="text-blue-600 font-medium">Multi-selected: {selectedNodes.size} nodes</span>
+                  {selectedMessageId && selectedNodes.size > 0 && !selectedNodes.has(selectedMessageId) && (
+                    <span className="text-green-600 ml-1">+ active node</span>
+                  )}
+                </div>
+                
+                {(selectedNodes.size >= 2 || (selectedNodes.size >= 1 && selectedMessageId && !selectedNodes.has(selectedMessageId))) ? (
+                  <button
+                    onClick={performIntelligentMerge}
+                    className="flex items-center gap-2 w-full px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm hover:bg-purple-200 transition-colors font-medium mb-2"
+                    disabled={isLoading}
+                  >
+                    <Sparkles size={14} />
+                    {isLoading ? 'Merging...' : `Merge ${selectedNodes.size + (selectedMessageId && !selectedNodes.has(selectedMessageId) ? 1 : 0)} nodes`}
+                  </button>
+                ) : (
+                  <div className="text-sm text-gray-500 text-center py-2 mb-2">
+                    Select 2+ nodes to merge
+                  </div>
+                )}
+                
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => fitView({ padding: 0.1, duration: 500 })}
+                    className="flex-1 px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200"
+                  >
+                    Fit View
+                  </button>
+                  <button
+                    onClick={() => setSelectedNodes(new Set())}
+                    className="flex-1 px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200"
+                  >
+                    Clear Selection
+                  </button>
+                </div>
+              </div>
+            </Panel>
+
+            {/* Search Panel */}
+            <Panel position="bottom-right">
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Search size={14} />
+                  <input
+                    type="text"
+                    placeholder="Search messages..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                {selectedMessageId && (
+                  <div className="text-xs text-gray-500">
+                    Active: {findMessage(currentConversation?.messages || [], selectedMessageId)?.content.substring(0, 30)}...
+                  </div>
+                )}
+              </div>
+            </Panel>
+          </ReactFlow>
+        </div>
+      ) : (
+        // Split view mode: Chat 40% (left) + Whiteboard 60% (right)
+        <>
+          {/* Chat Interface - 40% */}
+          <div className="w-2/5 bg-white border-r border-gray-200 flex flex-col shadow-sm">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">Tree Chat AI</h2>
+                <div className="flex gap-2">
+                  <button
+                    onClick={createNewConversation}
+                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    title="New Conversation"
+                  >
+                    <Plus size={18} />
+                  </button>
+                  <button
+                    onClick={() => setIsWhiteboardExpanded(true)}
+                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    title="Expand Whiteboard"
+                  >
+                    <Maximize2 size={18} />
+                  </button>
+                  <button
+                    onClick={exportConversation}
+                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    title="Export Conversation"
+                  >
+                    <Download size={18} />
+                  </button>
+                </div>
+              </div>
+              
+              <select
+                value={activeConversation}
+                onChange={(e) => {
+                  setActiveConversation(e.target.value);
+                  const newConv = conversations.find(c => c.id === e.target.value);
+                  if (newConv && newConv.messages.length > 0) {
+                    setSelectedMessageId(newConv.messages[0].id);
+                  } else {
+                    setSelectedMessageId(null);
+                  }
+                  setSelectedNodes(new Set());
+                }}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                {conversations.map(conv => (
+                  <option key={conv.id} value={conv.id}>{conv.name}</option>
+                ))}
+              </select>
+              
+              {currentConversation && (
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                  <div className="text-sm font-medium text-blue-900 mb-1">
+                    {currentConversation.theme}
+                  </div>
+                  <div className="text-xs text-blue-700">
+                    Tags: {currentConversation.semanticTags?.join(', ') || 'None'}
+                  </div>
+                  <div className="text-xs text-blue-600 mt-1">
+                    Messages: {getAllMessages(currentConversation.messages).length} • 
+                    Importance: {Math.round((currentConversation.importance || 0) * 100)}%
+                  </div>
+                </div>
+              )}
+              
+              {/* Merge Controls */}
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
+                  <GitBranch size={14} />
+                  <span>Ctrl+click nodes • Double-click to focus chat</span>
+                </div>
+                
+                <div className="text-sm mb-3">
+                  <span className="text-blue-600 font-medium">Multi-selected: {selectedNodes.size} nodes</span>
+                  {selectedMessageId && selectedNodes.size > 0 && !selectedNodes.has(selectedMessageId) && (
+                    <span className="text-green-600 ml-1">+ active node</span>
+                  )}
+                </div>
+                
+                {(selectedNodes.size >= 2 || (selectedNodes.size >= 1 && selectedMessageId && !selectedNodes.has(selectedMessageId))) ? (
+                  <button
+                    onClick={performIntelligentMerge}
+                    className="flex items-center gap-2 w-full px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm hover:bg-purple-200 transition-colors font-medium mb-2"
+                    disabled={isLoading}
+                  >
+                    <Sparkles size={14} />
+                    {isLoading ? 'Merging...' : `Smart Merge ${selectedNodes.size + (selectedMessageId && !selectedNodes.has(selectedMessageId) ? 1 : 0)} nodes`}
+                  </button>
+                ) : (
+                  <div className="text-sm text-gray-500 text-center py-2 mb-2">
+                    Select 2+ nodes to merge conversations
+                  </div>
+                )}
+
+                {/* Quick Actions */}
+                <div className="flex gap-2 mt-3">
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="flex-1 flex items-center justify-center gap-1 px-2 py-1 bg-white text-gray-600 rounded text-xs hover:bg-gray-100 border"
+                  >
+                    <Search size={12} />
+                    Clear
+                  </button>
+                  <button
+                    onClick={() => setSelectedNodes(new Set())}
+                    className="flex-1 flex items-center justify-center gap-1 px-2 py-1 bg-white text-gray-600 rounded text-xs hover:bg-gray-100 border"
+                  >
+                    <Zap size={12} />
+                    Clear
+                  </button>
+                  <button
+                    onClick={() => setFilterType('all')}
+                    className="flex-1 flex items-center justify-center gap-1 px-2 py-1 bg-white text-gray-600 rounded text-xs hover:bg-gray-100 border"
+                  >
+                    <Filter size={12} />
+                    All
+                  </button>
+                </div>
+              </div>
+            </div>
+            
             <div className="flex-1 overflow-y-auto p-6">
               {messageThread.length > 0 ? (
-                <div className="space-y-6 max-w-3xl mx-auto">
+                <div className="space-y-6">
                   {messageThread.map((message, index) => (
                     <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-lg px-6 py-4 rounded-2xl shadow-sm ${message.type === 'user'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-white border border-gray-200 text-gray-800'
-                        } ${message.id === selectedMessageId ? 'ring-2 ring-yellow-400 ring-offset-2' : ''}`}>
-
+                      <div className={`max-w-lg px-6 py-4 rounded-2xl shadow-sm ${
+                        message.type === 'user' 
+                          ? 'bg-blue-500 text-white' 
+                          : 'bg-white border border-gray-200 text-gray-800'
+                      } ${message.id === selectedMessageId ? 'ring-2 ring-yellow-400 ring-offset-2' : ''}`}>
+                        
                         <div className="flex items-center gap-2 mb-2">
                           {message.type === 'user' ? (
                             <User size={16} className="opacity-80" />
@@ -426,17 +1051,20 @@ const App = () => {
                           <span className="text-xs opacity-60 ml-auto">
                             {formatTimestamp(message.timestamp)}
                           </span>
+                          {bookmarkedNodes.has(message.id) && (
+                            <Bookmark size={12} className="text-yellow-500" />
+                          )}
                         </div>
-
+                        
                         <div className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</div>
-
-                        {message.children.length > 0 && (
+                        
+                        {message.children && message.children.length > 0 && (
                           <div className="mt-3 text-xs opacity-70 flex items-center gap-1">
-                            <ChevronRight size={12} />
+                            <GitBranch size={12} />
                             {message.children.length} response{message.children.length > 1 ? 's' : ''}
                           </div>
                         )}
-
+                        
                         {message.mergedFrom && (
                           <div className="mt-3 text-xs text-purple-600 opacity-90 flex items-center gap-1">
                             <Sparkles size={12} />
@@ -444,17 +1072,37 @@ const App = () => {
                             {message.isMergeRoot && " • Conversation starts here"}
                           </div>
                         )}
+
+                        {/* Message Actions */}
+                        <div className="mt-3 flex gap-2">
+                          <button
+                            onClick={() => toggleBookmark(message.id)}
+                            className="text-xs opacity-60 hover:opacity-100 flex items-center gap-1"
+                          >
+                            <Bookmark size={10} />
+                            {bookmarkedNodes.has(message.id) ? 'Saved' : 'Save'}
+                          </button>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(message.content);
+                            }}
+                            className="text-xs opacity-60 hover:opacity-100 flex items-center gap-1"
+                          >
+                            <Share2 size={10} />
+                            Copy
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
-
+                  
                   {isLoading && (
                     <div className="flex justify-start">
                       <div className="bg-white border border-gray-200 rounded-2xl px-6 py-4 shadow-sm">
                         <div className="flex items-center gap-2 text-sm text-gray-500">
                           <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
                           <span className="ml-2">
                             {selectedNodes.size >= 2 ? 'Synthesizing branches...' : 'Assistant is thinking...'}
                           </span>
@@ -468,13 +1116,13 @@ const App = () => {
                   <MessageCircle size={64} className="mx-auto mb-6 opacity-40" />
                   <h3 className="text-xl font-medium mb-2">Start a new conversation</h3>
                   <p className="text-sm mb-6">Type your message below to begin exploring ideas</p>
-                  <p className="text-xs text-gray-400">Or click a node in the tree to continue from that point</p>
+                  <p className="text-xs text-gray-400">Double-click nodes in the tree to jump to any point</p>
                 </div>
               )}
             </div>
-
+            
             <div className="bg-white border-t border-gray-200 p-6">
-              <div className="flex gap-3 max-w-3xl mx-auto">
+              <div className="flex gap-3">
                 <input
                   type="text"
                   value={inputText}
@@ -498,206 +1146,153 @@ const App = () => {
                   {isLoading ? 'Sending...' : 'Send'}
                 </button>
               </div>
-
+              
               {selectedMessageId && getCurrentMessage() && (
-                <div className="mt-3 text-xs text-gray-500 max-w-3xl mx-auto">
-                  Replying to: {getCurrentMessage()?.content.substring(0, 80)}...
+                <div className="mt-3 text-xs text-gray-500 flex items-center gap-2">
+                  <History size={12} />
+                  Replying to: {getCurrentMessage()?.content.substring(0, 60)}...
                 </div>
               )}
             </div>
-          </>
-        }
-      </div>
-
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${isWhiteboardExpanded ? 'w-full' : 'w-3/5'}`}>
-        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-900">Whiteboard</h2>
-          <button
-            onClick={() => setIsWhiteboardExpanded(!isWhiteboardExpanded)}
-            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-            title={isWhiteboardExpanded ? "Collapse Whiteboard" : "Expand Whiteboard"}
-          >
-            {isWhiteboardExpanded ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-          </button>
-        </div>
-        <div className="flex-1 overflow-hidden bg-gray-50 relative">
-          <ReactFlowProvider>
+          </div>
+          
+          {/* Whiteboard - 60% */}
+          <div className="w-3/5 flex flex-col bg-gray-50 relative">
             <ReactFlow
               nodes={nodes}
               edges={edges}
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
               nodeTypes={nodeTypes}
+              connectionLineType={ConnectionLineType.SmoothStep}
               fitView
+              className="bg-gray-50"
             >
-              <Controls />
-              <Background />
-            </ReactFlow>
-          </ReactFlowProvider>
-          {isWhiteboardExpanded &&
-            <div className="absolute top-4 left-4 z-10 p-4 bg-white rounded-lg shadow-lg border border-gray-200">
-              <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                <Move size={14} />
-                <span>Drag to pan • Ctrl+click for multi-select</span>
-              </div>
-              <div className="text-sm mb-3">
-                <span className="text-blue-600 font-medium">Multi-selected: {selectedNodes.size} nodes</span>
-                {selectedMessageId && selectedNodes.size > 0 && !selectedNodes.has(selectedMessageId) && (
-                  <span className="text-green-600 ml-1">+ active node</span>
-                )}
-              </div>
-              {effectiveMergeNodes.length >= 2 ? (
-                <button
-                  onClick={async () => {
-                    setIsLoading(true);
-                    try {
-                      const nodeIds = getEffectiveMergeNodes();
-                      const conv = conversations.find(c => c.id === activeConversation);
-
-                      const getPathToNode = (messages, targetId, path = []) => {
-                        for (const msg of messages) {
-                          const newPath = [...path, msg];
-                          if (msg.id === targetId) {
-                            return newPath;
-                          }
-                          const found = getPathToNode(msg.children, targetId, newPath);
-                          if (found) return found;
-                        }
-                        return null;
-                      };
-
-                      const branchContexts = [];
-                      for (let i = 0; i < nodeIds.length; i++) {
-                        const nodeId = nodeIds[i];
-                        const node = findMessage(conv.messages, nodeId);
-
-                        if (node) {
-                          const pathToNode = getPathToNode(conv.messages, nodeId);
-                          const conversationText = pathToNode ? pathToNode.map(msg =>
-                            `${msg.type === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`
-                          ).join('\n') : `${node.type === 'user' ? 'Human' : 'Assistant'}: ${node.content}`;
-
-                          branchContexts.push(`--- Conversation Branch ${i + 1} ---\n${conversationText}`);
-                        }
-                      }
-
-                      const allBranches = branchContexts.join('\n\n');
-
-                      const firstNodeForHistory = findMessage(conv.messages, nodeIds[0]);
-                      const pathToFirst = firstNodeForHistory ? getPathToNode(conv.messages, nodeIds[0]) : [];
-                      const commonHistory = pathToFirst.slice(0, -1);
-                      const historyText = commonHistory.length > 0
-                        ? commonHistory.map(msg => `${msg.type === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`).join('\n')
-                        : '';
-
-                      let mergePrompt = 'You are continuing a conversation. Here is the context:\n\n';
-
-                      if (historyText) {
-                        mergePrompt += 'SHARED CONVERSATION HISTORY:\n' + historyText + '\n\n';
-                      }
-
-                      mergePrompt += 'DIVERGENT BRANCHES TO MERGE:\n';
-                      mergePrompt += `I have ${nodeIds.length} different conversation branches that diverged from `;
-                      mergePrompt += historyText ? 'the above conversation' : 'the start';
-                      mergePrompt += '. Each represents a different direction our conversation took:\n\n';
-                      mergePrompt += allBranches + '\n\n';
-                      mergePrompt += 'Please synthesize these different paths into a coherent response that:\n\n';
-                      mergePrompt += '1. Acknowledges the conversation history and maintains continuity\n';
-                      mergePrompt += '2. Integrates insights from each branch meaningfully\n';
-                      mergePrompt += '3. Resolves any contradictions by finding the most coherent perspective\n';
-                      mergePrompt += '4. Creates a unified direction for continuing our conversation\n';
-                      mergePrompt += '5. Maintains natural conversational flow\n\n';
-                      mergePrompt += 'Your response should feel like a natural continuation that acknowledges the different directions we explored and synthesizes them into a coherent next step. Respond as the Assistant continuing our conversation, taking into account all the context and branches above.';
-
-                      const apiResponse = await fetch('/api/chat', {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ prompt: mergePrompt }),
-                      });
-
-                      if (!apiResponse.ok) {
-                        throw new Error('Failed to fetch from merge API');
-                      }
-
-                      const data = await apiResponse.json();
-                      const response = data.response;
-
-                      const mergedMessage = {
-                        id: `merged-${Date.now()}`,
-                        type: 'assistant',
-                        content: response,
-                        timestamp: new Date().toISOString(),
-                        collapsed: false,
-                        mergedFrom: nodeIds,
-                        isMergeRoot: true,
-                        children: []
-                      };
-
-                      const parentNode = nodeIds.map(id => findMessage(conv.messages, id))[0];
-
-                      if (parentNode) {
-                        addMessage(activeConversation, parentNode.id, mergedMessage);
-                        setSelectedMessageId(mergedMessage.id);
-                        setSelectedNodes(new Set());
-                      }
-
-                    } catch (error) {
-                      console.error('Intelligent merge failed:', error);
-
-                      const fallbackMessage = {
-                        id: `merged-${Date.now()}`,
-                        type: 'assistant',
-                        content: `I attempted to synthesize insights from ${effectiveMergeNodes.length} conversation branches, but encountered a technical issue. Based on the different paths we explored, there seem to be multiple interesting directions. Could you help me understand which aspect you'd like to focus on, or would you like me to try the merge again?`,
-                        timestamp: new Date().toISOString(),
-                        collapsed: false,
-                        mergedFrom: effectiveMergeNodes,
-                        isMergeRoot: true,
-                        children: []
-                      };
-
-                      const conv = conversations.find(c => c.id === activeConversation);
-                      const fallbackParentNode = effectiveMergeNodes.map(id => findMessage(conv.messages, id))[0];
-
-                      if (fallbackParentNode) {
-                        addMessage(activeConversation, fallbackParentNode.id, fallbackMessage);
-                        setSelectedMessageId(fallbackMessage.id);
-                        setSelectedNodes(new Set());
-                      }
-                    } finally {
-                      setIsLoading(false);
-                    }
+              <Controls showInteractive={false} position="top-left" />
+              {showMiniMap && (
+                <MiniMap 
+                  nodeColor={(node) => {
+                    if (node.data?.message?.type === 'user') return '#3b82f6';
+                    if (node.data?.message?.mergedFrom) return '#a855f7';
+                    return '#10b981';
                   }}
-                  className="flex items-center gap-2 w-full px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm hover:bg-purple-200 transition-colors font-medium mb-2"
-                  disabled={isLoading}
-                >
-                  <Sparkles size={14} />
-                  Merge {effectiveMergeNodes.length} nodes
-                </button>
-              ) : effectiveMergeNodes.length === 1 ? (
-                <div className="text-sm text-gray-500 text-center py-2 mb-2">
-                  Select 1 more node to merge with active
-                </div>
-              ) : (
-                <div className="text-sm text-gray-500 text-center py-2 mb-2">
-                  Ctrl+click nodes to multi-select
-                </div>
+                  className="bg-white border border-gray-200 rounded-lg"
+                  position="bottom-left"
+                />
               )}
-            </div>
-          }
-        </div>
-      </div>
+              <Background variant="dots" gap={20} size={1} />
+              
+              {/* Timeline Controls */}
+              <Panel position="top-center">
+                <div className="flex items-center gap-3 bg-white rounded-xl shadow-lg border border-gray-200 p-3">
+                  <button
+                    onClick={startTimelineAnimation}
+                    className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                    title={isAnimating ? "Pause Animation" : "Play Timeline Animation"}
+                  >
+                    {isAnimating ? <Pause size={16} /> : <Play size={16} />}
+                  </button>
+                  
+                  <button
+                    onClick={resetTimeline}
+                    className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                    title="Reset Timeline"
+                  >
+                    <RotateCcw size={16} />
+                  </button>
+                  
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">Timeline:</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={timelinePosition}
+                      onChange={(e) => setTimelinePosition(parseFloat(e.target.value))}
+                      className="w-32"
+                      disabled={isAnimating}
+                    />
+                    <span className="text-xs text-gray-500 w-8">
+                      {Math.round(timelinePosition * 100)}%
+                    </span>
+                  </div>
+                </div>
+              </Panel>
+
+              {/* View Controls */}
+              <Panel position="top-right">
+                <div className="flex items-center gap-2 bg-white rounded-xl shadow-lg border border-gray-200 p-3">
+                  <div className="flex items-center gap-1">
+                    <Search size={14} />
+                    <input
+                      type="text"
+                      placeholder="Search..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-24 text-xs border-none bg-transparent focus:outline-none placeholder-gray-400"
+                    />
+                  </div>
+                  
+                  <div className="w-px h-4 bg-gray-300"></div>
+                  
+                  <select
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value)}
+                    className="text-xs border-none bg-transparent focus:outline-none"
+                  >
+                    <option value="all">All</option>
+                    <option value="user">User</option>
+                    <option value="assistant">Assistant</option>
+                    <option value="merged">Merged</option>
+                  </select>
+                  
+                  <div className="w-px h-4 bg-gray-300"></div>
+                  
+                  <button
+                    onClick={() => setShowMiniMap(!showMiniMap)}
+                    className="p-1 text-gray-700 hover:bg-gray-100 rounded"
+                    title="Toggle MiniMap"
+                  >
+                    {showMiniMap ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
+              </Panel>
+
+              {/* Status Panel */}
+              <Panel position="bottom-right">
+                <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-3 text-xs">
+                  <div className="text-gray-500 mb-1">Quick Info</div>
+                  {currentConversation && (
+                    <>
+                      <div className="text-gray-700 font-medium">
+                        {getAllMessages(currentConversation.messages).length} total messages
+                      </div>
+                      <div className="text-gray-500">
+                        {selectedNodes.size} selected • {bookmarkedNodes.size} bookmarked
+                      </div>
+                    </>
+                  )}
+                  <div className="text-gray-400 mt-1">
+                    💡 Double-click node to focus chat
+                  </div>
+                </div>
+              </Panel>
+            </ReactFlow>
+          </div>
+        </>
+      )}
     </div>
   );
 };
 
+// Main App Component with React Flow Provider
+const App = () => {
+  return (
+    <ReactFlowProvider>
+      <TreeChatApp />
+    </ReactFlowProvider>
+  );
+};
 
-const AppWrapper = () => (
-  <ReactFlowProvider>
-    <App />
-  </ReactFlowProvider>
-);
-
-export default AppWrapper;
+export default App;

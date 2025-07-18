@@ -1,3 +1,109 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* React Flow custom styles */
+.react-flow__node-message {
+  background: transparent;
+  border: none;
+}
+
+.react-flow__node-message .react-flow__handle {
+  background: #6b7280;
+  border: 2px solid white;
+  width: 8px;
+  height: 8px;
+}
+
+.react-flow__node-message .react-flow__handle-top {
+  top: -4px;
+}
+
+.react-flow__node-message .react-flow__handle-bottom {
+  bottom: -4px;
+}
+
+.react-flow__edge-path {
+  stroke-width: 2;
+}
+
+.react-flow__edge.animated .react-flow__edge-path {
+  stroke-dasharray: 5;
+  animation: dashdraw 0.5s linear infinite;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #fbbf24 !important;
+}
+
+@keyframes dashdraw {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+
+/* Custom node styles */
+.user-node {
+  border-color: #3b82f6 !important;
+}
+
+.assistant-node {
+  border-color: #10b981 !important;
+}
+
+.bookmarked-node {
+  box-shadow: 0 0 0 2px #fbbf24;
+}
+
+/* React Flow controls customization */
+.react-flow__controls {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.react-flow__controls-button {
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  color: #374151;
+}
+
+.react-flow__controls-button:hover {
+  background: #f9fafb;
+}
+
+.react-flow__controls-button:last-child {
+  border-bottom: none;
+}
+
+/* MiniMap customization */
+.react-flow__minimap {
+  background: white;
+  border: 1px solid #e5e7eb;
+}
+
+/* Panel customization */
+.react-flow__panel {
+  z-index: 5;
+}
+
+/* Selection box */
+.react-flow__selection {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px dashed #3b82f6;
+}
+
+/* Loading animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
