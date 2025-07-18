@@ -16,7 +16,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Plus, Send, MessageCircle, Maximize2, Minimize2, User, Bot, Sparkles, Play, Pause, RotateCcw, History, GitBranch, Zap, Eye, EyeOff, Filter, Search, Bookmark, Share2, Download, Upload, Settings } from 'lucide-react';
-
+import './reactflow-custom.css';
 // Custom Node Component
 const MessageNode = ({ data, selected }) => {
   const { message, onNodeClick, onNodeDoubleClick, isMultiSelected, truncateLength = 100 } = data;

@@ -1,0 +1,73 @@
+/* Advanced React Flow Customizations */
+
+/* Dark mode support */
+.dark .react-flow__node-message {
+    background: #1f2937;
+    color: white;
+    border-color: #374151 !important;
+  }
+  
+  .dark .react-flow__controls {
+    background: #1f2937;
+    border-color: #374151;
+  }
+  
+  .dark .react-flow__controls-button {
+    background: #1f2937;
+    color: white;
+    border-color: #374151;
+  }
+  
+  .dark .react-flow__minimap {
+    background: #1f2937;
+    border-color: #374151;
+  }
+  
+  /* Hover effects for nodes */
+  .react-flow__node-message:hover {
+    transform: scale(1.02);
+    transition: transform 0.2s ease-in-out;
+    z-index: 10;
+  }
+  
+  /* Connection line styling */
+  .react-flow__connectionline {
+    stroke: #3b82f6;
+    stroke-width: 2;
+    stroke-dasharray: 5,5;
+  }
+  
+  /* Custom handle styles */
+  .react-flow__handle-connecting {
+    background: #3b82f6 !important;
+    transform: scale(1.5);
+    transition: all 0.2s ease;
+  }
+  
+  /* Smooth transitions */
+  .react-flow__node {
+    transition: all 0.2s ease;
+  }
+  
+  .react-flow__edge {
+    transition: all 0.2s ease;
+  }
+  
+  /* Custom scrollbar for panels */
+  .react-flow__panel::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .react-flow__panel::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+  }
+  
+  .react-flow__panel::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+  
+  .react-flow__panel::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
