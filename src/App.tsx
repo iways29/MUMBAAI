@@ -12,7 +12,8 @@ import {
   ConnectionLineType,
   MarkerType,
   Handle,
-  Position
+  Position,
+  addEdge
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Plus, Send, MessageCircle, ChevronLeft, ChevronRight, User, Bot, Sparkles, Play, Pause, RotateCcw, History, GitBranch, Zap, Eye, EyeOff, Search, Bookmark, Share2, X } from 'lucide-react';
@@ -120,7 +121,7 @@ const nodeTypes = {
   message: MessageNode,
 };
 
-const TreeChatApp = () => {
+const FlowChatAI = () => {
   const [conversations, setConversations] = useState([
     {
       id: 'conv-1',
@@ -191,7 +192,6 @@ const TreeChatApp = () => {
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedNodes, setSelectedNodes] = useState(new Set());
-  const [isWhiteboardExpanded, setIsWhiteboardExpanded] = useState(false);
   const [chatPanelCollapsed, setChatPanelCollapsed] = useState(false);
 
   // Timeline and animation
@@ -211,18 +211,18 @@ const TreeChatApp = () => {
   const [bookmarkedNodes, setBookmarkedNodes] = useState(new Set());
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
 
-    // Helper functions
-    const getAllMessages = (messages) => {
-        let allMessages = [];
-        const traverse = (msgs) => {
-          msgs.forEach(msg => {
-            allMessages.push(msg);
-            if (msg.children) traverse(msg.children);
-          });
-        };
-        traverse(messages);
-        return allMessages;
-      };
+  // Helper functions
+  const getAllMessages = (messages) => {
+    let allMessages = [];
+    const traverse = (msgs) => {
+      msgs.forEach(msg => {
+        allMessages.push(msg);
+        if (msg.children) traverse(msg.children);
+      });
+    };
+    traverse(messages);
+    return allMessages;
+  };
 
   // Convert conversation messages to React Flow nodes and edges
   const convertToFlowElements = useCallback((messages) => {
@@ -360,8 +360,6 @@ const TreeChatApp = () => {
       setEdges([]);
     }
   }, [activeConversation, conversations, convertToFlowElements, setNodes, setEdges, fitView]);
-
-
 
   const findMessage = (messages, messageId) => {
     for (const message of messages) {
@@ -711,194 +709,12 @@ const TreeChatApp = () => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {isWhiteboardExpanded ? (
-        // Full whiteboard mode
-        <div className="w-full h-screen flex bg-gray-50">
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            nodeTypes={nodeTypes}
-            connectionLineType={ConnectionLineType.SmoothStep}
-            fitView
-            className="bg-gray-50 h-full"
-          >
-            <Controls showInteractive={false} position="top-left" />
-            {showMiniMap && (
-              <MiniMap
-                nodeColor={(node) => {
-                  if (node.data?.message?.type === 'user') return '#3b82f6';
-                  if (node.data?.message?.mergedFrom) return '#a855f7';
-                  return '#10b981';
-                }}
-                className="bg-white border border-gray-200 rounded-lg"
-                position="bottom-left"
-              />
-            )}
-            <Background variant="dots" gap={20} size={1} />
-
-            {/* Timeline Controls - Top Center */}
-            <Panel position="top-center">
-              <div className="flex items-center gap-3 bg-white rounded-xl shadow-lg border border-gray-200 p-3">
-                <button
-                  onClick={startTimelineAnimation}
-                  className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-                  title={isAnimating ? "Pause Animation" : "Play Timeline Animation"}
-                >
-                  {isAnimating ? <Pause size={16} /> : <Play size={16} />}
-                </button>
-
-                <button
-                  onClick={resetTimeline}
-                  className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-                  title="Reset Timeline"
-                >
-                  <RotateCcw size={16} />
-                </button>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">Timeline:</span>
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={timelinePosition}
-                    onChange={(e) => setTimelinePosition(parseFloat(e.target.value))}
-                    className="w-32"
-                    disabled={isAnimating}
-                  />
-                  <span className="text-xs text-gray-500 w-8">
-                    {Math.round(timelinePosition * 100)}%
-                  </span>
-                </div>
-              </div>
-            </Panel>
-
-            {/* Controls - Top Right */}
-            <Panel position="top-right">
-              <div className="flex items-center gap-2 bg-white rounded-xl shadow-lg border border-gray-200 p-3">
-                <div className="flex items-center gap-1">
-                  <Search size={14} />
-                  <input
-                    type="text"
-                    placeholder="Search..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-24 text-xs border-none bg-transparent focus:outline-none placeholder-gray-400"
-                  />
-                </div>
-
-                <div className="w-px h-4 bg-gray-300"></div>
-
-                <select
-                  value={filterType}
-                  onChange={(e) => setFilterType(e.target.value)}
-                  className="text-xs border-none bg-transparent focus:outline-none"
-                >
-                  <option value="all">All</option>
-                  <option value="user">User</option>
-                  <option value="assistant">Assistant</option>
-                  <option value="merged">Merged</option>
-                </select>
-
-                <div className="w-px h-4 bg-gray-300"></div>
-
-                <button
-                  onClick={() => setShowMiniMap(!showMiniMap)}
-                  className="p-1 text-gray-700 hover:bg-gray-100 rounded"
-                  title="Toggle MiniMap"
-                >
-                  {showMiniMap ? <EyeOff size={14} /> : <Eye size={14} />}
-                </button>
-
-                <button
-                  onClick={() => setIsWhiteboardExpanded(false)}
-                  className="p-1 text-gray-700 hover:bg-gray-100 rounded"
-                  title="Exit Fullscreen"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            </Panel>
-
-            {/* Merge Controls - Bottom Left */}
-            <Panel position="bottom-left">
-              <div className="p-4 bg-white rounded-lg shadow-lg border border-gray-200 max-w-sm">
-                <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                  <GitBranch size={14} />
-                  <span>Ctrl+click • Double-click to focus</span>
-                </div>
-
-                <div className="text-sm mb-3">
-                  <span className="text-blue-600 font-medium">Selected: {selectedNodes.size} nodes</span>
-                  {selectedMessageId && selectedNodes.size > 0 && !selectedNodes.has(selectedMessageId) && (
-                    <span className="text-green-600 ml-1">+ active node</span>
-                  )}
-                </div>
-
-                {getEffectiveMergeCount() >= 2 ? (
-                  <button
-                    onClick={performIntelligentMerge}
-                    className="flex items-center gap-2 w-full px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm hover:bg-purple-200 transition-colors font-medium mb-2"
-                    disabled={isLoading}
-                  >
-                    <Sparkles size={14} />
-                    {isLoading ? 'Merging...' : `Smart Merge ${getEffectiveMergeCount()} nodes`}
-                  </button>
-                ) : (
-                  <div className="text-sm text-gray-500 text-center py-2 mb-2">
-                    Select 2+ nodes to merge
-                  </div>
-                )}
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => fitView({ padding: 0.3, duration: 800 })}
-                    className="flex-1 px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200"
-                  >
-                    Fit View
-                  </button>
-                  <button
-                    onClick={() => setSelectedNodes(new Set())}
-                    className="flex-1 px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200"
-                  >
-                    Clear
-                  </button>
-                </div>
-              </div>
-            </Panel>
-
-            {/* Quick Info - Bottom Right */}
-            <Panel position="bottom-right">
-              <div className="bg-white rounded-lg shadow border border-gray-200 p-3 text-xs">
-                <div className="text-gray-500 mb-1">Quick Info</div>
-                {currentConversation && (
-                  <>
-                    <div className="text-gray-700 font-medium">
-                      {getAllMessages(currentConversation.messages).length} messages
-                    </div>
-                    <div className="text-gray-500">
-                      {selectedNodes.size} selected
-                    </div>
-                  </>
-                )}
-                <div className="text-gray-400 mt-1">
-                  💡 Double-click to focus
-                </div>
-              </div>
-            </Panel>
-          </ReactFlow>
-        </div>
-      ) : (
-        // Split view mode
-        <>
-          {/* Chat Interface - Collapsible */}
-          <div className={`${chatPanelCollapsed ? 'w-0' : 'w-2/5'} bg-white border-r border-gray-200 flex flex-col shadow-sm transition-all duration-300 overflow-hidden`}>
+      {/* Split view mode */}
+      {/* Chat Interface - Collapsible */}
+      <div className={`${chatPanelCollapsed ? 'w-0' : 'w-2/5'} bg-white border-r border-gray-200 flex flex-col shadow-sm transition-all duration-300 overflow-hidden`}>
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">Tree Chat AI</h2>
+                <h2 className="text-xl font-semibold text-gray-900">FlowChat AI</h2>
                 <div className="flex gap-2">
                   <button
                     onClick={createNewConversation}
@@ -1147,6 +963,7 @@ const TreeChatApp = () => {
               edges={edges}
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
               nodeTypes={nodeTypes}
               connectionLineType={ConnectionLineType.SmoothStep}
               fitView
@@ -1166,52 +983,176 @@ const TreeChatApp = () => {
               )}
               <Background variant="dots" gap={20} size={1} />
 
-              {/* Top Controls */}
-              <Panel position="top-right">
-                <div className="flex items-center gap-2 bg-white rounded-xl shadow border border-gray-200 p-3">
-                  <div className="flex items-center gap-1">
-                    <Search size={14} />
-                    <input
-                      type="text"
-                      placeholder="Search..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-24 text-xs border-none bg-transparent focus:outline-none placeholder-gray-400"
-                    />
+              {/* Timeline Controls - Top Center - Show when chat collapsed */}
+              {chatPanelCollapsed && (
+                <Panel position="top-center">
+                  <div className="flex items-center gap-3 bg-white rounded-xl shadow-lg border border-gray-200 p-3">
+                    <button
+                      onClick={startTimelineAnimation}
+                      className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                      title={isAnimating ? "Pause Animation" : "Play Timeline Animation"}
+                    >
+                      {isAnimating ? <Pause size={16} /> : <Play size={16} />}
+                    </button>
+
+                    <button
+                      onClick={resetTimeline}
+                      className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                      title="Reset Timeline"
+                    >
+                      <RotateCcw size={16} />
+                    </button>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">Timeline:</span>
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={timelinePosition}
+                        onChange={(e) => setTimelinePosition(parseFloat(e.target.value))}
+                        className="w-32"
+                        disabled={isAnimating}
+                      />
+                      <span className="text-xs text-gray-500 w-8">
+                        {Math.round(timelinePosition * 100)}%
+                      </span>
+                    </div>
                   </div>
+                </Panel>
+              )}
 
-                  <div className="w-px h-4 bg-gray-300"></div>
+              {/* Top Controls - Only show when chat panel is not collapsed */}
+              {!chatPanelCollapsed && (
+                <Panel position="top-right">
+                  <div className="flex items-center gap-2 bg-white rounded-xl shadow border border-gray-200 p-3">
+                    <div className="flex items-center gap-1">
+                      <Search size={14} />
+                      <input
+                        type="text"
+                        placeholder="Search..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-24 text-xs border-none bg-transparent focus:outline-none placeholder-gray-400"
+                      />
+                    </div>
 
-                  <select
-                    value={filterType}
-                    onChange={(e) => setFilterType(e.target.value)}
-                    className="text-xs border-none bg-transparent focus:outline-none"
-                  >
-                    <option value="all">All</option>
-                    <option value="user">User</option>
-                    <option value="assistant">Assistant</option>
-                    <option value="merged">Merged</option>
-                  </select>
+                    <div className="w-px h-4 bg-gray-300"></div>
 
-                  <div className="w-px h-4 bg-gray-300"></div>
+                    <select
+                      value={filterType}
+                      onChange={(e) => setFilterType(e.target.value)}
+                      className="text-xs border-none bg-transparent focus:outline-none"
+                    >
+                      <option value="all">All</option>
+                      <option value="user">User</option>
+                      <option value="assistant">Assistant</option>
+                      <option value="merged">Merged</option>
+                    </select>
 
-                  <button
-                    onClick={() => setShowMiniMap(!showMiniMap)}
-                    className="p-1 text-gray-700 hover:bg-gray-100 rounded"
-                    title="Toggle MiniMap"
-                  >
-                    {showMiniMap ? <EyeOff size={14} /> : <Eye size={14} />}
-                  </button>
+                    <div className="w-px h-4 bg-gray-300"></div>
 
-                  <button
-                    onClick={() => setIsWhiteboardExpanded(true)}
-                    className="p-1 text-gray-700 hover:bg-gray-100 rounded"
-                    title="Expand Whiteboard"
-                  >
-                    <ChevronRight size={14} />
-                  </button>
-                </div>
-              </Panel>
+                    <button
+                      onClick={() => setShowMiniMap(!showMiniMap)}
+                      className="p-1 text-gray-700 hover:bg-gray-100 rounded"
+                      title="Toggle MiniMap"
+                    >
+                      {showMiniMap ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
+                </Panel>
+              )}
+
+              {/* Search Controls - Top Right - Show when chat collapsed */}
+              {chatPanelCollapsed && (
+                <Panel position="top-right">
+                  <div className="flex items-center gap-2 bg-white rounded-xl shadow border border-gray-200 p-3">
+                    <div className="flex items-center gap-1">
+                      <Search size={14} />
+                      <input
+                        type="text"
+                        placeholder="Search..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-24 text-xs border-none bg-transparent focus:outline-none placeholder-gray-400"
+                      />
+                    </div>
+
+                    <div className="w-px h-4 bg-gray-300"></div>
+
+                    <select
+                      value={filterType}
+                      onChange={(e) => setFilterType(e.target.value)}
+                      className="text-xs border-none bg-transparent focus:outline-none"
+                    >
+                      <option value="all">All</option>
+                      <option value="user">User</option>
+                      <option value="assistant">Assistant</option>
+                      <option value="merged">Merged</option>
+                    </select>
+
+                    <div className="w-px h-4 bg-gray-300"></div>
+
+                    <button
+                      onClick={() => setShowMiniMap(!showMiniMap)}
+                      className="p-1 text-gray-700 hover:bg-gray-100 rounded"
+                      title="Toggle MiniMap"
+                    >
+                      {showMiniMap ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
+                </Panel>
+              )}
+
+              {/* Merge Controls - Bottom Left - Show when chat collapsed */}
+              {chatPanelCollapsed && (
+                <Panel position="bottom-left">
+                  <div className="p-4 bg-white rounded-lg shadow-lg border border-gray-200 max-w-sm">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
+                      <GitBranch size={14} />
+                      <span>Ctrl+click • Double-click to focus</span>
+                    </div>
+
+                    <div className="text-sm mb-3">
+                      <span className="text-blue-600 font-medium">Selected: {selectedNodes.size} nodes</span>
+                      {selectedMessageId && selectedNodes.size > 0 && !selectedNodes.has(selectedMessageId) && (
+                        <span className="text-green-600 ml-1">+ active node</span>
+                      )}
+                    </div>
+
+                    {getEffectiveMergeCount() >= 2 ? (
+                      <button
+                        onClick={performIntelligentMerge}
+                        className="flex items-center gap-2 w-full px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm hover:bg-purple-200 transition-colors font-medium mb-2"
+                        disabled={isLoading}
+                      >
+                        <Sparkles size={14} />
+                        {isLoading ? 'Merging...' : `Smart Merge ${getEffectiveMergeCount()} nodes`}
+                      </button>
+                    ) : (
+                      <div className="text-sm text-gray-500 text-center py-2 mb-2">
+                        Select 2+ nodes to merge
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => fitView({ padding: 0.3, duration: 800 })}
+                        className="flex-1 px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200"
+                      >
+                        Fit View
+                      </button>
+                      <button
+                        onClick={() => setSelectedNodes(new Set())}
+                        className="flex-1 px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+                </Panel>
+              )}
 
               {/* Status Panel */}
               <Panel position="bottom-right">
@@ -1233,18 +1174,14 @@ const TreeChatApp = () => {
                 </div>
               </Panel>
             </ReactFlow>
-          </div>
-        </>
-      )}
+          </div>            
     </div>
   );
-};
-
-// Main App Component with React Flow Provider
+}
 const App = () => {
   return (
     <ReactFlowProvider>
-      <TreeChatApp />
+      <FlowChatAI />
     </ReactFlowProvider>
   );
 };
