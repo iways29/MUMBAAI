@@ -18,6 +18,7 @@ import {
 import 'reactflow/dist/style.css';
 import { Plus, Send, MessageCircle, ChevronLeft, ChevronRight, ChevronUp, User, Bot, Sparkles, Play, Pause, RotateCcw, History, GitBranch, Zap, Eye, EyeOff, Search, Bookmark, Share2, X, Edit } from 'lucide-react';
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 // Custom Node Component
 const MessageNode = ({ data, selected }) => {
@@ -1230,6 +1231,7 @@ const App = () => {
     <ReactFlowProvider>
       <FlowChatAI />
       <Analytics />
+      <SpeedInsights />
     </ReactFlowProvider>
   );
 };
