@@ -643,11 +643,40 @@ const FlowChatAI = () => {
         return null;
       };
 
-      // Mock merge response for demo
+      // Get the selected messages content for merging
+      const selectedMessages = effectiveMergeNodes.map(nodeId => {
+        const message = findMessage(conv.messages, nodeId);
+        return message ? `${message.type === 'user' ? 'Human' : 'Assistant'}: ${message.content}` : '';
+      }).filter(Boolean);
+
+      const mergePrompt = `Please analyze and synthesize these different conversation branches into a unified response that captures the key insights from each path:
+
+      ${selectedMessages.join('\n\n')}
+
+      Create a comprehensive response that merges the best elements from these different directions while maintaining coherence and adding new insights where appropriate.`;
+
+      // Call Gemini API for merge
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: mergePrompt
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Merge API request failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const mergedContent = data.response;
+
       const mergedMessage = {
         id: `merged-${Date.now()}`,
         type: 'assistant',
-        content: `I've synthesized the different conversation paths you selected. This merged response takes into account the various directions our discussion has taken and provides a unified perspective that addresses the key points from each branch.`,
+        content: mergedContent, // Now using real AI synthesis
         timestamp: new Date().toISOString(),
         collapsed: false,
         mergedFrom: effectiveMergeNodes,
