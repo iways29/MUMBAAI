@@ -531,20 +531,28 @@ const FlowChatAI = () => {
       const contextPrompt = `Here is our conversation history:\n\n${contextMessages}\n\nHuman: ${userInput}\n\nPlease respond naturally, taking into account the full conversation context above.`;
 
       // Mock API response for demo
-      const mockResponses = [
-        "That's a great question! Let me help you with that.",
-        "I understand what you're looking for. Here's my perspective on this topic.",
-        "Interesting! There are several approaches we could take here.",
-        "Based on what you've mentioned, I'd suggest considering these options.",
-        "That makes sense. Let me break this down for you."
-      ];
-      
-      const response = mockResponses[Math.floor(Math.random() * mockResponses.length)];
+      // Call Gemini API
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: contextPrompt
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const aiResponse = data.response;
 
       const assistantMessage = {
         id: `msg-${Date.now() + 1}`,
         type: 'assistant',
-        content: response,
+        content: aiResponse,
         timestamp: new Date().toISOString(),
         collapsed: false,
         children: []
