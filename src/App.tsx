@@ -16,7 +16,7 @@ import {
   addEdge
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Plus, Send, MessageCircle, ChevronLeft, ChevronRight, User, Bot, Sparkles, Play, Pause, RotateCcw, History, GitBranch, Zap, Eye, EyeOff, Search, Bookmark, Share2, X } from 'lucide-react';
+import { Plus, Send, MessageCircle, ChevronLeft, ChevronRight, ChevronDown, User, Bot, Sparkles, Play, Pause, RotateCcw, History, GitBranch, Zap, Eye, EyeOff, Search, Bookmark, Share2, X } from 'lucide-react';
 
 // Custom Node Component
 const MessageNode = ({ data, selected }) => {
@@ -126,10 +126,6 @@ const FlowChatAI = () => {
     {
       id: 'conv-1',
       name: 'Project X',
-      semanticTags: ['web-development', 'project-planning'],
-      theme: 'Technical Discussion',
-      importance: 0.8,
-      clusterGroup: 'development',
       messages: [
         {
           id: 'msg-1',
@@ -193,6 +189,7 @@ const FlowChatAI = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedNodes, setSelectedNodes] = useState(new Set());
   const [chatPanelCollapsed, setChatPanelCollapsed] = useState(false);
+  const [infoPanelCollapsed, setInfoPanelCollapsed] = useState(false);
 
   // Timeline and animation
   const [timelinePosition, setTimelinePosition] = useState(1.0);
@@ -566,10 +563,6 @@ const FlowChatAI = () => {
     const newConv = {
       id: `conv-${Date.now()}`,
       name: `New Chat ${conversations.length + 1}`,
-      semanticTags: ['general'],
-      theme: 'New Discussion',
-      importance: 0.5,
-      clusterGroup: 'general',
       messages: []
     };
     setConversations(prev => [...prev, newConv]);
@@ -712,106 +705,143 @@ const FlowChatAI = () => {
       {/* Split view mode */}
       {/* Chat Interface - Collapsible */}
       <div className={`${chatPanelCollapsed ? 'w-0' : 'w-2/5'} bg-white border-r border-gray-200 flex flex-col shadow-sm transition-all duration-300 overflow-hidden`}>
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">FlowChat AI</h2>
-                <div className="flex gap-2">
-                  <button
-                    onClick={createNewConversation}
-                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                    title="New Conversation"
-                  >
-                    <Plus size={18} />
-                  </button>
-                  <button
-                    onClick={() => setChatPanelCollapsed(true)}
-                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                    title="Collapse Chat"
-                  >
-                    <ChevronLeft size={18} />
-                  </button>
-                </div>
-              </div>
-
-              <select
-                value={activeConversation}
-                onChange={(e) => {
-                  setActiveConversation(e.target.value);
-                  const newConv = conversations.find(c => c.id === e.target.value);
-                  if (newConv && newConv.messages.length > 0) {
-                    setSelectedMessageId(newConv.messages[0].id);
-                  } else {
-                    setSelectedMessageId(null);
-                  }
-                  setSelectedNodes(new Set());
-                }}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {conversations.map(conv => (
-                  <option key={conv.id} value={conv.id}>{conv.name}</option>
-                ))}
-              </select>
-
-              {currentConversation && (
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                  <div className="text-sm font-medium text-blue-900 mb-1">
-                    {currentConversation.theme}
-                  </div>
-                  <div className="text-xs text-blue-700">
-                    Tags: {currentConversation.semanticTags?.join(', ') || 'None'}
-                  </div>
-                  <div className="text-xs text-blue-600 mt-1">
-                    Messages: {getAllMessages(currentConversation.messages).length} •
-                    Importance: {Math.round((currentConversation.importance || 0) * 100)}%
+            {/* Collapsible Info Panel */}
+            <div className={`${infoPanelCollapsed ? 'h-0' : 'h-auto'} border-b border-gray-200 transition-all duration-300 overflow-hidden`}>
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">FlowChat AI</h2>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={createNewConversation}
+                      className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                      title="New Conversation"
+                    >
+                      <Plus size={18} />
+                    </button>
+                    <button
+                      onClick={() => setInfoPanelCollapsed(!infoPanelCollapsed)}
+                      className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                      title={infoPanelCollapsed ? "Show Info Panel" : "Hide Info Panel"}
+                    >
+                      <ChevronDown size={18} className={`transform transition-transform ${infoPanelCollapsed ? 'rotate-180' : ''}`} />
+                    </button>
+                    <button
+                      onClick={() => setChatPanelCollapsed(true)}
+                      className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                      title="Collapse Chat"
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
                   </div>
                 </div>
-              )}
 
-              {/* Merge Controls */}
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                  <GitBranch size={14} />
-                  <span>Ctrl+click nodes • Double-click to focus</span>
-                </div>
+                <select
+                  value={activeConversation}
+                  onChange={(e) => {
+                    setActiveConversation(e.target.value);
+                    const newConv = conversations.find(c => c.id === e.target.value);
+                    if (newConv && newConv.messages.length > 0) {
+                      setSelectedMessageId(newConv.messages[0].id);
+                    } else {
+                      setSelectedMessageId(null);
+                    }
+                    setSelectedNodes(new Set());
+                  }}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  {conversations.map(conv => (
+                    <option key={conv.id} value={conv.id}>{conv.name}</option>
+                  ))}
+                </select>
 
-                <div className="text-sm mb-3">
-                  <span className="text-blue-600 font-medium">Selected: {selectedNodes.size} nodes</span>
-                  {selectedMessageId && selectedNodes.size > 0 && !selectedNodes.has(selectedMessageId) && (
-                    <span className="text-green-600 ml-1">+ active node</span>
+
+
+                {/* Merge Controls */}
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
+                    <GitBranch size={14} />
+                    <span>Ctrl+click nodes • Double-click to focus</span>
+                  </div>
+
+                  <div className="text-sm mb-3">
+                    <span className="text-blue-600 font-medium">Selected: {selectedNodes.size} nodes</span>
+                    {selectedMessageId && selectedNodes.size > 0 && !selectedNodes.has(selectedMessageId) && (
+                      <span className="text-green-600 ml-1">+ active node</span>
+                    )}
+                  </div>
+
+                  {getEffectiveMergeCount() >= 2 ? (
+                    <button
+                      onClick={performIntelligentMerge}
+                      className="flex items-center gap-2 w-full px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm hover:bg-purple-200 transition-colors font-medium mb-2"
+                      disabled={isLoading}
+                    >
+                      <Sparkles size={14} />
+                      {isLoading ? 'Merging...' : `Smart Merge ${getEffectiveMergeCount()} nodes`}
+                    </button>
+                  ) : (
+                    <div className="text-sm text-gray-500 text-center py-2 mb-2 border border-dashed border-gray-300 rounded">
+                      Select 2+ nodes to merge
+                    </div>
                   )}
-                </div>
 
-                {getEffectiveMergeCount() >= 2 ? (
-                  <button
-                    onClick={performIntelligentMerge}
-                    className="flex items-center gap-2 w-full px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm hover:bg-purple-200 transition-colors font-medium mb-2"
-                    disabled={isLoading}
-                  >
-                    <Sparkles size={14} />
-                    {isLoading ? 'Merging...' : `Smart Merge ${getEffectiveMergeCount()} nodes`}
-                  </button>
-                ) : (
-                  <div className="text-sm text-gray-500 text-center py-2 mb-2 border border-dashed border-gray-300 rounded">
-                    Select 2+ nodes to merge
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setSelectedNodes(new Set())}
+                      className="flex-1 px-2 py-1 bg-white text-gray-600 rounded text-xs hover:bg-gray-100 border border-gray-200"
+                    >
+                      Clear
+                    </button>
+                    <button
+                      onClick={() => fitView({ padding: 0.3, duration: 800 })}
+                      className="flex-1 px-2 py-1 bg-white text-gray-600 rounded text-xs hover:bg-gray-100 border border-gray-200"
+                    >
+                      Fit View
+                    </button>
                   </div>
-                )}
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setSelectedNodes(new Set())}
-                    className="flex-1 px-2 py-1 bg-white text-gray-600 rounded text-xs hover:bg-gray-100 border border-gray-200"
-                  >
-                    Clear
-                  </button>
-                  <button
-                    onClick={() => fitView({ padding: 0.3, duration: 800 })}
-                    className="flex-1 px-2 py-1 bg-white text-gray-600 rounded text-xs hover:bg-gray-100 border border-gray-200"
-                  >
-                    Fit View
-                  </button>
                 </div>
               </div>
             </div>
+
+            {/* Minimal Header when collapsed */}
+            {infoPanelCollapsed && (
+              <div className="p-4 border-b border-gray-200 bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-sm font-medium text-gray-700">FlowChat AI</h3>
+                    {currentConversation && (
+                      <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded">
+                        {currentConversation.name}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={createNewConversation}
+                      className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                      title="New Conversation"
+                    >
+                      <Plus size={14} />
+                    </button>
+                    <button
+                      onClick={() => setInfoPanelCollapsed(false)}
+                      className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                      title="Show Info Panel"
+                    >
+                      <ChevronDown size={14} className="transform rotate-180" />
+                    </button>
+                    <button
+                      onClick={() => setChatPanelCollapsed(true)}
+                      className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                      title="Collapse Chat"
+                    >
+                      <ChevronLeft size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <div className="flex-1 overflow-y-auto p-6">
               {messageThread.length > 0 ? (
                 <div className="space-y-4">
