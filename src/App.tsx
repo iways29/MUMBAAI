@@ -22,7 +22,7 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 
 // Custom Node Component
 const MessageNode = ({ data, selected }) => {
-  const { message, onNodeClick, onNodeDoubleClick, isMultiSelected } = data;
+  const { message, onNodeClick, onNodeDoubleClick, isMultiSelected, selectedMessageId } = data;
 
   const handleClick = (e) => {
     e.stopPropagation();
@@ -49,10 +49,10 @@ const MessageNode = ({ data, selected }) => {
   return (
     <div
       className={`relative bg-white rounded-xl shadow-md border-2 transition-all cursor-pointer hover:shadow-lg min-w-[300px] max-w-[350px] ${
-        selected ? 'border-yellow-400 ring-2 ring-yellow-200' :
-        isMultiSelected ? 'border-red-400 ring-2 ring-red-200' :
-        'border-gray-200 hover:border-gray-300'
-      }`}
+      message.id === selectedMessageId ? 'border-yellow-400 ring-2 ring-yellow-200' :
+      isMultiSelected ? 'border-red-400 ring-2 ring-red-200' :
+      'border-gray-200 hover:border-gray-300'
+    }`}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
     >
@@ -270,8 +270,9 @@ const FlowChatAI = () => {
           onNodeClick: handleNodeClick,
           onNodeDoubleClick: handleNodeDoubleClick,
           isMultiSelected,
+          selectedMessageId,
         },
-        selected: isSelected,
+        selected: false,
         draggable: true,
       });
 
