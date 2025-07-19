@@ -71,11 +71,11 @@ const MessageNode = ({ data, selected }) => {
                 <Bot size={14} className="text-white" />
               )}
             </div>
-            <span className={`text-sm font-semibold ${message.type === 'user' ? 'text-blue-700' : 'text-green-700'}`}>
-              {message.type === 'user' ? 'User' : 'Assistant'}
+            <span className={`text-sm font-semibold ${message.type === 'user' ? 'text-black-700' : 'text-black-700'}`}>
+              {message.type === 'user' ? 'You' : 'Assistant'}
             </span>
           </div>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-gray-700">
             {formatTimestamp(message.timestamp)}
           </span>
         </div>
