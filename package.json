@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@google/generative-ai": "^0.14.1",
+    "@vercel/analytics": "^1.5.0",
     "@xyflow/react": "^12.8.2",
     "html2canvas": "^1.4.1",
     "lucide-react": "^0.408.0",
