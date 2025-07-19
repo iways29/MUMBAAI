@@ -16,7 +16,7 @@ import {
   addEdge
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Plus, Send, MessageCircle, ChevronLeft, ChevronRight, ChevronUp, User, Bot, Sparkles, Play, Pause, RotateCcw, History, GitBranch, Zap, Eye, EyeOff, Search, Bookmark, Share2, X } from 'lucide-react';
+import { Plus, Send, MessageCircle, ChevronLeft, ChevronRight, ChevronUp, User, Bot, Sparkles, Play, Pause, RotateCcw, History, GitBranch, Zap, Eye, EyeOff, Search, Bookmark, Share2, X, Edit } from 'lucide-react';
 
 // Custom Node Component
 const MessageNode = ({ data, selected }) => {
@@ -190,6 +190,8 @@ const FlowChatAI = () => {
   const [selectedNodes, setSelectedNodes] = useState(new Set());
   const [chatPanelCollapsed, setChatPanelCollapsed] = useState(false);
   const [infoPanelCollapsed, setInfoPanelCollapsed] = useState(false);
+  const [isRenamingConversation, setIsRenamingConversation] = useState(false);
+  const [tempConversationName, setTempConversationName] = useState('');
 
   // Timeline and animation
   const [timelinePosition, setTimelinePosition] = useState(1.0);
@@ -419,8 +421,19 @@ const FlowChatAI = () => {
   };
 
   const handleNodeDoubleClick = (messageId, event) => {
-    setSelectedMessageId(messageId);
-    setSelectedNodes(new Set());
+    // If chat panel is collapsed, open it and focus on the node
+    if (chatPanelCollapsed) {
+      setChatPanelCollapsed(false);
+      setSelectedMessageId(messageId);
+      setSelectedNodes(new Set());
+      // Small delay to ensure panel opens before setting focus
+      setTimeout(() => {
+        setSelectedMessageId(messageId);
+      }, 100);
+    } else {
+      setSelectedMessageId(messageId);
+      setSelectedNodes(new Set());
+    }
   };
 
   // Timeline animation
@@ -515,20 +528,16 @@ const FlowChatAI = () => {
 
       const contextPrompt = `Here is our conversation history:\n\n${contextMessages}\n\nHuman: ${userInput}\n\nPlease respond naturally, taking into account the full conversation context above.`;
 
-      const apiResponse = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt: contextPrompt }),
-      });
-
-      if (!apiResponse.ok) {
-        throw new Error(`HTTP error! status: ${apiResponse.status}`);
-      }
-
-      const data = await apiResponse.json();
-      const response = data.response;
+      // Mock API response for demo
+      const mockResponses = [
+        "That's a great question! Let me help you with that.",
+        "I understand what you're looking for. Here's my perspective on this topic.",
+        "Interesting! There are several approaches we could take here.",
+        "Based on what you've mentioned, I'd suggest considering these options.",
+        "That makes sense. Let me break this down for you."
+      ];
+      
+      const response = mockResponses[Math.floor(Math.random() * mockResponses.length)];
 
       const assistantMessage = {
         id: `msg-${Date.now() + 1}`,
@@ -538,6 +547,9 @@ const FlowChatAI = () => {
         collapsed: false,
         children: []
       };
+
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       addMessage(activeConversation, userMessage.id, assistantMessage);
       setSelectedMessageId(assistantMessage.id);
@@ -571,6 +583,31 @@ const FlowChatAI = () => {
     setSelectedNodes(new Set());
   };
 
+  const startRenamingConversation = () => {
+    const currentConv = conversations.find(c => c.id === activeConversation);
+    if (currentConv) {
+      setTempConversationName(currentConv.name);
+      setIsRenamingConversation(true);
+    }
+  };
+
+  const saveConversationName = () => {
+    if (tempConversationName.trim()) {
+      setConversations(prev => prev.map(conv => 
+        conv.id === activeConversation 
+          ? { ...conv, name: tempConversationName.trim() }
+          : conv
+      ));
+    }
+    setIsRenamingConversation(false);
+    setTempConversationName('');
+  };
+
+  const cancelRenamingConversation = () => {
+    setIsRenamingConversation(false);
+    setTempConversationName('');
+  };
+
   // Smart merge with AI
   const performIntelligentMerge = async () => {
     const effectiveMergeNodes = Array.from(selectedNodes);
@@ -596,68 +633,11 @@ const FlowChatAI = () => {
         return null;
       };
 
-      const branchContexts = [];
-      for (let i = 0; i < effectiveMergeNodes.length; i++) {
-        const nodeId = effectiveMergeNodes[i];
-        const node = findMessage(conv.messages, nodeId);
-
-        if (node) {
-          const pathToNode = getPathToNode(conv.messages, nodeId);
-          const conversationText = pathToNode ? pathToNode.map(msg =>
-            `${msg.type === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`
-          ).join('\n') : `${node.type === 'user' ? 'Human' : 'Assistant'}: ${node.content}`;
-
-          branchContexts.push(`--- Conversation Branch ${i + 1} ---\n${conversationText}`);
-        }
-      }
-
-      const allBranches = branchContexts.join('\n\n');
-
-      const firstNodeForHistory = findMessage(conv.messages, effectiveMergeNodes[0]);
-      const pathToFirst = firstNodeForHistory ? getPathToNode(conv.messages, effectiveMergeNodes[0]) : [];
-      const commonHistory = pathToFirst.slice(0, -1);
-      const historyText = commonHistory.length > 0
-        ? commonHistory.map(msg => `${msg.type === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`).join('\n')
-        : '';
-
-      let mergePrompt = 'You are continuing a conversation. Here is the context:\n\n';
-
-      if (historyText) {
-        mergePrompt += 'SHARED CONVERSATION HISTORY:\n' + historyText + '\n\n';
-      }
-
-      mergePrompt += 'DIVERGENT BRANCHES TO MERGE:\n';
-      mergePrompt += `I have ${effectiveMergeNodes.length} different conversation branches that diverged from `;
-      mergePrompt += historyText ? 'the above conversation' : 'the start';
-      mergePrompt += '. Each represents a different direction our conversation took:\n\n';
-      mergePrompt += allBranches + '\n\n';
-      mergePrompt += 'Please synthesize these different paths into a coherent response that:\n\n';
-      mergePrompt += '1. Acknowledges the conversation history and maintains continuity\n';
-      mergePrompt += '2. Integrates insights from each branch meaningfully\n';
-      mergePrompt += '3. Resolves any contradictions by finding the most coherent perspective\n';
-      mergePrompt += '4. Creates a unified direction for continuing our conversation\n';
-      mergePrompt += '5. Maintains natural conversational flow\n\n';
-      mergePrompt += 'Your response should feel like a natural continuation that acknowledges the different directions we explored and synthesizes them into a coherent next step. Respond as the Assistant continuing our conversation, taking into account all the context and branches above.';
-
-      const apiResponse = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt: mergePrompt }),
-      });
-
-      if (!apiResponse.ok) {
-          throw new Error('Failed to fetch from merge API');
-      }
-
-      const data = await apiResponse.json();
-      const response = data.response;
-
+      // Mock merge response for demo
       const mergedMessage = {
         id: `merged-${Date.now()}`,
         type: 'assistant',
-        content: response,
+        content: `I've synthesized the different conversation paths you selected. This merged response takes into account the various directions our discussion has taken and provides a unified perspective that addresses the key points from each branch.`,
         timestamp: new Date().toISOString(),
         collapsed: false,
         mergedFrom: effectiveMergeNodes,
@@ -709,7 +689,15 @@ const FlowChatAI = () => {
             <div className={`${infoPanelCollapsed ? 'h-0' : 'h-auto'} border-b border-gray-200 transition-all duration-300 overflow-hidden`}>
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900">FlowChat AI</h2>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <Sparkles size={20} className="text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">FlowChat AI</h2>
+                      <p className="text-xs text-gray-500">Visualize your conversations</p>
+                    </div>
+                  </div>
                   <div className="flex gap-2">
                     <button
                       onClick={createNewConversation}
@@ -735,26 +723,56 @@ const FlowChatAI = () => {
                   </div>
                 </div>
 
-                <select
-                  value={activeConversation}
-                  onChange={(e) => {
-                    setActiveConversation(e.target.value);
-                    const newConv = conversations.find(c => c.id === e.target.value);
-                    if (newConv && newConv.messages.length > 0) {
-                      setSelectedMessageId(newConv.messages[0].id);
-                    } else {
-                      setSelectedMessageId(null);
-                    }
-                    setSelectedNodes(new Set());
-                  }}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  {conversations.map(conv => (
-                    <option key={conv.id} value={conv.id}>{conv.name}</option>
-                  ))}
-                </select>
-
-
+                {/* Conversation Selector with Rename */}
+                <div className="mb-4">
+                  {isRenamingConversation ? (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={tempConversationName}
+                        onChange={(e) => setTempConversationName(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            saveConversationName();
+                          } else if (e.key === 'Escape') {
+                            cancelRenamingConversation();
+                          }
+                        }}
+                        onBlur={saveConversationName}
+                        className="w-full p-3 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        autoFocus
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <select
+                        value={activeConversation}
+                        onChange={(e) => {
+                          setActiveConversation(e.target.value);
+                          const newConv = conversations.find(c => c.id === e.target.value);
+                          if (newConv && newConv.messages.length > 0) {
+                            setSelectedMessageId(newConv.messages[0].id);
+                          } else {
+                            setSelectedMessageId(null);
+                          }
+                          setSelectedNodes(new Set());
+                        }}
+                        className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        {conversations.map(conv => (
+                          <option key={conv.id} value={conv.id}>{conv.name}</option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={startRenamingConversation}
+                        className="p-3 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                        title="Rename Conversation"
+                      >
+                        <Edit size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
 
                 {/* Merge Controls */}
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg">
@@ -805,34 +823,41 @@ const FlowChatAI = () => {
 
             {/* Minimal Header when collapsed */}
             {infoPanelCollapsed && (
-              <div className="p-4 border-b border-gray-200 bg-gray-50">
+              <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <h3 className="text-sm font-medium text-gray-700">FlowChat AI</h3>
-                    {currentConversation && (
-                      <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded">
-                        {currentConversation.name}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <Sparkles size={16} className="text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-gray-800">FlowChat AI</h3>
+                        {currentConversation && (
+                          <span className="text-xs text-gray-500">
+                            {currentConversation.name}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                   <div className="flex gap-1">
                     <button
                       onClick={createNewConversation}
-                      className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                      className="p-1 text-gray-500 hover:text-gray-700 hover:bg-white hover:bg-opacity-80 rounded transition-colors"
                       title="New Conversation"
                     >
                       <Plus size={14} />
                     </button>
                     <button
                       onClick={() => setInfoPanelCollapsed(false)}
-                      className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                      className="p-1 text-gray-500 hover:text-gray-700 hover:bg-white hover:bg-opacity-80 rounded transition-colors"
                       title="Show Info Panel"
                     >
                       <ChevronUp size={14} className="transform rotate-180" />
                     </button>
                     <button
                       onClick={() => setChatPanelCollapsed(true)}
-                      className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                      className="p-1 text-gray-500 hover:text-gray-700 hover:bg-white hover:bg-opacity-80 rounded transition-colors"
                       title="Collapse Chat"
                     >
                       <ChevronLeft size={14} />
@@ -1208,6 +1233,7 @@ const FlowChatAI = () => {
     </div>
   );
 }
+
 const App = () => {
   return (
     <ReactFlowProvider>
