@@ -204,7 +204,7 @@ const FlowChatAI = () => {
   const { fitView } = useReactFlow();
 
   // UI state
-  const [showMiniMap, setShowMiniMap] = useState(true);
+  const [showMiniMap, setShowMiniMap] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [bookmarkedNodes, setBookmarkedNodes] = useState(new Set());
@@ -1146,16 +1146,6 @@ const FlowChatAI = () => {
                       <option value="assistant">Assistant</option>
                       <option value="merged">Merged</option>
                     </select>
-
-                    <div className="w-px h-4 bg-gray-300"></div>
-
-                    <button
-                      onClick={() => setShowMiniMap(!showMiniMap)}
-                      className="p-1 text-gray-700 hover:bg-gray-100 rounded"
-                      title="Toggle MiniMap"
-                    >
-                      {showMiniMap ? <EyeOff size={14} /> : <Eye size={14} />}
-                    </button>
                   </div>
                 </Panel>
               )}
