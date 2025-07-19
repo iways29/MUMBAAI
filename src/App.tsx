@@ -16,7 +16,7 @@ import {
   addEdge
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Plus, Send, MessageCircle, ChevronLeft, ChevronRight, ChevronDown, User, Bot, Sparkles, Play, Pause, RotateCcw, History, GitBranch, Zap, Eye, EyeOff, Search, Bookmark, Share2, X } from 'lucide-react';
+import { Plus, Send, MessageCircle, ChevronLeft, ChevronRight, ChevronUp, User, Bot, Sparkles, Play, Pause, RotateCcw, History, GitBranch, Zap, Eye, EyeOff, Search, Bookmark, Share2, X } from 'lucide-react';
 
 // Custom Node Component
 const MessageNode = ({ data, selected }) => {
@@ -723,7 +723,7 @@ const FlowChatAI = () => {
                       className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                       title={infoPanelCollapsed ? "Show Info Panel" : "Hide Info Panel"}
                     >
-                      <ChevronDown size={18} className={`transform transition-transform ${infoPanelCollapsed ? 'rotate-180' : ''}`} />
+                      <ChevronUp size={18} className={`transform transition-transform ${infoPanelCollapsed ? 'rotate-180' : ''}`} />
                     </button>
                     <button
                       onClick={() => setChatPanelCollapsed(true)}
@@ -828,7 +828,7 @@ const FlowChatAI = () => {
                       className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
                       title="Show Info Panel"
                     >
-                      <ChevronDown size={14} className="transform rotate-180" />
+                      <ChevronUp size={14} className="transform rotate-180" />
                     </button>
                     <button
                       onClick={() => setChatPanelCollapsed(true)}
