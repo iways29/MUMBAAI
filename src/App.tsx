@@ -13,7 +13,10 @@ import {
   MarkerType,
   Handle,
   Position,
-  addEdge
+  addEdge,
+  Node,
+  Edge,
+  BackgroundVariant
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Plus, Send, MessageCircle, ChevronLeft, ChevronRight, ChevronUp, User, Bot, Sparkles, Play, Pause, RotateCcw, History, GitBranch, Zap, Eye, EyeOff, Search, Bookmark, Share2, X, Edit } from 'lucide-react';
@@ -227,8 +230,8 @@ const FlowChatAI = () => {
 
   // Convert conversation messages to React Flow nodes and edges
   const convertToFlowElements = useCallback((messages) => {
-    const flowNodes = [];
-    const flowEdges = [];
+    const flowNodes: Node[] = [];
+    const flowEdges: Edge[] = [];
     const horizontalSpacing = 400;
     const verticalSpacing = 250;
 
@@ -245,38 +248,51 @@ const FlowChatAI = () => {
 
       // Apply search filter
       if (searchTerm && !message.content.toLowerCase().includes(searchTerm.toLowerCase())) {
+        // Still process children
+        if (message.children && message.children.length > 0) {
+          const childrenWidth = (message.children.length - 1) * horizontalSpacing;
+          const startX = x - childrenWidth / 2;
+          message.children.forEach((child, index) => {
+            const childX = startX + (index * horizontalSpacing);
+            const childY = y + verticalSpacing;
+            processNode(child, childX, childY, level + 1);
+          });
+        }
         return;
       }
 
-      // Apply type filter
+      // Determine if this node matches the filter
+      let matchesType = true;
       if (filterType !== 'all') {
-        if (filterType === 'merged' && (!message.mergedFrom || message.mergedFrom.length === 0)) {
-          return;
-        }
-        if (filterType !== 'merged' && message.type !== filterType) {
-          return;
+        if (filterType === 'merged') {
+          matchesType = message.mergedFrom && message.mergedFrom.length > 0;
+        } else {
+          matchesType = message.type === filterType;
         }
       }
 
-      const isSelected = selectedMessageId === message.id;
-      const isMultiSelected = selectedNodes.has(message.id);
+      // Only add node if it matches the filter
+      if (matchesType) {
+        const isSelected = selectedMessageId === message.id;
+        const isMultiSelected = selectedNodes.has(message.id);
 
-      flowNodes.push({
-        id: message.id,
-        type: 'message',
-        position: { x, y },
-        data: {
-          message,
-          onNodeClick: handleNodeClick,
-          onNodeDoubleClick: handleNodeDoubleClick,
-          isMultiSelected,
-          selectedMessageId,
-        },
-        selected: false,
-        draggable: true,
-      });
+        flowNodes.push({
+          id: message.id,
+          type: 'message',
+          position: { x, y },
+          data: {
+            message,
+            onNodeClick: handleNodeClick,
+            onNodeDoubleClick: handleNodeDoubleClick,
+            isMultiSelected,
+            selectedMessageId,
+          },
+          selected: false,
+          draggable: true,
+        });
+      }
 
-      // Process children
+      // Process children regardless of parent match
       if (message.children && message.children.length > 0) {
         const childrenWidth = (message.children.length - 1) * horizontalSpacing;
         const startX = x - childrenWidth / 2;
@@ -285,29 +301,39 @@ const FlowChatAI = () => {
           const childX = startX + (index * horizontalSpacing);
           const childY = y + verticalSpacing;
 
-          // Create edge
-          flowEdges.push({
-            id: `${message.id}-${child.id}`,
-            source: message.id,
-            target: child.id,
-            type: 'smoothstep',
-            animated: child.mergedFrom && child.mergedFrom.includes(message.id),
-            style: {
-              stroke: child.mergedFrom && child.mergedFrom.includes(message.id) ? '#a855f7' : '#6b7280',
-              strokeWidth: 2,
-            },
-            markerEnd: {
-              type: MarkerType.ArrowClosed,
-              color: child.mergedFrom && child.mergedFrom.includes(message.id) ? '#a855f7' : '#6b7280',
+          // Create edge only if both parent and child match the filter
+          let childMatchesType = true;
+          if (filterType !== 'all') {
+            if (filterType === 'merged') {
+              childMatchesType = child.mergedFrom && child.mergedFrom.length > 0;
+            } else {
+              childMatchesType = child.type === filterType;
             }
-          });
+          }
+          if (matchesType && childMatchesType) {
+            flowEdges.push({
+              id: `${message.id}-${child.id}`,
+              source: message.id,
+              target: child.id,
+              type: 'smoothstep',
+              animated: child.mergedFrom && child.mergedFrom.includes(message.id),
+              style: {
+                stroke: child.mergedFrom && child.mergedFrom.includes(message.id) ? '#a855f7' : '#6b7280',
+                strokeWidth: 2,
+              },
+              markerEnd: {
+                type: MarkerType.ArrowClosed,
+                color: child.mergedFrom && child.mergedFrom.includes(message.id) ? '#a855f7' : '#6b7280',
+              }
+            });
+          }
 
           processNode(child, childX, childY, level + 1);
         });
       }
 
-      // Add merge edges for merged nodes
-      if (message.mergedFrom && message.mergedFrom.length > 0) {
+      // Add merge edges for merged nodes (only if this node matches the filter)
+      if (matchesType && message.mergedFrom && message.mergedFrom.length > 0) {
         message.mergedFrom.forEach(sourceId => {
           if (sourceId !== message.id) {
             flowEdges.push({
@@ -590,7 +616,7 @@ const FlowChatAI = () => {
     };
     setConversations(prev => [...prev, newConv]);
     setActiveConversation(newConv.id);
-    setSelectedMessageId(null);
+    setSelectedMessageId("");
     setSelectedNodes(new Set());
   };
 
@@ -631,6 +657,10 @@ const FlowChatAI = () => {
     setIsLoading(true);
     try {
       const conv = conversations.find(c => c.id === activeConversation);
+      if (!conv) {
+        setIsLoading(false);
+        return;
+      }
 
       const getPathToNode = (messages, targetId, path = []) => {
         for (const msg of messages) {
@@ -793,7 +823,7 @@ const FlowChatAI = () => {
                           if (newConv && newConv.messages.length > 0) {
                             setSelectedMessageId(newConv.messages[0].id);
                           } else {
-                            setSelectedMessageId(null);
+                            setSelectedMessageId("");
                           }
                           setSelectedNodes(new Set());
                         }}
@@ -1076,7 +1106,7 @@ const FlowChatAI = () => {
                   position="bottom-left"
                 />
               )}
-              <Background variant="dots" gap={20} size={1} />
+              <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
 
               {/* Timeline Controls - Top Center - Show when chat collapsed */}
               {chatPanelCollapsed && (
