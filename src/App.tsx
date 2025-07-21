@@ -13,14 +13,14 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
 // Hooks
-import { useConversations } from './hooks/useConversation';
-import { useMessages } from './hooks/useMessages';
-import { useAI } from './hooks/useAI';
+import { useConversations } from './hooks/useConversation.ts';
+import { useMessages } from './hooks/useMessages.ts';
+import { useAI } from './hooks/useAI.ts';
 
 // Components
-import { MessageNode } from './components/MessageNode';
-import { ChatPanel } from './components/ChatPanel';
-import { FlowCanvas } from './components/FlowCanvas';
+import { MessageNode } from './components/MessageNode/index.tsx';
+import { ChatPanel } from './components/ChatPanel/index.tsx';
+import { FlowCanvas } from './components/FlowCanvas/index.tsx';
 
 const nodeTypes = {
   message: MessageNode,

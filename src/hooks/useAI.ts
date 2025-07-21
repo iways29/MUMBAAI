@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
-import { aiService, AIMessage } from '../services/aiService';
-import { Message } from '../types/conversation';
+import { aiService, AIMessage } from '../services/aiService.ts';
+import { Message } from '../types/conversation.ts';
 
 export const useAI = () => {
   const [isLoading, setIsLoading] = useState(false);

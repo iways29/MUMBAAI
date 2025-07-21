@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Conversation, Message } from '../types/conversation';
-import { storageService } from '../services/storageService';
+import { storageService } from '../services/storageService.ts';
 
 export const useConversations = () => {
   // Load initial conversations from storage or use default
