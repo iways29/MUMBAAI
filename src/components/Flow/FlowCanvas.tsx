@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
   ReactFlow,
   Background,
@@ -89,18 +89,24 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
     onFitView();
   }, [fitView, onFitView]);
 
-  // Auto-fit view when nodes change (especially for first message)
+  // Auto-fit view only for the first node in a conversation or significant changes
+  const prevNodeCountRef = useRef(0);
   useEffect(() => {
-    if (nodes.length > 0) {
-      setTimeout(() => {
+    // Only auto-fit if this is the first node(s) or if nodes were previously empty
+    if (nodes.length > 0 && prevNodeCountRef.current === 0) {
+      const timeoutId = setTimeout(() => {
         fitView({ 
           padding: 0.2, 
           duration: 600,
           minZoom: 0.5,
           maxZoom: 1.2
         });
-      }, 100);
+      }, 150);
+
+      return () => clearTimeout(timeoutId);
     }
+    
+    prevNodeCountRef.current = nodes.length;
   }, [nodes.length, fitView]);
 
   return (

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Node, Edge, MarkerType, NodeChange, EdgeChange } from 'reactflow';
 import { Message } from '../types/conversation.ts';
 import { MessageNodeData } from '../types/flow.ts';
@@ -15,6 +15,25 @@ export const useFlowElements = (
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'user' | 'assistant' | 'merged'>('all');
   const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>({});
+  
+  // Track previous messages to detect changes
+  const prevMessagesRef = useRef<Message[]>([]);
+  const prevConversationRef = useRef<string>('');
+  
+  // Reset node positions only when switching conversations, not when adding messages
+  useEffect(() => {
+    const currentConversationId = messages.length > 0 ? messages[0].id.split('-')[0] : '';
+    
+    // Only reset positions if we've switched to a completely different conversation
+    if (prevConversationRef.current && 
+        prevConversationRef.current !== currentConversationId && 
+        currentConversationId !== '') {
+      setNodePositions({});
+    }
+    
+    prevConversationRef.current = currentConversationId;
+    prevMessagesRef.current = messages;
+  }, [messages]);
 
   const convertToFlowElements = useCallback(() => {
     const flowNodes: Node<MessageNodeData>[] = [];
@@ -22,6 +41,7 @@ export const useFlowElements = (
     const horizontalSpacing = 400;
     const verticalSpacing = 250;
 
+    // Handle empty messages case
     if (!messages || messages.length === 0) {
       return { nodes: flowNodes, edges: flowEdges };
     }
@@ -89,7 +109,7 @@ export const useFlowElements = (
             onNodeDoubleClick,
             isMultiSelected,
             selectedMessageId,
-            hasMultiSelections: selectedNodes.size > 0, // Add this flag
+            hasMultiSelections: selectedNodes.size > 0,
           },
           selected: false,
           draggable: true,
@@ -186,7 +206,10 @@ export const useFlowElements = (
     onNodeDoubleClick
   ]);
 
-  const { nodes, edges } = useMemo(() => convertToFlowElements(), [convertToFlowElements]);
+  const { nodes, edges } = useMemo(() => {
+    const result = convertToFlowElements();
+    return result;
+  }, [convertToFlowElements]);
 
   // Handle node changes (including position updates)
   const handleNodesChange = useCallback((changes: NodeChange[]) => {

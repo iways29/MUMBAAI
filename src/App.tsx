@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Analytics } from "@vercel/analytics/react";
@@ -36,6 +36,12 @@ const FlowChatAI: React.FC = () => {
     handleNodeClick,
     handleNodeDoubleClick
   );
+
+  // Clear selections when conversation changes
+  useEffect(() => {
+    setSelectedMessageId('');
+    setSelectedNodes(new Set());
+  }, [conversationHook.activeConversation]);
 
   // Message operations
   const messageOps = useMessageOperations({
@@ -80,20 +86,36 @@ const FlowChatAI: React.FC = () => {
   }
 
   const handleConversationChange = useCallback((id: string) => {
+    // Only change if it's actually a different conversation
+    if (id === conversationHook.activeConversation) return;
+    
     conversationHook.setActiveConversation(id);
-    const newConv = conversationHook.conversations.find(c => c.id === id);
-    if (newConv && newConv.messages.length > 0) {
-      setSelectedMessageId(newConv.messages[0].id);
-    } else {
-      setSelectedMessageId('');
-    }
+    // Clear selections immediately when changing conversations
+    setSelectedMessageId('');
     setSelectedNodes(new Set());
+    
+    // Set the first message as selected if the conversation has messages
+    setTimeout(() => {
+      const newConv = conversationHook.conversations.find(c => c.id === id);
+      if (newConv && newConv.messages.length > 0) {
+        setSelectedMessageId(newConv.messages[0].id);
+      }
+    }, 50);
   }, [conversationHook]);
 
   const handleCreateFirstConversation = useCallback(() => {
     const newId = conversationHook.createNewConversation();
-    setSelectedMessageId(''); // Set the new conversation ID
+    setSelectedMessageId('');
     setSelectedNodes(new Set());
+    return newId;
+  }, [conversationHook]);
+
+  const handleCreateNewConversation = useCallback(() => {
+    const newId = conversationHook.createNewConversation();
+    // Clear selections for new conversation
+    setSelectedMessageId('');
+    setSelectedNodes(new Set());
+    return newId;
   }, [conversationHook]);
 
   const handleStartRenaming = useCallback(() => {
@@ -183,7 +205,7 @@ const FlowChatAI: React.FC = () => {
         conversations={conversationHook.conversations}
         activeConversation={conversationHook.activeConversation}
         onConversationChange={handleConversationChange}
-        onCreateConversation={conversationHook.createNewConversation}
+        onCreateConversation={handleCreateNewConversation}
         selectedNodes={selectedNodes}
         canMerge={messageOps.canMerge()}
         onPerformMerge={messageOps.performIntelligentMerge}
