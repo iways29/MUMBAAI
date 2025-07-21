@@ -1,8 +1,8 @@
 import { useState, useCallback, useMemo } from 'react';
 import { Node, Edge, MarkerType } from 'reactflow';
-import { Message } from '../types/conversation';
-import { MessageNodeData } from '../types/flow';
-import { MessageHelpers } from '../utils/messageHelpers';
+import { Message } from '../types/conversation.ts';
+import { MessageNodeData } from '../types/flow.ts';
+import { MessageHelpers } from '../utils/messageHelpers.ts';
 
 export const useFlowElements = (
   messages: Message[],

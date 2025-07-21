@@ -1,8 +1,8 @@
 import React from 'react';
 import { MessageCircle, User, Bot, GitBranch, Sparkles, Share2, Bookmark } from 'lucide-react';
-import { Message } from '../../types/conversation';
-import { MessageHelpers } from '../../utils/messageHelpers';
-import { ThinkingIndicator, MergeIndicator } from '../UI/LoadingSpinner';
+import { Message } from '../../types/conversation.ts';
+import { MessageHelpers } from '../../utils/messageHelpers.ts';
+import { ThinkingIndicator, MergeIndicator } from '../UI/LoadingSpinner.tsx';
 
 interface MessageThreadProps {
   messages: Message[];

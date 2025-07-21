@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
-import { Conversation, Message } from '../types/conversation';
-import { MessageHelpers } from '../utils/messageHelpers';
+import { Conversation, Message } from '../types/conversation.ts';
+import { MessageHelpers } from '../utils/messageHelpers.ts';
 
 export const useConversations = (initialConversations: Conversation[] = []) => {
   const [conversations, setConversations] = useState<Conversation[]>(initialConversations);

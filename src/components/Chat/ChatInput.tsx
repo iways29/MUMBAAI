@@ -1,7 +1,7 @@
 import React from 'react';
 import { Send, History } from 'lucide-react';
-import { Message } from '../../types/conversation';
-import { MessageHelpers } from '../../utils/messageHelpers';
+import { Message } from '../../types/conversation.ts';
+import { MessageHelpers } from '../../utils/messageHelpers.ts';
 
 interface ChatInputProps {
   inputText: string;

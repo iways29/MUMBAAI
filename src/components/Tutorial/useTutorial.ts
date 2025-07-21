@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
-import { TutorialState, TutorialControls } from '../../types/tutorial';
-import { tutorialSteps, getTutorialStepByIndex } from './tutorialSteps';
-import { TutorialHelpers } from '../../utils/tutorialHelpers';
+import { TutorialState, TutorialControls } from '../../types/tutorials.ts';
+import { tutorialSteps, getTutorialStepByIndex } from './tutorialSteps.ts';
+import { TutorialHelpers } from '../../utils/tutorialHelpers.ts';
 
 export const useTutorial = () => {
   const [state, setState] = useState<TutorialState>({

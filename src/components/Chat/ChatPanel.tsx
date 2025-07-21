@@ -1,9 +1,9 @@
 import React from 'react';
 import { ChevronLeft, ChevronUp } from 'lucide-react';
-import { Sidebar } from '../Layout/Sidebar';
-import { MessageThread } from './MessageThread';
-import { ChatInput } from './ChatInput';
-import { Message } from '../../types/conversation';
+import { Sidebar } from '../Layout/Sidebar.tsx';
+import { MessageThread } from './MessageThread.tsx';
+import { ChatInput } from './ChatInput.tsx';
+import { Message } from '../../types/conversation.ts';
 
 interface ChatPanelProps {
   collapsed: boolean;

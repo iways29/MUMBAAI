@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { TutorialSpotlight } from './TutorialSpotlight';
-import { TutorialStep } from './TutorialStep';
-import { useTutorial } from './useTutorial';
+import { TutorialSpotlight } from './TutorialSpotlight.tsx';
+import { TutorialStep } from './TutorialStep.tsx';
+import { useTutorial } from './useTutorial.ts';
 
 interface TutorialOverlayProps {
   onTutorialComplete?: (keepData: boolean, demoConversation?: any) => void;

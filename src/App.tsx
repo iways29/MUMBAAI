@@ -5,20 +5,20 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
 // Components
-import { EmptyState } from './components/UI/EmptyState';
-import { ChatPanel } from './components/Chat/ChatPanel';
-import { FlowCanvas } from './components/Flow/FlowCanvas';
-import { TutorialOverlay, TutorialWelcome } from './components/Tutorial/TutorialOverlay';
+import { EmptyState } from './components/UI/EmptyState.tsx';
+import { ChatPanel } from './components/Chat/ChatPanel.tsx';
+import { FlowCanvas } from './components/Flow/FlowCanvas.tsx';
+import { TutorialOverlay, TutorialWelcome } from './components/Tutorial/TutorialOverlay.tsx';
 
 // Hooks
-import { useConversations } from './hooks/useConversations';
-import { useFlowElements } from './hooks/useFlowElements';
-import { useMessageOperations } from './hooks/useMessageOperations';
-import { usePanelManager } from './components/Layout/PanelManager';
-import { useTutorial } from './components/Tutorial/useTutorial';
+import { useConversations } from './hooks/useConversations.ts';
+import { useFlowElements } from './hooks/useFlowElements.ts';
+import { useMessageOperations } from './hooks/useMessageOperations.ts';
+import { usePanelManager } from './components/Layout/PanelManager.tsx';
+import { useTutorial } from './components/Tutorial/useTutorial.ts';
 
 // Utils and Types
-import { TutorialHelpers } from './utils/tutorialHelpers';
+import { TutorialHelpers } from './utils/tutorialHelpers.ts';
 
 const FlowChatAI: React.FC = () => {
   // Tutorial state

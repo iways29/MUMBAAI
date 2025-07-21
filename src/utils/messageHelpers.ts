@@ -1,4 +1,4 @@
-import { Message, Conversation } from '../types/conversation';
+import { Message, Conversation } from '../types/conversation.ts';
 
 export const MessageHelpers = {
   // Find a message by ID in a nested message tree

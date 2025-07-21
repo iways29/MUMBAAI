@@ -1,7 +1,7 @@
 import React from 'react';
 import { Plus, ChevronUp, ChevronLeft, Sparkles, GitBranch } from 'lucide-react';
-import { ConversationSelector } from '../Chat/ConversationSelector';
-import { Conversation } from '../../types/conversation';
+import { ConversationSelector } from '../Chat/ConversationSelector.tsx';
+import { Conversation } from '../../types/conversation.ts';
 
 interface SidebarProps {
   collapsed: boolean;

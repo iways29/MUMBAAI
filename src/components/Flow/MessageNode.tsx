@@ -1,8 +1,8 @@
 import React from 'react';
 import { Handle, Position } from 'reactflow';
 import { User, Bot, GitBranch, Sparkles } from 'lucide-react';
-import { MessageNodeData } from '../../types/flow';
-import { MessageHelpers } from '../../utils/messageHelpers';
+import { MessageNodeData } from '../../types/flow.ts';
+import { MessageHelpers } from '../../utils/messageHelpers.ts';
 
 interface MessageNodeProps {
   data: MessageNodeData;

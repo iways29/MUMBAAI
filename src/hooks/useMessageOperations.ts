@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
-import { Message } from '../types/conversation';
-import { MessageHelpers } from '../utils/messageHelpers';
-import { ApiService } from '../utils/api';
+import { Message } from '../types/conversation.ts';
+import { MessageHelpers } from '../utils/messageHelpers.ts';
+import { ApiService } from '../utils/api.ts';
 
 interface UseMessageOperationsProps {
   activeConversation: string;

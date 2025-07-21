@@ -10,10 +10,10 @@ import {
   BackgroundVariant
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { MessageNode } from './MessageNode';
-import { FlowControls } from './FlowControls';
-import { FlowPanels } from './FlowPanels';
-import { MessageNodeData } from '../../types/flow';
+import { MessageNode } from './MessageNode.tsx';
+import { FlowControls } from './FlowControls.tsx';
+import { FlowPanels } from './FlowPanels.tsx';
+import { MessageNodeData } from '../../types/flow.ts';
 
 const nodeTypes = {
   message: MessageNode,
