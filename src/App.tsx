@@ -1,433 +1,360 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+// src/App.tsx - Final Complete Modularized Version
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   useNodesState,
   useEdgesState,
   useReactFlow,
   ReactFlowProvider,
-  MarkerType,
   addEdge
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { ChevronRight } from 'lucide-react';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
-// Hooks
-import { useConversations } from './hooks/useConversation.ts';
-import { useMessages } from './hooks/useMessages.ts';
-import { useAI } from './hooks/useAI.ts';
+// Import extracted components
+import MessageNode from './components/MessageNode';
+import ConversationPanel from './components/ConversationPanel';
+import FlowCanvas from './components/FlowCanvas';
 
-// Components
-import { MessageNode } from './components/MessageNode/index.tsx';
-import { ChatPanel } from './components/ChatPanel/index.tsx';
-import { FlowCanvas } from './components/FlowCanvas/index.tsx';
+// Import custom hooks
+import useConversations from './hooks/useConversations';
+import useTimelineAnimation from './hooks/useTimelineAnimation';
+import useFlowElements from './hooks/useFlowElements';
 
+// Import utilities and constants
+import { formatTimestamp, generateMessageId, createMessage } from './utils/messageUtils';
+import { 
+  NODE_TYPES, 
+  FLOW_CONFIG, 
+  FILTER_TYPES, 
+  ERROR_MESSAGES,
+  LIMITS 
+} from './constants';
+
+// Define node types
 const nodeTypes = {
-  message: MessageNode,
+  [NODE_TYPES.MESSAGE]: MessageNode,
 };
 
-function FlowChatAI() {
-  // Hooks
-  const conversationHook = useConversations();
+const FlowChatAI = () => {
+  // Custom hooks - clean separation of concerns
   const {
     conversations,
     activeConversation,
-    currentConversation,
-    isRenamingConversation,
-    tempConversationName,
-    setActiveConversation,
-    createNewConversation,
-    updateConversationName,
-    startRenaming,
-    finishRenaming,
-    cancelRenaming,
-    setTempConversationName,
-    setConversations
-  } = conversationHook;
-
-  const messageHook = useMessages(currentConversation?.messages || []);
-  const {
     selectedMessageId,
-    selectedNodes,
-    allMessages,
-    messageThread,
-    currentMessage,
-    effectiveMergeCount,
+    currentConversation,
+    setActiveConversation,
     setSelectedMessageId,
-    toggleNodeSelection,
-    clearNodeSelection,
-    findMessageById,
-    addMessage,
-    toggleMessageCollapse,
-    getAllMessages
-  } = messageHook;
+    createNewConversation,
+    renameConversation,
+    sendMessage,
+    getMessageThread,
+    getCurrentMessage,
+    getAllMessages,
+    findMessage,
+    addMessage
+  } = useConversations();
 
-  const { isLoading: isAILoading, error: aiError, sendMessage: sendAIMessage, performIntelligentMerge: aiMerge, clearError } = useAI();
+  const {
+    timelinePosition,
+    isAnimating,
+    setTimelinePosition,
+    startTimelineAnimation,
+    resetTimeline,
+    isMessageVisible,
+    getTimelinePercentage
+  } = useTimelineAnimation();
 
-  // Local state
+  // UI State - remaining in component since it's UI-specific
   const [inputText, setInputText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedNodes, setSelectedNodes] = useState(new Set());
   const [chatPanelCollapsed, setChatPanelCollapsed] = useState(false);
   const [infoPanelCollapsed, setInfoPanelCollapsed] = useState(false);
-
-  // Timeline state
-  const [timelinePosition, setTimelinePosition] = useState(1.0);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const animationRef = useRef(null);
+  const [isRenamingConversation, setIsRenamingConversation] = useState(false);
+  const [tempConversationName, setTempConversationName] = useState('');
+  const [showMiniMap, setShowMiniMap] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState(FILTER_TYPES.ALL);
+  const [bookmarkedNodes, setBookmarkedNodes] = useState(new Set());
 
   // React Flow state
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const { fitView } = useReactFlow();
+  const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
 
-  // UI state
-  const [showMiniMap, setShowMiniMap] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('all');
-
-  // Send message function
-  const sendMessage = async () => {
-    if (!inputText.trim() || isAILoading) return;
-    
-    const userMessage = inputText;
-    setInputText('');
-
-    try {
-      // Add user message immediately
-      const newMessagesWithUser = addMessage({
-        type: 'user',
-        content: userMessage,
-        collapsed: false,
-        children: []
-      }, selectedMessageId);
-
-      // Update conversation with user message
-      if (currentConversation) {
-        setConversations(prev => 
-          prev.map(conv => 
-            conv.id === currentConversation.id 
-              ? { ...conv, messages: newMessagesWithUser }
-              : conv
-          )
-        );
+  // Event handlers
+  const handleNodeClick = useCallback((messageId, event) => {
+    if (event?.ctrlKey || event?.metaKey) {
+      const newSelected = new Set(selectedNodes);
+      if (newSelected.has(messageId)) {
+        newSelected.delete(messageId);
+      } else {
+        newSelected.add(messageId);
       }
-
-      // Get AI response
-      const aiResponse = await sendAIMessage(userMessage, messageThread);
-
-      // Add AI message
-      const newMessagesWithAI = addMessage({
-        type: 'assistant',
-        content: aiResponse,
-        collapsed: false,
-        children: []
-      }, selectedMessageId);
-
-      // Update conversation with AI message
-      if (currentConversation) {
-        setConversations(prev => 
-          prev.map(conv => 
-            conv.id === currentConversation.id 
-              ? { ...conv, messages: newMessagesWithAI }
-              : conv
-          )
-        );
-      }
-
-    } catch (error) {
-      console.error('Error sending message:', error);
-    }
-  };
-
-  // Node interaction handlers
-  const handleNodeClick = useCallback((nodeId, event) => {
-    const isMultiSelect = event.metaKey || event.ctrlKey;
-    
-    if (isMultiSelect) {
-      toggleNodeSelection(nodeId, true);
+      setSelectedNodes(newSelected);
     } else {
-      setSelectedMessageId(nodeId);
-      clearNodeSelection();
+      setSelectedMessageId(messageId);
+      setSelectedNodes(new Set());
     }
-  }, [toggleNodeSelection, setSelectedMessageId, clearNodeSelection]);
+  }, [selectedNodes, setSelectedMessageId]);
 
-  const handleNodeDoubleClick = useCallback((nodeId) => {
-    setSelectedMessageId(nodeId);
-    clearNodeSelection();
-    fitView({ padding: 0.3, duration: 800 });
-  }, [setSelectedMessageId, clearNodeSelection, fitView]);
+  const handleNodeDoubleClick = useCallback((messageId, event) => {
+    if (chatPanelCollapsed) {
+      setChatPanelCollapsed(false);
+      setSelectedMessageId(messageId);
+      setSelectedNodes(new Set());
+      setTimeout(() => {
+        setSelectedMessageId(messageId);
+      }, 100);
+    } else {
+      setSelectedMessageId(messageId);
+      setSelectedNodes(new Set());
+    }
+  }, [chatPanelCollapsed, setSelectedMessageId]);
 
-  const onConnect = useCallback((params) => {
-    setEdges((eds) => addEdge({ ...params, type: 'smoothstep' }, eds));
-  }, [setEdges]);
+  // Flow elements hook
+  const { convertToFlowElements, getFlowStats } = useFlowElements(
+    selectedMessageId,
+    selectedNodes,
+    handleNodeClick,
+    handleNodeDoubleClick,
+    timelinePosition,
+    searchTerm,
+    filterType,
+    isMessageVisible
+  );
 
-  // Intelligent merge function
-  const performIntelligentMerge = async () => {
-    if (selectedNodes.size < 2) return;
+  // Utility functions
+  const getEffectiveMergeCount = useCallback(() => {
+    let count = selectedNodes.size;
+    if (selectedMessageId && !selectedNodes.has(selectedMessageId)) {
+      count += 1;
+    }
+    return count;
+  }, [selectedNodes, selectedMessageId]);
 
+  const performIntelligentMerge = useCallback(async () => {
+    const effectiveMergeNodes = Array.from(selectedNodes);
+    if (selectedMessageId && !selectedNodes.has(selectedMessageId)) {
+      effectiveMergeNodes.push(selectedMessageId);
+    }
+
+    if (effectiveMergeNodes.length < 2) return;
+
+    setIsLoading(true);
     try {
-      const selectedMessages = Array.from(selectedNodes).map(id => 
-        findMessageById(id)
-      ).filter(Boolean);
+      const conv = conversations.find(c => c.id === activeConversation);
 
-      const messageContents = selectedMessages.map(msg => msg.content);
-      const mergedContent = await aiMerge(messageContents);
+      // Get the selected messages content for merging - ORIGINAL IMPLEMENTATION
+      const selectedMessages = effectiveMergeNodes.map(nodeId => {
+        const message = findMessage(conv.messages, nodeId);
+        return message ? `${message.type === 'user' ? 'Human' : 'Assistant'}: ${message.content}` : '';
+      }).filter(Boolean);
+
+      const mergePrompt = `Please analyze and synthesize these different conversation branches into a unified response that captures the key insights from each path:
+
+      ${selectedMessages.join('\n\n')}
+
+      Create a comprehensive response that merges the best elements from these different directions while maintaining coherence and adding new insights where appropriate.`;
+
+      // Call Gemini API for merge - YOUR ORIGINAL IMPLEMENTATION
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: mergePrompt
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Merge API request failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const mergedContent = data.response;
 
       const mergedMessage = {
-        type: 'assistant' as const,
-        content: mergedContent,
+        id: `merged-${Date.now()}`,
+        type: 'assistant',
+        content: mergedContent, // Now using real AI synthesis
+        timestamp: new Date().toISOString(),
         collapsed: false,
-        children: [],
-        mergedFrom: Array.from(selectedNodes)
+        mergedFrom: effectiveMergeNodes,
+        isMergeRoot: true,
+        children: []
       };
 
-      const newMessages = addMessage(mergedMessage, selectedMessageId);
+      const parentNode = effectiveMergeNodes.map(id => findMessage(conv.messages, id))[0];
 
-      if (currentConversation) {
-        setConversations(prev => 
-          prev.map(conv => 
-            conv.id === currentConversation.id 
-              ? { ...conv, messages: newMessages }
-              : conv
-          )
-        );
+      if (parentNode) {
+        addMessage(activeConversation, parentNode.id, mergedMessage);
+        setSelectedMessageId(mergedMessage.id);
+        setSelectedNodes(new Set());
       }
 
-      clearNodeSelection();
     } catch (error) {
-      console.error('Error performing merge:', error);
+      console.error('Intelligent merge failed:', error);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [
+    selectedNodes,
+    selectedMessageId,
+    conversations,
+    activeConversation,
+    findMessage,
+    addMessage,
+    setSelectedMessageId
+  ]);
 
-  // Timeline animation functions
-  const startTimelineAnimation = () => {
-    if (isAnimating) {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-      setIsAnimating(false);
+  // Enhanced sendMessage wrapper
+  const handleSendMessage = useCallback(async () => {
+    if (inputText.length > LIMITS.MAX_MESSAGE_LENGTH) {
+      console.warn(`Message exceeds maximum length of ${LIMITS.MAX_MESSAGE_LENGTH} characters.`);
       return;
     }
+    await sendMessage(inputText, setInputText, setIsLoading);
+  }, [sendMessage, inputText]);
 
-    setIsAnimating(true);
-    setTimelinePosition(0);
-
-    const animate = () => {
-      setTimelinePosition(prev => {
-        if (prev >= 1.0) {
-          setIsAnimating(false);
-          return 1.0;
-        }
-        const newPos = prev + 0.01;
-        animationRef.current = requestAnimationFrame(animate);
-        return newPos;
-      });
-    };
-
-    animationRef.current = requestAnimationFrame(animate);
-  };
-
-  const resetTimeline = () => {
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
+  // Enhanced conversation rename handler
+  const handleConversationRename = useCallback((newName) => {
+    if (newName.trim()) {
+      if (newName.length > LIMITS.MAX_CONVERSATION_NAME_LENGTH) {
+        console.warn(`Conversation name exceeds maximum length of ${LIMITS.MAX_CONVERSATION_NAME_LENGTH} characters.`);
+        return;
+      }
+      renameConversation(activeConversation, newName.trim());
     }
-    setIsAnimating(false);
-    setTimelinePosition(1.0);
-  };
+    setIsRenamingConversation(false);
+    setTempConversationName('');
+  }, [renameConversation, activeConversation]);
 
-  // Generate nodes and edges for React Flow
-  const { nodes: flowNodes, edges: flowEdges } = React.useMemo(() => {
-    if (!currentConversation || !currentConversation.messages) {
-      return { nodes: [], edges: [] };
+  // Enhanced conversation creation
+  const handleCreateNewConversation = useCallback(() => {
+    if (conversations.length >= LIMITS.MAX_CONVERSATIONS) {
+      console.warn(`Maximum number of conversations (${LIMITS.MAX_CONVERSATIONS}) reached.`);
+      return;
     }
+    createNewConversation();
+  }, [createNewConversation, conversations.length]);
 
-    const messages = currentConversation.messages;
-    const flowNodes = [];
-    const flowEdges = [];
-    
-    const horizontalSpacing = 400;
-    const verticalSpacing = 200;
-    
-    const processNode = (message, x, y, level = 0) => {
-      const isSelected = selectedNodes.has(message.id);
-      
-      // Apply timeline filter
-      const messageTime = new Date(message.timestamp).getTime();
-      const now = Date.now();
-      const maxAge = 24 * 60 * 60 * 1000; // 24 hours
-      const messageAge = (now - messageTime) / maxAge;
-      
-      if (messageAge > timelinePosition) {
-        return;
-      }
-
-      // Apply search filter
-      if (searchTerm && !message.content.toLowerCase().includes(searchTerm.toLowerCase())) {
-        return;
-      }
-
-      // Apply type filter
-      if (filterType !== 'all' && message.type !== filterType) {
-        return;
-      }
-
-      flowNodes.push({
-        id: message.id,
-        type: 'message',
-        position: { x, y },
-        data: {
-          message,
-          onNodeClick: handleNodeClick,
-          onNodeDoubleClick: handleNodeDoubleClick,
-          isMultiSelected: isSelected,
-          selectedMessageId
-        },
-        style: {
-          opacity: message.collapsed ? 0.6 : 1,
-        },
-        className: message.bookmarked ? 'bookmarked-node' : ''
-      });
-
-      // Process children
-      if (message.children && message.children.length > 0 && !message.collapsed) {
-        const childrenWidth = (message.children.length - 1) * horizontalSpacing;
-        const startX = x - childrenWidth / 2;
-
-        message.children.forEach((child, index) => {
-          const childX = startX + (index * horizontalSpacing);
-          const childY = y + verticalSpacing;
-
-          flowEdges.push({
-            id: `${message.id}-${child.id}`,
-            source: message.id,
-            target: child.id,
-            type: 'smoothstep',
-            animated: child.mergedFrom && child.mergedFrom.includes(message.id),
-            style: {
-              stroke: child.mergedFrom && child.mergedFrom.includes(message.id) ? '#a855f7' : '#6b7280',
-              strokeWidth: 2,
-            },
-            markerEnd: {
-              type: MarkerType.ArrowClosed,
-              color: child.mergedFrom && child.mergedFrom.includes(message.id) ? '#a855f7' : '#6b7280',
-            }
-          });
-
-          processNode(child, childX, childY, level + 1);
-        });
-      }
-
-      // Add merge edges
-      if (message.mergedFrom && message.mergedFrom.length > 0) {
-        message.mergedFrom.forEach(sourceId => {
-          if (sourceId !== message.id) {
-            flowEdges.push({
-              id: `merge-${sourceId}-${message.id}`,
-              source: sourceId,
-              target: message.id,
-              type: 'smoothstep',
-              animated: true,
-              style: {
-                stroke: '#a855f7',
-                strokeWidth: 3,
-                strokeDasharray: '8,4',
-              },
-              markerEnd: {
-                type: MarkerType.ArrowClosed,
-                color: '#a855f7',
-              },
-              label: '✨ Merge',
-              labelStyle: { fontSize: 11, fill: '#a855f7', fontWeight: 'bold' }
-            });
-          }
-        });
-      }
-    };
-
-    // Start processing from root messages
-    const rootWidth = (messages.length - 1) * horizontalSpacing;
-    const startX = -rootWidth / 2;
-
-    messages.forEach((message, index) => {
-      const x = startX + (index * horizontalSpacing);
-      processNode(message, x, 0);
-    });
-
-    return { nodes: flowNodes, edges: flowEdges };
-  }, [selectedMessageId, selectedNodes, timelinePosition, searchTerm, filterType, currentConversation, handleNodeClick, handleNodeDoubleClick]);
-
-  // Update React Flow when conversation changes
+  // Update React Flow elements when conversation changes
   useEffect(() => {
     if (currentConversation && currentConversation.messages.length > 0) {
-      setNodes(flowNodes);
-      setEdges(flowEdges);
+      const { nodes: newNodes, edges: newEdges } = convertToFlowElements(currentConversation.messages);
+      setNodes(newNodes);
+      setEdges(newEdges);
+
+      // Auto-fit view after a brief delay
+      setTimeout(() => {
+        fitView({ 
+          padding: FLOW_CONFIG.FIT_VIEW_PADDING, 
+          duration: FLOW_CONFIG.FIT_VIEW_DURATION 
+        });
+      }, 100);
+    } else {
+      setNodes([]);
+      setEdges([]);
     }
-  }, [flowNodes, flowEdges, currentConversation, setNodes, setEdges]);
+  }, [currentConversation, convertToFlowElements, setNodes, setEdges, fitView]);
+
+  // Enhanced fitView function
+  const handleFitView = useCallback(() => {
+    fitView({ 
+      padding: FLOW_CONFIG.FIT_VIEW_PADDING, 
+      duration: FLOW_CONFIG.FIT_VIEW_DURATION 
+    });
+  }, [fitView]);
+
+  // Computed values
+  const messageThread = getMessageThread();
+  const flowStats = currentConversation ? getFlowStats(currentConversation.messages) : null;
 
   return (
-    <div className="h-screen flex bg-gray-100">
-      {/* Chat Panel */}
-      <div className={`${chatPanelCollapsed ? 'w-0' : 'w-96'} transition-all duration-300 flex flex-col bg-white border-r border-gray-200 shadow-sm`}>
-        {!chatPanelCollapsed ? (
-          <ChatPanel
-            currentConversation={currentConversation}
-            messageThread={messageThread}
-            selectedMessageId={selectedMessageId}
-            currentMessage={currentMessage}
-            inputText={inputText}
-            isLoading={isAILoading}
-            isRenamingConversation={isRenamingConversation}
-            tempConversationName={tempConversationName}
-            infoPanelCollapsed={infoPanelCollapsed}
-            error={aiError}
-            createNewConversation={createNewConversation}
-            setInputText={setInputText}
-            sendMessage={sendMessage}
-            setInfoPanelCollapsed={setInfoPanelCollapsed}
-            setChatPanelCollapsed={setChatPanelCollapsed}
-            clearError={clearError}
-          />
-        ) : (
-          <div className="w-12 bg-white border-r border-gray-200 flex flex-col items-center justify-center">
-            <button
-              onClick={() => setChatPanelCollapsed(false)}
-              className="p-3 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-              title="Show Chat"
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
-        )}
-      </div>
+    <div className="flex h-screen bg-gray-50">
+      {/* Conversation Panel */}
+      <ConversationPanel
+        // State props
+        chatPanelCollapsed={chatPanelCollapsed}
+        infoPanelCollapsed={infoPanelCollapsed}
+        conversations={conversations}
+        activeConversation={activeConversation}
+        selectedMessageId={selectedMessageId}
+        inputText={inputText}
+        isLoading={isLoading}
+        isRenamingConversation={isRenamingConversation}
+        tempConversationName={tempConversationName}
+        messageThread={messageThread}
+        selectedNodes={selectedNodes}
+        
+        // Setter props
+        setChatPanelCollapsed={setChatPanelCollapsed}
+        setInfoPanelCollapsed={setInfoPanelCollapsed}
+        setActiveConversation={setActiveConversation}
+        setInputText={setInputText}
+        setIsRenamingConversation={setIsRenamingConversation}
+        setTempConversationName={setTempConversationName}
+        setSelectedNodes={setSelectedNodes}
+        
+        // Handler props
+        createNewConversation={handleCreateNewConversation}
+        sendMessage={handleSendMessage}
+        getCurrentMessage={getCurrentMessage}
+        formatTimestamp={formatTimestamp}
+        handleConversationRename={handleConversationRename}
+        performIntelligentMerge={performIntelligentMerge}
+        getEffectiveMergeCount={getEffectiveMergeCount}
+        fitView={handleFitView}
+      />
 
       {/* Flow Canvas */}
-      <div className="flex-1 flex flex-col bg-gray-50 relative">
-        <FlowCanvas
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          nodeTypes={nodeTypes}
-          showMiniMap={showMiniMap}
-          chatPanelCollapsed={chatPanelCollapsed}
-          infoPanelCollapsed={infoPanelCollapsed}
-          timelinePosition={timelinePosition}
-          isAnimating={isAnimating}
-          startTimelineAnimation={startTimelineAnimation}
-          resetTimeline={resetTimeline}
-          setTimelinePosition={setTimelinePosition}
-          fitView={fitView}
-          clearNodeSelection={clearNodeSelection}
-          effectiveMergeCount={effectiveMergeCount}
-          performIntelligentMerge={performIntelligentMerge}
-          isLoading={isAILoading}
-          messageCount={getAllMessages(currentConversation?.messages || []).length}
-          selectedNodesCount={selectedNodes.size}
-        />
-      </div>
+      <FlowCanvas
+        // React Flow props
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        nodeTypes={nodeTypes}
+        
+        // State props
+        chatPanelCollapsed={chatPanelCollapsed}
+        showMiniMap={showMiniMap}
+        searchTerm={searchTerm}
+        filterType={filterType}
+        timelinePosition={timelinePosition}
+        isAnimating={isAnimating}
+        selectedNodes={selectedNodes}
+        selectedMessageId={selectedMessageId}
+        isLoading={isLoading}
+        currentConversation={currentConversation}
+        
+        // Setter props
+        setShowMiniMap={setShowMiniMap}
+        setSearchTerm={setSearchTerm}
+        setFilterType={setFilterType}
+        setTimelinePosition={setTimelinePosition}
+        setSelectedNodes={setSelectedNodes}
+        
+        // Handler props
+        startTimelineAnimation={startTimelineAnimation}
+        resetTimeline={resetTimeline}
+        performIntelligentMerge={performIntelligentMerge}
+        fitView={handleFitView}
+        getAllMessages={getAllMessages}
+        getEffectiveMergeCount={getEffectiveMergeCount}
+        
+        // Stats and utilities
+        flowStats={flowStats}
+        getTimelinePercentage={getTimelinePercentage}
+      />
     </div>
   );
-}
+};
 
 const App = () => {
   return (
