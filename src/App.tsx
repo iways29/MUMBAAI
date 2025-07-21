@@ -13,7 +13,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
 // Hooks
-import { useConversations } from './hooks/useConversations';
+import { useConversations } from './hooks/useConversation';
 import { useMessages } from './hooks/useMessages';
 import { useAI } from './hooks/useAI';
 
