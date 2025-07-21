@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { ReactFlowProvider, useReactFlow } from 'reactflow';
+import { ReactFlowProvider } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
@@ -45,7 +45,8 @@ const FlowChatAI: React.FC = () => {
     addMessage: conversationHook.addMessage,
     findMessage: conversationHook.findMessage,
     getMessageThread: conversationHook.getMessageThread,
-    onMessageSent: setSelectedMessageId
+    onMessageSent: setSelectedMessageId,
+    onClearSelection: () => setSelectedNodes(new Set())
   });
 
   // Event handlers
@@ -64,9 +65,9 @@ const FlowChatAI: React.FC = () => {
     }
   }
 
-  function handleNodeDoubleClick(messageId: string, event?: React.MouseEvent) {
+  function handleNodeDoubleClick(messageId: string, _event?: React.MouseEvent) {
     if (panelManager.isChatCollapsed) {
-      panelManager.setChatPanelCollapsed(false);
+      panelManager.controls.setChatPanelCollapsed(false);
       setSelectedMessageId(messageId);
       setSelectedNodes(new Set());
       setTimeout(() => {
@@ -91,7 +92,7 @@ const FlowChatAI: React.FC = () => {
 
   const handleCreateFirstConversation = useCallback(() => {
     const newId = conversationHook.createNewConversation();
-    setSelectedMessageId('');
+    setSelectedMessageId(''); // Set the new conversation ID
     setSelectedNodes(new Set());
   }, [conversationHook]);
 
@@ -109,7 +110,7 @@ const FlowChatAI: React.FC = () => {
     }
   }, [panelManager, conversationHook]);
 
-  // Timeline animation
+  // Timeline animation (back to original speed)
   const startTimelineAnimation = useCallback(() => {
     if (isAnimating) {
       setIsAnimating(false);
@@ -131,9 +132,9 @@ const FlowChatAI: React.FC = () => {
           }
           return 1.0;
         }
-        return prev + 0.02;
+        return prev + 0.02; // Back to original speed
       });
-    }, 100);
+    }, 100); // Back to original interval
   }, [isAnimating, flowElements]);
 
   const resetTimeline = useCallback(() => {

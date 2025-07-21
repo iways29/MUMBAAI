@@ -7,6 +7,7 @@ export interface MessageNodeData {
   onNodeDoubleClick?: (messageId: string, event?: React.MouseEvent) => void;
   isMultiSelected: boolean;
   selectedMessageId: string;
+  hasMultiSelections?: boolean;
 }
 
 export type MessageNode = Node<MessageNodeData>;

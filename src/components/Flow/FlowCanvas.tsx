@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
   ReactFlow,
   Background,
@@ -6,10 +6,7 @@ import {
   MiniMap,
   ConnectionLineType,
   useReactFlow,
-  addEdge,
   BackgroundVariant,
-  applyNodeChanges,
-  applyEdgeChanges,
   NodeChange,
   EdgeChange
 } from 'reactflow';
@@ -17,7 +14,6 @@ import 'reactflow/dist/style.css';
 import { MessageNode } from './MessageNode.tsx';
 import { FlowControls } from './FlowControls.tsx';
 import { FlowPanels } from './FlowPanels.tsx';
-import { MessageNodeData } from '../../types/flow.ts';
 
 const nodeTypes = {
   message: MessageNode,
@@ -88,18 +84,24 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
     onEdgesChange(changes);
   }, [onEdgesChange]);
 
-  const onConnect = useCallback(
-    (params: any) => onEdgesChange([{
-      type: 'add',
-      item: { ...params, type: 'smoothstep' }
-    }]),
-    [onEdgesChange]
-  );
-
   const handleFitView = useCallback(() => {
-    fitView({ padding: 0.3, duration: 800 });
+    fitView({ padding: 0.2, duration: 800 });
     onFitView();
   }, [fitView, onFitView]);
+
+  // Auto-fit view when nodes change (especially for first message)
+  useEffect(() => {
+    if (nodes.length > 0) {
+      setTimeout(() => {
+        fitView({ 
+          padding: 0.2, 
+          duration: 600,
+          minZoom: 0.5,
+          maxZoom: 1.2
+        });
+      }, 100);
+    }
+  }, [nodes.length, fitView]);
 
   return (
     <div className="flex-1 flex flex-col bg-gray-50 relative">
@@ -108,14 +110,20 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
         edges={edges}
         onNodesChange={handleNodesChange}
         onEdgesChange={handleEdgesChange}
-        onConnect={onConnect}
         nodeTypes={nodeTypes}
         connectionLineType={ConnectionLineType.SmoothStep}
-        fitView
         className="bg-gray-50 h-full"
         nodesDraggable={true}
         nodesConnectable={false}
         elementsSelectable={true}
+        defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
+        minZoom={0.3}
+        maxZoom={2}
+        fitViewOptions={{
+          padding: 0.2,
+          minZoom: 0.5,
+          maxZoom: 1.2
+        }}
       >
         <Controls showInteractive={false} position="top-left" />
         

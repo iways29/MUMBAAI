@@ -53,7 +53,33 @@ export const useConversations = (initialConversations: Conversation[] = []) => {
   ) => {
     setConversations(prev => prev.map(conv => {
       if (conv.id !== conversationId) return conv;
-      return MessageHelpers.addMessageToConversation(conv, parentMessageId, newMessage);
+
+      if (!parentMessageId) {
+        return {
+          ...conv,
+          messages: [...conv.messages, newMessage]
+        };
+      }
+
+      const addToMessages = (messages: Message[]): Message[] => {
+        return messages.map(msg => {
+          if (msg.id === parentMessageId) {
+            return {
+              ...msg,
+              children: [...(msg.children || []), newMessage]
+            };
+          }
+          return {
+            ...msg,
+            children: addToMessages(msg.children || [])
+          };
+        });
+      };
+
+      return {
+        ...conv,
+        messages: addToMessages(conv.messages)
+      };
     }));
   }, []);
 
@@ -64,9 +90,36 @@ export const useConversations = (initialConversations: Conversation[] = []) => {
   }, [getCurrentConversation]);
 
   const getMessageThread = useCallback((selectedMessageId: string): Message[] => {
-    const currentConv = getCurrentConversation();
-    if (!currentConv || !selectedMessageId) return [];
-    return MessageHelpers.getConversationThread(currentConv, selectedMessageId);
+    const conversation = getCurrentConversation();
+    if (!conversation) return [];
+
+    if (!selectedMessageId) return [];
+
+    const getPath = (messages: Message[], targetId: string, path: Message[] = []): Message[] | null => {
+      for (const msg of messages) {
+        const newPath = [...path, msg];
+        if (msg.id === targetId) {
+          return newPath;
+        }
+        const found = getPath(msg.children || [], targetId, newPath);
+        if (found) return found;
+      }
+      return null;
+    };
+
+    const fullPath = getPath(conversation.messages, selectedMessageId) || [];
+
+    const selectedMessage = MessageHelpers.findMessage(conversation.messages, selectedMessageId);
+    if (selectedMessage && selectedMessage.isMergeRoot) {
+      return [selectedMessage];
+    }
+
+    const mergeRootIndex = fullPath.findIndex(msg => msg.isMergeRoot);
+    if (mergeRootIndex !== -1) {
+      return fullPath.slice(mergeRootIndex);
+    }
+
+    return fullPath;
   }, [getCurrentConversation]);
 
   const getAllMessages = useCallback((): Message[] => {

@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { Node, Edge, MarkerType, NodeChange, EdgeChange, applyNodeChanges, applyEdgeChanges } from 'reactflow';
+import { Node, Edge, MarkerType, NodeChange, EdgeChange } from 'reactflow';
 import { Message } from '../types/conversation.ts';
 import { MessageNodeData } from '../types/flow.ts';
 import { MessageHelpers } from '../utils/messageHelpers.ts';
@@ -30,14 +30,18 @@ export const useFlowElements = (
     const allMessages = MessageHelpers.getAllMessages(messages);
     
     const processNode = (message: Message, x: number, y: number, level = 0) => {
-      // Apply timeline filter
+      // Apply timeline filter with better distribution
       if (timelinePosition < 1.0) {
         const messageTime = new Date(message.timestamp).getTime();
-        const now = Date.now();
-        const oldestTime = Math.min(...allMessages.map(m => new Date(m.timestamp).getTime()));
-        const cutoffTime = oldestTime + (now - oldestTime) * timelinePosition;
-
-        if (messageTime > cutoffTime) {
+        const allMessageTimes = allMessages.map(m => new Date(m.timestamp).getTime()).sort((a, b) => a - b);
+        const messageIndex = allMessageTimes.indexOf(messageTime);
+        const totalMessages = allMessageTimes.length;
+        
+        // Better distribution: use exponential curve for more gradual reveal
+        const messageProgress = messageIndex / Math.max(1, totalMessages - 1);
+        const adjustedProgress = Math.pow(messageProgress, 0.7); // Slower start, faster end
+        
+        if (adjustedProgress > timelinePosition) {
           return;
         }
       }
@@ -69,7 +73,6 @@ export const useFlowElements = (
 
       // Only add node if it matches the filter
       if (matchesType) {
-        const isSelected = selectedMessageId === message.id;
         const isMultiSelected = selectedNodes.has(message.id);
 
         // Use saved position if available, otherwise use calculated position
@@ -86,6 +89,7 @@ export const useFlowElements = (
             onNodeDoubleClick,
             isMultiSelected,
             selectedMessageId,
+            hasMultiSelections: selectedNodes.size > 0, // Add this flag
           },
           selected: false,
           draggable: true,

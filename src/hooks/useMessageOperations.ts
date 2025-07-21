@@ -11,6 +11,7 @@ interface UseMessageOperationsProps {
   findMessage: (messageId: string) => Message | null;
   getMessageThread: (selectedMessageId: string) => Message[];
   onMessageSent?: (messageId: string) => void;
+  onClearSelection?: () => void;
 }
 
 export const useMessageOperations = ({
@@ -20,7 +21,8 @@ export const useMessageOperations = ({
   addMessage,
   findMessage,
   getMessageThread,
-  onMessageSent
+  onMessageSent,
+  onClearSelection
 }: UseMessageOperationsProps) => {
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -30,8 +32,9 @@ export const useMessageOperations = ({
 
     const userMessage = MessageHelpers.createMessage('user', inputText);
     
-    // Add user message
-    addMessage(activeConversation, selectedMessageId, userMessage);
+    // Add user message - use null as parent for first message in conversation
+    const parentId = selectedMessageId || null;
+    addMessage(activeConversation, parentId, userMessage);
     onMessageSent?.(userMessage.id);
 
     const userInput = inputText;
@@ -40,7 +43,7 @@ export const useMessageOperations = ({
 
     try {
       // Get conversation thread for context
-      const thread = getMessageThread(selectedMessageId);
+      const thread = getMessageThread(selectedMessageId || userMessage.id);
       const contextPrompt = ApiService.createContextPrompt(
         thread.map(msg => ({ type: msg.type, content: msg.content })),
         userInput
@@ -122,6 +125,9 @@ export const useMessageOperations = ({
       addMessage(activeConversation, parentMessage.id, mergedMessage);
       onMessageSent?.(mergedMessage.id);
 
+      // Clear selections after successful merge
+      onClearSelection?.();
+
     } catch (error) {
       console.error('Intelligent merge failed:', error);
       
@@ -138,6 +144,10 @@ export const useMessageOperations = ({
           isMergeRoot: true
         });
         addMessage(activeConversation, parentMessage.id, fallbackMessage);
+        onMessageSent?.(fallbackMessage.id);
+        
+        // Clear selections after fallback merge too
+        onClearSelection?.();
       }
     } finally {
       setIsLoading(false);
@@ -148,7 +158,8 @@ export const useMessageOperations = ({
     activeConversation,
     findMessage,
     addMessage,
-    onMessageSent
+    onMessageSent,
+    onClearSelection
   ]);
 
   const getEffectiveMergeCount = useCallback(() => {
