@@ -7,7 +7,11 @@ import {
   ConnectionLineType,
   useReactFlow,
   addEdge,
-  BackgroundVariant
+  BackgroundVariant,
+  applyNodeChanges,
+  applyEdgeChanges,
+  NodeChange,
+  EdgeChange
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { MessageNode } from './MessageNode.tsx';
@@ -22,8 +26,8 @@ const nodeTypes = {
 interface FlowCanvasProps {
   nodes: any[];
   edges: any[];
-  onNodesChange: (changes: any) => void;
-  onEdgesChange: (changes: any) => void;
+  onNodesChange: (changes: NodeChange[]) => void;
+  onEdgesChange: (changes: EdgeChange[]) => void;
   showMiniMap: boolean;
   chatPanelCollapsed: boolean;
   selectedNodes: Set<string>;
@@ -76,9 +80,20 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
 }) => {
   const { fitView } = useReactFlow();
 
+  const handleNodesChange = useCallback((changes: NodeChange[]) => {
+    onNodesChange(changes);
+  }, [onNodesChange]);
+
+  const handleEdgesChange = useCallback((changes: EdgeChange[]) => {
+    onEdgesChange(changes);
+  }, [onEdgesChange]);
+
   const onConnect = useCallback(
-    (params: any) => onEdgesChange(addEdge(params, edges)),
-    [onEdgesChange, edges]
+    (params: any) => onEdgesChange([{
+      type: 'add',
+      item: { ...params, type: 'smoothstep' }
+    }]),
+    [onEdgesChange]
   );
 
   const handleFitView = useCallback(() => {
@@ -87,17 +102,20 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
   }, [fitView, onFitView]);
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-50 relative" data-tutorial="flow-canvas">
+    <div className="flex-1 flex flex-col bg-gray-50 relative">
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
+        onNodesChange={handleNodesChange}
+        onEdgesChange={handleEdgesChange}
         onConnect={onConnect}
         nodeTypes={nodeTypes}
         connectionLineType={ConnectionLineType.SmoothStep}
         fitView
         className="bg-gray-50 h-full"
+        nodesDraggable={true}
+        nodesConnectable={false}
+        elementsSelectable={true}
       >
         <Controls showInteractive={false} position="top-left" />
         

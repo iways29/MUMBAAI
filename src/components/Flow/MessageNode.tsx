@@ -34,11 +34,6 @@ export const MessageNode: React.FC<MessageNodeProps> = ({ data, selected }) => {
       }`}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
-      data-tutorial={
-        message.type === 'user' && message.content.includes('creative project') ? 'first-user-node' :
-        message.type === 'assistant' && !isMergedNode ? 'ai-response-node' :
-        undefined
-      }
     >
       {/* Connection Handles */}
       <Handle type="target" position={Position.Top} className="w-3 h-3" />

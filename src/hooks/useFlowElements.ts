@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { Node, Edge, MarkerType } from 'reactflow';
+import { Node, Edge, MarkerType, NodeChange, EdgeChange, applyNodeChanges, applyEdgeChanges } from 'reactflow';
 import { Message } from '../types/conversation.ts';
 import { MessageNodeData } from '../types/flow.ts';
 import { MessageHelpers } from '../utils/messageHelpers.ts';
@@ -14,6 +14,7 @@ export const useFlowElements = (
   const [timelinePosition, setTimelinePosition] = useState(1.0);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'user' | 'assistant' | 'merged'>('all');
+  const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>({});
 
   const convertToFlowElements = useCallback(() => {
     const flowNodes: Node<MessageNodeData>[] = [];
@@ -71,10 +72,14 @@ export const useFlowElements = (
         const isSelected = selectedMessageId === message.id;
         const isMultiSelected = selectedNodes.has(message.id);
 
+        // Use saved position if available, otherwise use calculated position
+        const savedPosition = nodePositions[message.id];
+        const nodePosition = savedPosition || { x, y };
+
         flowNodes.push({
           id: message.id,
           type: 'message',
-          position: { x, y },
+          position: nodePosition,
           data: {
             message,
             onNodeClick,
@@ -172,14 +177,45 @@ export const useFlowElements = (
     timelinePosition, 
     searchTerm, 
     filterType,
+    nodePositions,
     onNodeClick,
     onNodeDoubleClick
   ]);
 
   const { nodes, edges } = useMemo(() => convertToFlowElements(), [convertToFlowElements]);
 
-  const setTimelinePositionSafe = useCallback((position: number) => {
-    setTimelinePosition(Math.max(0, Math.min(1, position)));
+  // Handle node changes (including position updates)
+  const handleNodesChange = useCallback((changes: NodeChange[]) => {
+    const positionChanges = changes.filter(change => change.type === 'position');
+    
+    if (positionChanges.length > 0) {
+      setNodePositions(prev => {
+        const newPositions = { ...prev };
+        positionChanges.forEach(change => {
+          if (change.type === 'position' && change.position) {
+            newPositions[change.id] = change.position;
+          }
+        });
+        return newPositions;
+      });
+    }
+  }, []);
+
+  // Handle edge changes
+  const handleEdgesChange = useCallback((changes: EdgeChange[]) => {
+    // For now, we don't allow edge modification in this app
+    // This could be extended to support custom connections
+  }, []);
+
+  const setTimelinePositionSafe = useCallback((position: number | ((prev: number) => number)) => {
+    if (typeof position === 'function') {
+      setTimelinePosition(prev => {
+        const newPos = position(prev);
+        return Math.max(0, Math.min(1, newPos));
+      });
+    } else {
+      setTimelinePosition(Math.max(0, Math.min(1, position)));
+    }
   }, []);
 
   const resetFilters = useCallback(() => {
@@ -201,6 +237,10 @@ export const useFlowElements = (
     // Flow elements
     nodes,
     edges,
+    
+    // Change handlers
+    handleNodesChange,
+    handleEdgesChange,
     
     // Filter state
     timelinePosition,

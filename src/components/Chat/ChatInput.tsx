@@ -32,7 +32,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="bg-white border-t border-gray-200 p-6" data-tutorial="chat-input">
+    <div className="bg-white border-t border-gray-200 p-6">
       <div className="flex gap-3">
         <input
           type="text"

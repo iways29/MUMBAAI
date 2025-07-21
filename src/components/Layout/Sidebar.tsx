@@ -169,7 +169,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClick={onPerformMerge}
               className="flex items-center gap-2 w-full px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm hover:bg-purple-200 transition-colors font-medium mb-2"
               disabled={isLoading}
-              data-tutorial="merge-button"
             >
               <Sparkles size={14} />
               {isLoading ? 'Merging...' : `Smart Merge ${effectiveMergeCount} nodes`}

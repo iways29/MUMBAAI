@@ -81,7 +81,7 @@ export const useConversations = (initialConversations: Conversation[] = []) => {
     return MessageHelpers.getMessageStats(currentConv.messages);
   }, [getCurrentConversation]);
 
-  // Set entire conversation list (useful for tutorial)
+  // Set entire conversation list
   const setConversationsData = useCallback((newConversations: Conversation[]) => {
     setConversations(newConversations);
     if (newConversations.length > 0 && !activeConversation) {

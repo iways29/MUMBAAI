@@ -8,22 +8,14 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import { EmptyState } from './components/UI/EmptyState.tsx';
 import { ChatPanel } from './components/Chat/ChatPanel.tsx';
 import { FlowCanvas } from './components/Flow/FlowCanvas.tsx';
-import { TutorialOverlay, TutorialWelcome } from './components/Tutorial/TutorialOverlay.tsx';
 
 // Hooks
 import { useConversations } from './hooks/useConversations.ts';
 import { useFlowElements } from './hooks/useFlowElements.ts';
 import { useMessageOperations } from './hooks/useMessageOperations.ts';
 import { usePanelManager } from './components/Layout/PanelManager.tsx';
-import { useTutorial } from './components/Tutorial/useTutorial.ts';
-
-// Utils and Types
-import { TutorialHelpers } from './utils/tutorialHelpers.ts';
 
 const FlowChatAI: React.FC = () => {
-  // Tutorial state
-  const tutorial = useTutorial();
-  
   // Core state management
   const conversationHook = useConversations([]);
   const panelManager = usePanelManager();
@@ -36,10 +28,7 @@ const FlowChatAI: React.FC = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const animationRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Tutorial integration
-  const shouldShowWelcome = tutorial.shouldShowWelcome() && conversationHook.conversations.length === 0;
-
-  // Flow elements
+  // Flow elements with proper change handling
   const flowElements = useFlowElements(
     conversationHook.currentConversation?.messages || [],
     selectedMessageId,
@@ -100,28 +89,6 @@ const FlowChatAI: React.FC = () => {
     setSelectedNodes(new Set());
   }, [conversationHook]);
 
-  const handleStartTutorial = useCallback(() => {
-    tutorial.controls.startTutorial();
-    const demoConv = tutorial.getTutorialConversation();
-    if (demoConv) {
-      conversationHook.setConversationsData([demoConv]);
-      conversationHook.setActiveConversation(demoConv.id);
-      setSelectedMessageId(demoConv.messages[0]?.id || '');
-    }
-  }, [tutorial, conversationHook]);
-
-  const handleTutorialComplete = useCallback((keepData: boolean, demoConversation?: any) => {
-    if (!keepData) {
-      conversationHook.clearAllConversations();
-      setSelectedMessageId('');
-      setSelectedNodes(new Set());
-    } else if (demoConversation) {
-      // Keep the tutorial conversation
-      conversationHook.setConversationsData([demoConversation]);
-      conversationHook.setActiveConversation(demoConversation.id);
-    }
-  }, [conversationHook]);
-
   const handleCreateFirstConversation = useCallback(() => {
     const newId = conversationHook.createNewConversation();
     setSelectedMessageId('');
@@ -177,47 +144,17 @@ const FlowChatAI: React.FC = () => {
     }
   }, [flowElements]);
 
-  // Show welcome screen if no conversations and first time
-  if (shouldShowWelcome) {
-    return (
-      <>
-        <TutorialWelcome 
-          onStartTutorial={handleStartTutorial}
-          onDismiss={() => {
-            TutorialHelpers.markUserAsReturning();
-            handleCreateFirstConversation();
-          }}
-        />
-        <EmptyState
-          onStartTutorial={handleStartTutorial}
-          onCreateConversation={handleCreateFirstConversation}
-          showTutorialPrompt={false}
-        />
-      </>
-    );
-  }
-
-  // Show empty state if no conversations but not first time
+  // Show empty state if no conversations
   if (conversationHook.conversations.length === 0) {
     return (
       <EmptyState
-        onStartTutorial={handleStartTutorial}
         onCreateConversation={handleCreateFirstConversation}
-        showTutorialPrompt={!TutorialHelpers.hasCompletedTutorial()}
       />
     );
   }
 
   return (
     <div className="flex h-screen bg-gray-50 app-main-container">
-      {/* Tutorial Overlay */}
-      <TutorialOverlay
-        onTutorialComplete={handleTutorialComplete}
-        onTutorialDataNeeded={() => {
-          // Handle tutorial data injection if needed
-        }}
-      />
-
       {/* Chat Panel */}
       <ChatPanel
         collapsed={panelManager.isChatCollapsed}
@@ -264,8 +201,8 @@ const FlowChatAI: React.FC = () => {
       <FlowCanvas
         nodes={flowElements.nodes}
         edges={flowElements.edges}
-        onNodesChange={() => {}} // Static nodes for now
-        onEdgesChange={() => {}} // Static edges for now
+        onNodesChange={flowElements.handleNodesChange}
+        onEdgesChange={flowElements.handleEdgesChange}
         showMiniMap={showMiniMap}
         chatPanelCollapsed={panelManager.isChatCollapsed}
         selectedNodes={selectedNodes}

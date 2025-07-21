@@ -35,7 +35,7 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
     <>
       {/* Timeline Controls - Show when chat collapsed */}
       {chatPanelCollapsed && (
-        <Panel position="top-center" data-tutorial="timeline-controls">
+        <Panel position="top-center">
           <div className="flex items-center gap-3 bg-white rounded-xl shadow-lg border border-gray-200 p-3">
             <button
               onClick={onStartAnimation}
@@ -74,7 +74,7 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
       )}
 
       {/* Search and Filter Controls */}
-      <Panel position="top-right" data-tutorial="search-controls">
+      <Panel position="top-right">
         <div className="flex items-center gap-2 bg-white rounded-xl shadow border border-gray-200 p-3">
           <div className="flex items-center gap-1">
             <Search size={14} />

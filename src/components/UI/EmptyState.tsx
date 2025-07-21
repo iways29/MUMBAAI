@@ -2,15 +2,11 @@ import React from 'react';
 import { MessageCircle, Sparkles, HelpCircle } from 'lucide-react';
 
 interface EmptyStateProps {
-  onStartTutorial?: () => void;
   onCreateConversation?: () => void;
-  showTutorialPrompt?: boolean;
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
-  onStartTutorial,
-  onCreateConversation,
-  showTutorialPrompt = true
+  onCreateConversation
 }) => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -63,35 +59,12 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 
         {/* Action Buttons */}
         <div className="space-y-4">
-          {showTutorialPrompt && onStartTutorial && (
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-6 text-white">
-              <h3 className="text-lg font-semibold mb-2">New to FlowChatAI?</h3>
-              <p className="text-blue-100 mb-4">Take a 3-minute interactive tour to see how it works!</p>
-              <button
-                onClick={onStartTutorial}
-                className="bg-white text-blue-600 px-6 py-3 rounded-lg font-medium hover:bg-blue-50 transition-colors w-full"
-              >
-                Start Interactive Tutorial
-              </button>
-            </div>
-          )}
-
           {onCreateConversation && (
             <button
               onClick={onCreateConversation}
               className="bg-gray-900 text-white px-8 py-4 rounded-lg font-medium hover:bg-gray-800 transition-colors w-full text-lg"
             >
               Start Your First Conversation
-            </button>
-          )}
-
-          {onStartTutorial && (
-            <button
-              onClick={onStartTutorial}
-              className="text-gray-600 hover:text-gray-800 transition-colors flex items-center justify-center gap-2"
-            >
-              <HelpCircle size={16} />
-              View Tutorial
             </button>
           )}
         </div>

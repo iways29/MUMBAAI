@@ -27,12 +27,13 @@ export const usePanelManager = (initialState?: Partial<PanelState>) => {
   }, []);
 
   const saveConversationName = useCallback(() => {
+    const trimmedName = state.tempConversationName.trim();
     setState(prev => ({ 
       ...prev, 
       isRenamingConversation: false,
       tempConversationName: ''
     }));
-    return state.tempConversationName.trim();
+    return trimmedName;
   }, [state.tempConversationName]);
 
   const cancelRenamingConversation = useCallback(() => {
@@ -70,6 +71,9 @@ export const usePanelManager = (initialState?: Partial<PanelState>) => {
     toggleChatPanel,
     toggleInfoPanel,
     setTempConversationName,
+    
+    // Fixed method for starting rename
+    startRenamingConversation,
     
     // State accessors
     isChatCollapsed: state.chatPanelCollapsed,

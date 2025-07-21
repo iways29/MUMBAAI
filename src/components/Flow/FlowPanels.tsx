@@ -30,7 +30,7 @@ export const FlowPanels: React.FC<FlowPanelsProps> = ({
       {/* Merge Controls - Show when chat collapsed */}
       {chatPanelCollapsed && (
         <Panel position="bottom-left">
-          <div className="p-4 bg-white rounded-lg shadow-lg border border-gray-200 max-w-sm" data-tutorial="merge-button">
+          <div className="p-4 bg-white rounded-lg shadow-lg border border-gray-200 max-w-sm">
             <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
               <GitBranch size={14} />
               <span>Ctrl+click • Double-click to focus</span>
@@ -77,7 +77,7 @@ export const FlowPanels: React.FC<FlowPanelsProps> = ({
       )}
 
       {/* Status Panel */}
-      <Panel position="bottom-right" data-tutorial="flow-controls">
+      <Panel position="bottom-right">
         <div className="bg-white rounded-lg shadow border border-gray-200 p-3 text-xs">
           <div className="text-gray-500 mb-1">Quick Info</div>
           <div className="text-gray-700 font-medium">
