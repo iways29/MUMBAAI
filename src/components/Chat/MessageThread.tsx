@@ -76,19 +76,19 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
 
               <div className="flex items-center gap-2 mb-2">
                 {message.type === 'user' ? (
-                  <User size={14} className="opacity-80" />
+                  <User size={14} className="opacity-80 flex-shrink-0" />
                 ) : (
-                  <Bot size={14} className="opacity-80" />
+                  <Bot size={14} className="opacity-80 flex-shrink-0" />
                 )}
                 <span className="text-xs font-medium opacity-90">
                   {message.type === 'user' ? 'You' : 'Assistant'}
                 </span>
-                <span className="text-xs opacity-60 ml-auto">
+                <span className="text-xs opacity-60 ml-auto flex-shrink-0">
                   {MessageHelpers.formatTimestamp(message.timestamp)}
                 </span>
               </div>
 
-              <div className="text-sm leading-relaxed whitespace-pre-wrap mb-2">{message.content}</div>
+              <div className="text-sm leading-relaxed whitespace-pre-wrap mb-2 break-words">{message.content}</div>
 
               {message.children && message.children.length > 0 && (
                 <div className="text-xs opacity-70 flex items-center gap-1 mb-1">
@@ -98,7 +98,9 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
               )}
 
               {MessageHelpers.isMergedMessage(message) && (
-                <div className="text-xs text-purple-600 opacity-90 flex items-center gap-1 mb-1">
+                <div className={`text-xs flex items-center gap-1 mb-1 ${
+                  message.type === 'user' ? 'text-blue-200' : 'text-purple-600'
+                } opacity-90`}>
                   <Sparkles size={10} />
                   Merged from {message.mergedFrom?.length} branches
                   {message.isMergeRoot && " • Root"}
@@ -106,7 +108,9 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
               )}
 
               {/* Message Actions */}
-              <div className="flex gap-3 pt-1 border-t border-opacity-20">
+              <div className={`flex gap-3 pt-1 border-t ${
+                message.type === 'user' ? 'border-blue-400 border-opacity-30' : 'border-gray-200'
+              }`}>
                 <button
                   onClick={() => handleCopyMessage(message.content)}
                   className="text-xs opacity-60 hover:opacity-100 flex items-center gap-1 transition-opacity"

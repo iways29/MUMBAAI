@@ -72,7 +72,7 @@ export const MessageNode: React.FC<MessageNodeProps> = ({ data, selected }) => {
               {message.type === 'user' ? 'You' : 'Assistant'}
             </span>
           </div>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-gray-500 flex-shrink-0">
             {MessageHelpers.formatTimestamp(message.timestamp)}
           </span>
         </div>
@@ -80,7 +80,7 @@ export const MessageNode: React.FC<MessageNodeProps> = ({ data, selected }) => {
 
       {/* Content */}
       <div className="p-4">
-        <div className="text-sm text-gray-800 leading-relaxed mb-3">
+        <div className="text-sm text-gray-800 leading-relaxed mb-3 break-words whitespace-pre-wrap">
           {MessageHelpers.truncateText(message.content)}
         </div>
 
