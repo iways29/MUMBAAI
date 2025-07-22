@@ -14,6 +14,7 @@ import 'reactflow/dist/style.css';
 import { MessageNode } from './MessageNode.tsx';
 import { FlowControls } from './FlowControls.tsx';
 import { FlowPanels } from './FlowPanels.tsx';
+// DownloadButton is now integrated into FlowControls
 
 const nodeTypes = {
   message: MessageNode,
@@ -46,6 +47,8 @@ interface FlowCanvasProps {
   effectiveMergeCount: number;
   onToggleMiniMap: () => void;
   allMessagesCount: number;
+  // Add this prop for the download button
+  conversationName?: string;
 }
 
 export const FlowCanvas: React.FC<FlowCanvasProps> = ({
@@ -72,7 +75,8 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
   isLoading,
   effectiveMergeCount,
   onToggleMiniMap,
-  allMessagesCount
+  allMessagesCount,
+  conversationName // Add this prop
 }) => {
   const { fitView } = useReactFlow();
 
@@ -161,6 +165,7 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
           onResetTimeline={onResetTimeline}
           onToggleMiniMap={onToggleMiniMap}
           showMiniMap={showMiniMap}
+          conversationName={conversationName}
         />
 
         {/* Flow Panels */}

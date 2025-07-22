@@ -1,6 +1,17 @@
 import React from 'react';
-import { Panel } from 'reactflow';
-import { Search, Eye, EyeOff, Play, Pause, RotateCcw } from 'lucide-react';
+import { Panel, useReactFlow, getNodesBounds, getViewportForBounds } from 'reactflow';
+import { Search, Eye, EyeOff, Play, Pause, RotateCcw, Download } from 'lucide-react';
+import { toPng } from 'html-to-image';
+
+function downloadImage(dataUrl: string, filename: string = 'flowchat-conversation.png') {
+  const a = document.createElement('a');
+  a.setAttribute('download', filename);
+  a.setAttribute('href', dataUrl);
+  a.click();
+}
+
+const imageWidth = 1920;
+const imageHeight = 1080;
 
 interface FlowControlsProps {
   chatPanelCollapsed: boolean;
@@ -15,6 +26,7 @@ interface FlowControlsProps {
   onResetTimeline: () => void;
   onToggleMiniMap: () => void;
   showMiniMap: boolean;
+  conversationName?: string;
 }
 
 export const FlowControls: React.FC<FlowControlsProps> = ({
@@ -29,8 +41,63 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
   onStartAnimation,
   onResetTimeline,
   onToggleMiniMap,
-  showMiniMap
+  showMiniMap,
+  conversationName
 }) => {
+  const { getNodes } = useReactFlow();
+
+  const handleDownload = () => {
+    try {
+      // Calculate transform for all visible nodes
+      const nodesBounds = getNodesBounds(getNodes());
+      const viewport = getViewportForBounds(
+        nodesBounds, 
+        imageWidth, 
+        imageHeight, 
+        0.5, // minZoom
+        2,   // maxZoom
+        0.1  // padding
+      );
+
+      // Generate filename based on conversation name and timestamp
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const filename = conversationName 
+        ? `${conversationName.replace(/[^a-z0-9]/gi, '_')}_${timestamp}.png`
+        : `flowchat_conversation_${timestamp}.png`;
+
+      // Convert to PNG with custom styling
+      toPng(document.querySelector('.react-flow__viewport') as HTMLElement, {
+        backgroundColor: '#f9fafb', // Match your app's background
+        width: imageWidth,
+        height: imageHeight,
+        style: {
+          width: `${imageWidth}px`,
+          height: `${imageHeight}px`,
+          transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
+        },
+        pixelRatio: 2, // Higher quality
+        quality: 0.95,
+      }).then((dataUrl) => {
+        downloadImage(dataUrl, filename);
+      }).catch((error) => {
+        console.error('Error generating image:', error);
+        // Fallback: try with basic settings
+        toPng(document.querySelector('.react-flow__viewport') as HTMLElement, {
+          backgroundColor: '#f9fafb',
+          pixelRatio: 1,
+        }).then((dataUrl) => {
+          downloadImage(dataUrl, filename);
+        }).catch((fallbackError) => {
+          console.error('Fallback image generation failed:', fallbackError);
+          alert('Failed to generate image. Please try again.');
+        });
+      });
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('Failed to download image. Please try again.');
+    }
+  };
+
   return (
     <>
       {/* Timeline Controls - Show when chat collapsed */}
@@ -100,17 +167,26 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
             <option value="merged">Merged</option>
           </select>
 
+          <div className="w-px h-4 bg-gray-300"></div>
+
+          {/* Download Button - Always visible */}
+          <button
+            onClick={handleDownload}
+            className="p-1 text-gray-700 hover:bg-gray-100 rounded transition-colors"
+            title="Download conversation as PNG"
+          >
+            <Download size={14} />
+          </button>
+
+          {/* MiniMap Toggle - Only visible when chat panel is expanded */}
           {!chatPanelCollapsed && (
-            <>
-              <div className="w-px h-4 bg-gray-300"></div>
-              <button
-                onClick={onToggleMiniMap}
-                className="p-1 text-gray-700 hover:bg-gray-100 rounded"
-                title="Toggle MiniMap"
-              >
-                {showMiniMap ? <EyeOff size={14} /> : <Eye size={14} />}
-              </button>
-            </>
+            <button
+              onClick={onToggleMiniMap}
+              className="p-1 text-gray-700 hover:bg-gray-100 rounded"
+              title="Toggle MiniMap"
+            >
+              {showMiniMap ? <EyeOff size={14} /> : <Eye size={14} />}
+            </button>
           )}
         </div>
       </Panel>

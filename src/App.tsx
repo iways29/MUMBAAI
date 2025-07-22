@@ -246,6 +246,7 @@ const FlowChatAI: React.FC = () => {
         effectiveMergeCount={messageOps.getEffectiveMergeCount()}
         onToggleMiniMap={() => setShowMiniMap(!showMiniMap)}
         allMessagesCount={conversationHook.getAllMessages().length}
+        conversationName={conversationHook.currentConversation?.name}
       />
     </div>
   );
