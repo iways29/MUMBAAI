@@ -15,7 +15,13 @@ import { useFlowElements } from './hooks/useFlowElements.ts';
 import { useMessageOperations } from './hooks/useMessageOperations.ts';
 import { usePanelManager } from './components/Layout/PanelManager.tsx';
 
+// Authentication
+import { useAuth } from './hooks/useAuth.ts';
+
 const FlowChatAI: React.FC = () => {
+  // ALL HOOKS MUST BE AT THE TOP - BEFORE ANY EARLY RETURNS
+  const { user, loading } = useAuth();
+  
   // Core state management
   const conversationHook = useConversations([]);
   const panelManager = usePanelManager();
@@ -27,6 +33,9 @@ const FlowChatAI: React.FC = () => {
   const [bookmarkedNodes, setBookmarkedNodes] = useState(new Set<string>());
   const [isAnimating, setIsAnimating] = useState(false);
   const animationRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Track if user wants to start (clicked the button)
+  const [wantsToStart, setWantsToStart] = useState(false);
 
   // Flow elements with proper change handling
   const flowElements = useFlowElements(
@@ -115,11 +124,18 @@ const FlowChatAI: React.FC = () => {
   }, [conversationHook]);
 
   const handleCreateFirstConversation = useCallback(() => {
-    const newId = conversationHook.createNewConversation();
-    setSelectedMessageId('');
-    setSelectedNodes(new Set());
-    return newId;
-  }, [conversationHook]);
+    // This is called when user clicks "Start Your First Conversation"
+    setWantsToStart(true);
+    
+    // If user is already logged in, create conversation immediately
+    if (user) {
+      const newId = conversationHook.createNewConversation();
+      setSelectedMessageId('');
+      setSelectedNodes(new Set());
+      return newId;
+    }
+    // If not logged in, the EmptyState will show the auth form
+  }, [conversationHook, user]);
 
   const handleCreateNewConversation = useCallback(() => {
     const newId = conversationHook.createNewConversation();
@@ -143,7 +159,7 @@ const FlowChatAI: React.FC = () => {
     }
   }, [panelManager, conversationHook]);
 
-  // Timeline animation (back to original speed)
+  // Timeline animation
   const startTimelineAnimation = useCallback(() => {
     if (isAnimating) {
       setIsAnimating(false);
@@ -165,9 +181,9 @@ const FlowChatAI: React.FC = () => {
           }
           return 1.0;
         }
-        return prev + 0.02; // Back to original speed
+        return prev + 0.02;
       });
-    }, 100); // Back to original interval
+    }, 100);
   }, [isAnimating, flowElements]);
 
   const resetTimeline = useCallback(() => {
@@ -178,15 +194,33 @@ const FlowChatAI: React.FC = () => {
     }
   }, [flowElements]);
 
-  // Show empty state if no conversations
-  if (conversationHook.conversations.length === 0) {
+  // NOW WE CAN DO EARLY RETURNS AFTER ALL HOOKS ARE DEFINED
+  
+  // Show loading while checking authentication
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show landing page with auth if user wants to start but isn't logged in
+  // OR show landing page if user hasn't clicked start yet
+  // OR show landing page if no conversations exist
+  if (!user || !wantsToStart || conversationHook.conversations.length === 0) {
     return (
       <EmptyState
         onCreateConversation={handleCreateFirstConversation}
+        showAuth={wantsToStart && !user}
       />
     );
   }
 
+  // Show the main app interface
   return (
     <div className="flex h-screen bg-gray-50 app-main-container">
       {/* Chat Panel */}
@@ -222,7 +256,7 @@ const FlowChatAI: React.FC = () => {
         onPerformMerge={messageOps.performIntelligentMerge}
         effectiveMergeCount={messageOps.getEffectiveMergeCount()}
         onClearSelection={() => setSelectedNodes(new Set())}
-        onFitView={() => {}} // Will be handled by FlowCanvas
+        onFitView={() => {}}
         isRenamingConversation={panelManager.isRenaming}
         tempConversationName={panelManager.tempName}
         onStartRenaming={handleStartRenaming}
