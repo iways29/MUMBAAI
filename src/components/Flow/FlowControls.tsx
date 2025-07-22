@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Panel, useReactFlow, getNodesBounds, getViewportForBounds } from 'reactflow';
 import { Search, Eye, EyeOff, Play, Pause, RotateCcw, Download, ArrowUpDown, ArrowLeftRight } from 'lucide-react';
-import { toPng } from 'html2canvas';
+import { toPng } from 'html-to-image';
 
 function downloadImage(dataUrl: string, filename: string = 'flowchat-conversation.png') {
   const a = document.createElement('a');
