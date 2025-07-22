@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronLeft, ChevronUp } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { Sidebar } from '../Layout/Sidebar.tsx';
 import { MessageThread } from './MessageThread.tsx';
 import { ChatInput } from './ChatInput.tsx';

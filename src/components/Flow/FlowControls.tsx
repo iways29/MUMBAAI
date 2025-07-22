@@ -1,6 +1,17 @@
-import React from 'react';
-import { Panel } from 'reactflow';
-import { Search, Eye, EyeOff, Play, Pause, RotateCcw } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Panel, useReactFlow, getNodesBounds, getViewportForBounds } from 'reactflow';
+import { Search, Eye, EyeOff, Play, Pause, RotateCcw, Download, ArrowUpDown, ArrowLeftRight } from 'lucide-react';
+import { toPng } from 'html-to-image';
+
+function downloadImage(dataUrl: string, filename: string = 'flowchat-conversation.png') {
+  const a = document.createElement('a');
+  a.setAttribute('download', filename);
+  a.setAttribute('href', dataUrl);
+  a.click();
+}
+
+const imageWidth = 1920;
+const imageHeight = 1080;
 
 interface FlowControlsProps {
   chatPanelCollapsed: boolean;
@@ -15,6 +26,8 @@ interface FlowControlsProps {
   onResetTimeline: () => void;
   onToggleMiniMap: () => void;
   showMiniMap: boolean;
+  conversationName?: string;
+  onApplyLayout: (direction: 'TB' | 'LR') => void;
 }
 
 export const FlowControls: React.FC<FlowControlsProps> = ({
@@ -29,8 +42,87 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
   onStartAnimation,
   onResetTimeline,
   onToggleMiniMap,
-  showMiniMap
+  showMiniMap,
+  conversationName,
+  onApplyLayout
 }) => {
+  const { getNodes } = useReactFlow();
+  const [showLayoutDropdown, setShowLayoutDropdown] = useState(false);
+  const [currentLayout, setCurrentLayout] = useState<'TB' | 'LR'>('TB');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowLayoutDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleLayoutSelect = (direction: 'TB' | 'LR') => {
+    setCurrentLayout(direction);
+    onApplyLayout(direction);
+    setShowLayoutDropdown(false);
+  };
+
+  const handleDownload = () => {
+    try {
+      // Calculate transform for all visible nodes
+      const nodesBounds = getNodesBounds(getNodes());
+      const viewport = getViewportForBounds(
+        nodesBounds, 
+        imageWidth, 
+        imageHeight, 
+        0.5, // minZoom
+        2,   // maxZoom
+        0.1  // padding
+      );
+
+      // Generate filename based on conversation name and timestamp
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const filename = conversationName 
+        ? `${conversationName.replace(/[^a-z0-9]/gi, '_')}_${timestamp}.png`
+        : `flowchat_conversation_${timestamp}.png`;
+
+      // Convert to PNG with custom styling
+      toPng(document.querySelector('.react-flow__viewport') as HTMLElement, {
+        backgroundColor: '#f9fafb', // Match your app's background
+        width: imageWidth,
+        height: imageHeight,
+        style: {
+          width: `${imageWidth}px`,
+          height: `${imageHeight}px`,
+          transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
+        },
+        pixelRatio: 2, // Higher quality
+        quality: 0.95,
+      }).then((dataUrl) => {
+        downloadImage(dataUrl, filename);
+      }).catch((error) => {
+        console.error('Error generating image:', error);
+        // Fallback: try with basic settings
+        toPng(document.querySelector('.react-flow__viewport') as HTMLElement, {
+          backgroundColor: '#f9fafb',
+          pixelRatio: 1,
+        }).then((dataUrl) => {
+          downloadImage(dataUrl, filename);
+        }).catch((fallbackError) => {
+          console.error('Fallback image generation failed:', fallbackError);
+          alert('Failed to generate image. Please try again.');
+        });
+      });
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('Failed to download image. Please try again.');
+    }
+  };
+
   return (
     <>
       {/* Timeline Controls - Show when chat collapsed */}
@@ -89,6 +181,44 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
 
           <div className="w-px h-4 bg-gray-300"></div>
 
+          {/* Auto Layout Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setShowLayoutDropdown(!showLayoutDropdown)}
+              className="p-1 text-gray-700 hover:bg-gray-100 rounded transition-colors"
+              title={`Auto Layout (${currentLayout === 'TB' ? 'Vertical' : 'Horizontal'})`}
+            >
+              {currentLayout === 'TB' ? <ArrowUpDown size={14} /> : <ArrowLeftRight size={14} />}
+            </button>
+            
+            {showLayoutDropdown && (
+              <div className="absolute top-full right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]">
+                <button
+                  onClick={() => handleLayoutSelect('TB')}
+                  className={`w-full px-3 py-2 text-left text-xs hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 ${
+                    currentLayout === 'TB' ? 'bg-blue-50 text-blue-700' : ''
+                  }`}
+                >
+                  <ArrowUpDown size={12} />
+                  Vertical
+                  {currentLayout === 'TB' && <span className="ml-auto text-blue-500">✓</span>}
+                </button>
+                <button
+                  onClick={() => handleLayoutSelect('LR')}
+                  className={`w-full px-3 py-2 text-left text-xs hover:bg-gray-50 flex items-center gap-2 ${
+                    currentLayout === 'LR' ? 'bg-blue-50 text-blue-700' : ''
+                  }`}
+                >
+                  <ArrowLeftRight size={12} />
+                  Horizontal
+                  {currentLayout === 'LR' && <span className="ml-auto text-blue-500">✓</span>}
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="w-px h-4 bg-gray-300"></div>
+
           <select
             value={filterType}
             onChange={(e) => onFilterChange(e.target.value as any)}
@@ -100,17 +230,26 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
             <option value="merged">Merged</option>
           </select>
 
+          <div className="w-px h-4 bg-gray-300"></div>
+
+          {/* Download Button - Always visible */}
+          <button
+            onClick={handleDownload}
+            className="p-1 text-gray-700 hover:bg-gray-100 rounded transition-colors"
+            title="Download conversation as PNG"
+          >
+            <Download size={14} />
+          </button>
+
+          {/* MiniMap Toggle - Only visible when chat panel is expanded */}
           {!chatPanelCollapsed && (
-            <>
-              <div className="w-px h-4 bg-gray-300"></div>
-              <button
-                onClick={onToggleMiniMap}
-                className="p-1 text-gray-700 hover:bg-gray-100 rounded"
-                title="Toggle MiniMap"
-              >
-                {showMiniMap ? <EyeOff size={14} /> : <Eye size={14} />}
-              </button>
-            </>
+            <button
+              onClick={onToggleMiniMap}
+              className="p-1 text-gray-700 hover:bg-gray-100 rounded"
+              title="Toggle MiniMap"
+            >
+              {showMiniMap ? <EyeOff size={14} /> : <Eye size={14} />}
+            </button>
           )}
         </div>
       </Panel>

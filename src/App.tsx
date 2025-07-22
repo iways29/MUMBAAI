@@ -85,6 +85,17 @@ const FlowChatAI: React.FC = () => {
     }
   }
 
+  const handleLayoutApplied = useCallback((layoutedNodes: any[], layoutedEdges: any[]) => {
+    // Update the flow elements with the new layouted positions
+    flowElements.handleNodesChange(
+      layoutedNodes.map(node => ({
+        type: 'position',
+        id: node.id,
+        position: node.position
+      }))
+    );
+  }, [flowElements]);
+
   const handleConversationChange = useCallback((id: string) => {
     // Only change if it's actually a different conversation
     if (id === conversationHook.activeConversation) return;
@@ -246,6 +257,8 @@ const FlowChatAI: React.FC = () => {
         effectiveMergeCount={messageOps.getEffectiveMergeCount()}
         onToggleMiniMap={() => setShowMiniMap(!showMiniMap)}
         allMessagesCount={conversationHook.getAllMessages().length}
+        conversationName={conversationHook.currentConversation?.name}
+        onLayoutApplied={handleLayoutApplied}
       />
     </div>
   );
