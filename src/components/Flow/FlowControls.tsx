@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Panel, useReactFlow, getNodesBounds, getViewportForBounds } from 'reactflow';
-import { Search, Eye, EyeOff, Play, Pause, RotateCcw, Download } from 'lucide-react';
-import { toPng } from 'html-to-image';
+import { Search, Eye, EyeOff, Play, Pause, RotateCcw, Download, ArrowUpDown, ArrowLeftRight } from 'lucide-react';
+import { toPng } from 'html2canvas';
 
 function downloadImage(dataUrl: string, filename: string = 'flowchat-conversation.png') {
   const a = document.createElement('a');
@@ -27,6 +27,7 @@ interface FlowControlsProps {
   onToggleMiniMap: () => void;
   showMiniMap: boolean;
   conversationName?: string;
+  onApplyLayout: (direction: 'TB' | 'LR') => void;
 }
 
 export const FlowControls: React.FC<FlowControlsProps> = ({
@@ -42,9 +43,33 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
   onResetTimeline,
   onToggleMiniMap,
   showMiniMap,
-  conversationName
+  conversationName,
+  onApplyLayout
 }) => {
   const { getNodes } = useReactFlow();
+  const [showLayoutDropdown, setShowLayoutDropdown] = useState(false);
+  const [currentLayout, setCurrentLayout] = useState<'TB' | 'LR'>('TB');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowLayoutDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleLayoutSelect = (direction: 'TB' | 'LR') => {
+    setCurrentLayout(direction);
+    onApplyLayout(direction);
+    setShowLayoutDropdown(false);
+  };
 
   const handleDownload = () => {
     try {
@@ -152,6 +177,44 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
               onChange={(e) => onSearchChange(e.target.value)}
               className="w-24 text-xs border-none bg-transparent focus:outline-none placeholder-gray-400"
             />
+          </div>
+
+          <div className="w-px h-4 bg-gray-300"></div>
+
+          {/* Auto Layout Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setShowLayoutDropdown(!showLayoutDropdown)}
+              className="p-1 text-gray-700 hover:bg-gray-100 rounded transition-colors"
+              title={`Auto Layout (${currentLayout === 'TB' ? 'Vertical' : 'Horizontal'})`}
+            >
+              {currentLayout === 'TB' ? <ArrowUpDown size={14} /> : <ArrowLeftRight size={14} />}
+            </button>
+            
+            {showLayoutDropdown && (
+              <div className="absolute top-full right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]">
+                <button
+                  onClick={() => handleLayoutSelect('TB')}
+                  className={`w-full px-3 py-2 text-left text-xs hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 ${
+                    currentLayout === 'TB' ? 'bg-blue-50 text-blue-700' : ''
+                  }`}
+                >
+                  <ArrowUpDown size={12} />
+                  Vertical
+                  {currentLayout === 'TB' && <span className="ml-auto text-blue-500">✓</span>}
+                </button>
+                <button
+                  onClick={() => handleLayoutSelect('LR')}
+                  className={`w-full px-3 py-2 text-left text-xs hover:bg-gray-50 flex items-center gap-2 ${
+                    currentLayout === 'LR' ? 'bg-blue-50 text-blue-700' : ''
+                  }`}
+                >
+                  <ArrowLeftRight size={12} />
+                  Horizontal
+                  {currentLayout === 'LR' && <span className="ml-auto text-blue-500">✓</span>}
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="w-px h-4 bg-gray-300"></div>

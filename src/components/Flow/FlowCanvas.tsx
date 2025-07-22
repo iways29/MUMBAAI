@@ -14,7 +14,7 @@ import 'reactflow/dist/style.css';
 import { MessageNode } from './MessageNode.tsx';
 import { FlowControls } from './FlowControls.tsx';
 import { FlowPanels } from './FlowPanels.tsx';
-// DownloadButton is now integrated into FlowControls
+import { getLayoutedElements, LayoutDirection } from '../../utils/layoutUtils.ts';
 
 const nodeTypes = {
   message: MessageNode,
@@ -49,6 +49,8 @@ interface FlowCanvasProps {
   allMessagesCount: number;
   // Add this prop for the download button
   conversationName?: string;
+  // Add callback for layout
+  onLayoutApplied?: (nodes: any[], edges: any[]) => void;
 }
 
 export const FlowCanvas: React.FC<FlowCanvasProps> = ({
@@ -76,7 +78,8 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
   effectiveMergeCount,
   onToggleMiniMap,
   allMessagesCount,
-  conversationName // Add this prop
+  conversationName, // Add this prop
+  onLayoutApplied
 }) => {
   const { fitView } = useReactFlow();
 
@@ -92,6 +95,24 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
     fitView({ padding: 0.2, duration: 800 });
     onFitView();
   }, [fitView, onFitView]);
+
+  const handleApplyLayout = useCallback((direction: LayoutDirection) => {
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+      nodes,
+      edges,
+      direction
+    );
+    
+    // Apply the layout through the callback
+    if (onLayoutApplied) {
+      onLayoutApplied(layoutedNodes, layoutedEdges);
+    }
+    
+    // Fit view after layout is applied
+    setTimeout(() => {
+      fitView({ padding: 0.2, duration: 800 });
+    }, 100);
+  }, [nodes, edges, onLayoutApplied, fitView]);
 
   // Auto-fit view only for the first node in a conversation or significant changes
   const prevNodeCountRef = useRef(0);
@@ -166,6 +187,7 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
           onToggleMiniMap={onToggleMiniMap}
           showMiniMap={showMiniMap}
           conversationName={conversationName}
+          onApplyLayout={handleApplyLayout}
         />
 
         {/* Flow Panels */}
