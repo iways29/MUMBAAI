@@ -49,7 +49,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}`
+          redirectTo: `${window.location.origin}/`
         }
       });
       
