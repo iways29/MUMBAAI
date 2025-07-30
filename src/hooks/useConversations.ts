@@ -14,13 +14,6 @@ export const useConversations = (initialConversations: Conversation[] = []) => {
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
 
-  // Load conversations from database when user logs in
-  useEffect(() => {
-    if (user && conversations.length === 0) {
-      loadConversationsFromDatabase();
-    }
-  }, [user]);
-
   const loadConversationsFromDatabase = useCallback(async () => {
     if (!user) return;
     
@@ -38,6 +31,13 @@ export const useConversations = (initialConversations: Conversation[] = []) => {
       setLoading(false);
     }
   }, [user, activeConversation]);
+
+  // Load conversations from database when user logs in
+  useEffect(() => {
+    if (user && conversations.length === 0) {
+      loadConversationsFromDatabase();
+    }
+  }, [user, conversations.length, loadConversationsFromDatabase]);
 
   const getCurrentConversation = useCallback((): Conversation | null => {
     return conversations.find(c => c.id === activeConversation) || null;
