@@ -44,7 +44,7 @@ export interface PanelState {
 export interface PanelControls {
   setChatPanelCollapsed: (collapsed: boolean) => void;
   setInfoPanelCollapsed: (collapsed: boolean) => void;
-  startRenamingConversation: () => void;
-  saveConversationName: () => void;
+  startRenamingConversation: (currentName: string) => void;
+  saveConversationName: () => string;
   cancelRenamingConversation: () => void;
 }

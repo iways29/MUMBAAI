@@ -1,41 +1,96 @@
+// src/hooks/useFlowElements.ts
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Node, Edge, MarkerType, NodeChange, EdgeChange } from 'reactflow';
-import { Message } from '../types/conversation.ts';
-import { MessageNodeData } from '../types/flow.ts';
-import { MessageHelpers } from '../utils/messageHelpers.ts';
+import { Message } from '../types/conversation';
+import { MessageNodeData } from '../types/flow';
+import { MessageHelpers } from '../utils/messageHelpers';
+import { DatabaseService } from '../services/databaseService';
+import { useAuth } from './useAuth';
 
 export const useFlowElements = (
   messages: Message[],
+  conversationId: string,
   selectedMessageId: string,
   selectedNodes: Set<string>,
   onNodeClick?: (messageId: string, event?: React.MouseEvent) => void,
   onNodeDoubleClick?: (messageId: string, event?: React.MouseEvent) => void
 ) => {
+  const { user } = useAuth();
   const [timelinePosition, setTimelinePosition] = useState(1.0);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'user' | 'assistant' | 'merged'>('all');
   const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>({});
+  const [positionsLoaded, setPositionsLoaded] = useState(false);
   
   // Track previous messages to detect changes
   const prevMessagesRef = useRef<Message[]>([]);
   const prevConversationRef = useRef<string>('');
-  
-  // Reset node positions only when switching conversations, not when adding messages
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Load node positions when conversation changes
   useEffect(() => {
-    const currentConversationId = messages.length > 0 ? messages[0].id.split('-')[0] : '';
+    if (conversationId && conversationId !== prevConversationRef.current && user) {
+      loadNodePositions();
+    }
+    prevConversationRef.current = conversationId;
+  }, [conversationId, user]);
+
+  // Reset positions only when switching conversations
+  useEffect(() => {
+    const currentConversationId = conversationId;
     
     // Only reset positions if we've switched to a completely different conversation
     if (prevConversationRef.current && 
         prevConversationRef.current !== currentConversationId && 
         currentConversationId !== '') {
       setNodePositions({});
+      setPositionsLoaded(false);
     }
     
-    prevConversationRef.current = currentConversationId;
     prevMessagesRef.current = messages;
-  }, [messages]);
+  }, [messages, conversationId]);
 
-  const convertToFlowElements = useCallback(() => {
+  const loadNodePositions = useCallback(async () => {
+    if (!conversationId || !user) return;
+
+    try {
+      const positions = await DatabaseService.loadNodePositions(conversationId);
+      setNodePositions(positions);
+      setPositionsLoaded(true);
+    } catch (error) {
+      console.error('Failed to load node positions:', error);
+      setPositionsLoaded(true); // Still mark as loaded to prevent infinite loading
+    }
+  }, [conversationId, user]);
+
+  const saveNodePositions = useCallback(
+    async (positions: Record<string, { x: number; y: number }>) => {
+      if (!conversationId || !user) return;
+
+      try {
+        await DatabaseService.saveNodePositions(conversationId, positions);
+      } catch (error) {
+        console.error('Failed to save node positions:', error);
+      }
+    },
+    [conversationId, user]
+  );
+
+  // Debounced save function
+  const debouncedSavePositions = useCallback(
+    (positions: Record<string, { x: number; y: number }>) => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      
+      saveTimeoutRef.current = setTimeout(() => {
+        saveNodePositions(positions);
+      }, 1000); // Save after 1 second of no changes
+    },
+    [saveNodePositions]
+  );
+
+      const convertToFlowElements = useCallback(() => {
     const flowNodes: Node<MessageNodeData>[] = [];
     const flowEdges: Edge[] = [];
     const horizontalSpacing = 400;
@@ -95,8 +150,8 @@ export const useFlowElements = (
       if (matchesType) {
         const isMultiSelected = selectedNodes.has(message.id);
 
-        // Use saved position if available, otherwise use calculated position
-        const savedPosition = nodePositions[message.id];
+        // Use saved position if available and positions are loaded, otherwise use calculated position
+        const savedPosition = positionsLoaded ? nodePositions[message.id] : null;
         const nodePosition = savedPosition || { x, y };
 
         flowNodes.push({
@@ -202,6 +257,7 @@ export const useFlowElements = (
     searchTerm, 
     filterType,
     nodePositions,
+    positionsLoaded,
     onNodeClick,
     onNodeDoubleClick
   ]);
@@ -223,10 +279,14 @@ export const useFlowElements = (
             newPositions[change.id] = change.position;
           }
         });
+        
+        // Debounce saving to database
+        debouncedSavePositions(newPositions);
+        
         return newPositions;
       });
     }
-  }, []);
+  }, [debouncedSavePositions]);
 
   // Handle edge changes
   const handleEdgesChange = useCallback((changes: EdgeChange[]) => {
@@ -260,6 +320,15 @@ export const useFlowElements = (
     };
   }, [messages, nodes.length]);
 
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
+
   return {
     // Flow elements
     nodes,
@@ -279,6 +348,11 @@ export const useFlowElements = (
     setSearchTerm,
     setFilterType,
     resetFilters,
+    
+    // Position management
+    loadNodePositions,
+    saveNodePositions,
+    positionsLoaded,
     
     // Stats
     getFilteredMessageCount
