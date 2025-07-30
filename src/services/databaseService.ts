@@ -1,5 +1,5 @@
 // src/services/databaseService.ts
-import { supabase } from '../lib/supabase';
+import { supabase } from '../lib/supabase.ts';
 import { Conversation, Message } from '../types/conversation';
 
 export interface DatabaseConversation {

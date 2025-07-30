@@ -1,9 +1,9 @@
 // src/hooks/useConversations.ts
 import { useState, useCallback, useEffect } from 'react';
 import { Conversation, Message } from '../types/conversation';
-import { MessageHelpers } from '../utils/messageHelpers';
-import { DatabaseService } from '../services/databaseService';
-import { useAuth } from './useAuth';
+import { MessageHelpers } from '../utils/messageHelpers.ts';
+import { DatabaseService } from '../services/databaseService.ts';
+import { useAuth } from './useAuth.ts';
 
 export const useConversations = (initialConversations: Conversation[] = []) => {
   const { user } = useAuth();

@@ -3,9 +3,9 @@ import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Node, Edge, MarkerType, NodeChange, EdgeChange } from 'reactflow';
 import { Message } from '../types/conversation';
 import { MessageNodeData } from '../types/flow';
-import { MessageHelpers } from '../utils/messageHelpers';
-import { DatabaseService } from '../services/databaseService';
-import { useAuth } from './useAuth';
+import { MessageHelpers } from '../utils/messageHelpers.ts';
+import { DatabaseService } from '../services/databaseService.ts';
+import { useAuth } from './useAuth.ts';
 
 export const useFlowElements = (
   messages: Message[],
