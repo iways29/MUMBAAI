@@ -27,13 +27,26 @@ export const useFlowElements = (
   const prevConversationRef = useRef<string>('');
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const loadNodePositions = useCallback(async () => {
+    if (!conversationId || !user) return;
+
+    try {
+      const positions = await DatabaseService.loadNodePositions(conversationId);
+      setNodePositions(positions);
+      setPositionsLoaded(true);
+    } catch (error) {
+      console.error('Failed to load node positions:', error);
+      setPositionsLoaded(true); // Still mark as loaded to prevent infinite loading
+    }
+  }, [conversationId, user]);
+
   // Load node positions when conversation changes
   useEffect(() => {
     if (conversationId && conversationId !== prevConversationRef.current && user) {
       loadNodePositions();
     }
     prevConversationRef.current = conversationId;
-  }, [conversationId, user]);
+  }, [conversationId, user, loadNodePositions]);
 
   // Reset positions only when switching conversations
   useEffect(() => {
@@ -49,19 +62,6 @@ export const useFlowElements = (
     
     prevMessagesRef.current = messages;
   }, [messages, conversationId]);
-
-  const loadNodePositions = useCallback(async () => {
-    if (!conversationId || !user) return;
-
-    try {
-      const positions = await DatabaseService.loadNodePositions(conversationId);
-      setNodePositions(positions);
-      setPositionsLoaded(true);
-    } catch (error) {
-      console.error('Failed to load node positions:', error);
-      setPositionsLoaded(true); // Still mark as loaded to prevent infinite loading
-    }
-  }, [conversationId, user]);
 
   const saveNodePositions = useCallback(
     async (positions: Record<string, { x: number; y: number }>) => {
