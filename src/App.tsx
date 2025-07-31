@@ -40,6 +40,7 @@ const FlowChatAI: React.FC = () => {
   // Flow elements with proper change handling
   const flowElements = useFlowElements(
     conversationHook.currentConversation?.messages || [],
+    conversationHook.activeConversation, // Add this line
     selectedMessageId,
     selectedNodes,
     handleNodeClick,
@@ -196,13 +197,15 @@ const FlowChatAI: React.FC = () => {
 
   // NOW WE CAN DO EARLY RETURNS AFTER ALL HOOKS ARE DEFINED
   
-  // Show loading while checking authentication
-  if (loading) {
+  // Show loading while checking authentication OR loading conversations
+  if (loading || conversationHook.loading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">
+            {loading ? 'Loading...' : 'Loading conversations...'}
+          </p>
         </div>
       </div>
     );

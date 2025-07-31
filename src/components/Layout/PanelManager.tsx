@@ -26,7 +26,7 @@ export const usePanelManager = (initialState?: Partial<PanelState>) => {
     }));
   }, []);
 
-  const saveConversationName = useCallback(() => {
+  const saveConversationName = useCallback((): string => {
     const trimmedName = state.tempConversationName.trim();
     setState(prev => ({ 
       ...prev, 
