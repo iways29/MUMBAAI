@@ -51,7 +51,10 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (inputRef.current && !inputRef.current.contains(event.target as Node) && isEditing) {
-        handleSaveEdit();
+        if (editingName.trim() && editingName !== conversationName) {
+          onConversationNameChange(editingName.trim());
+        }
+        setIsEditing(false);
       }
     };
 
@@ -61,7 +64,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
         document.removeEventListener('mousedown', handleClickOutside);
       };
     }
-  }, [isEditing, handleSaveEdit]);
+  }, [isEditing, editingName, conversationName, onConversationNameChange]);
 
   useEffect(() => {
     setEditingName(conversationName);

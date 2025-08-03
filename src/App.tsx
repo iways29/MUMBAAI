@@ -137,15 +137,13 @@ const FlowChatAI: React.FC = () => {
     // This is called when user clicks "Start Your First Conversation"
     setWantsToStart(true);
     
-    // If user is already logged in, create conversation immediately
+    // If user is already logged in, just proceed to conversations view
     if (user) {
-      const newId = conversationHook.createNewConversation();
-      setSelectedMessageId('');
-      setSelectedNodes(new Set());
-      return newId;
+      setCurrentView('conversations');
+      return;
     }
     // If not logged in, the EmptyState will show the auth form
-  }, [conversationHook, user]);
+  }, [user]);
 
   const handleCreateNewConversation = useCallback(() => {
     const newId = conversationHook.createNewConversation();
