@@ -72,7 +72,7 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
               message.type === 'user'
                 ? 'bg-gray-100 text-gray-900 shadow-sm ml-8'
                 : 'bg-transparent text-gray-900'
-            } ${message.id === selectedMessageId ? 'ring-2 ring-yellow-400 ring-offset-2' : ''}`}>
+            } ${message.id === selectedMessageId ? 'ring-2 ring-blue-400 ring-offset-2' : ''}`}>
 
               <div className="flex items-center gap-2 mb-2">
                 {message.type === 'user' ? (
