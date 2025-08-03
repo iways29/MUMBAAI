@@ -29,7 +29,6 @@ const FlowChatAI: React.FC = () => {
   // UI state
   const [selectedMessageId, setSelectedMessageId] = useState('');
   const [selectedNodes, setSelectedNodes] = useState(new Set<string>());
-  const [showMiniMap, setShowMiniMap] = useState(false);
   const [bookmarkedNodes, setBookmarkedNodes] = useState(new Set<string>());
   const [isAnimating, setIsAnimating] = useState(false);
   const animationRef = useRef<NodeJS.Timeout | null>(null);
@@ -254,12 +253,6 @@ const FlowChatAI: React.FC = () => {
         activeConversation={conversationHook.activeConversation}
         onConversationChange={handleConversationChange}
         onCreateConversation={handleCreateNewConversation}
-        selectedNodes={selectedNodes}
-        canMerge={messageOps.canMerge()}
-        onPerformMerge={messageOps.performIntelligentMerge}
-        effectiveMergeCount={messageOps.getEffectiveMergeCount()}
-        onClearSelection={() => setSelectedNodes(new Set())}
-        onFitView={() => {}}
         isRenamingConversation={panelManager.isRenaming}
         tempConversationName={panelManager.tempName}
         onStartRenaming={handleStartRenaming}
@@ -274,7 +267,6 @@ const FlowChatAI: React.FC = () => {
         edges={flowElements.edges}
         onNodesChange={flowElements.handleNodesChange}
         onEdgesChange={flowElements.handleEdgesChange}
-        showMiniMap={showMiniMap}
         chatPanelCollapsed={panelManager.isChatCollapsed}
         selectedNodes={selectedNodes}
         onClearSelection={() => setSelectedNodes(new Set())}
@@ -292,7 +284,6 @@ const FlowChatAI: React.FC = () => {
         onPerformMerge={messageOps.performIntelligentMerge}
         isLoading={messageOps.isLoading}
         effectiveMergeCount={messageOps.getEffectiveMergeCount()}
-        onToggleMiniMap={() => setShowMiniMap(!showMiniMap)}
         allMessagesCount={conversationHook.getAllMessages().length}
         conversationName={conversationHook.currentConversation?.name}
         onLayoutApplied={handleLayoutApplied}

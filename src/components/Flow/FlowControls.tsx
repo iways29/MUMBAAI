@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Panel, useReactFlow, getNodesBounds, getViewportForBounds } from 'reactflow';
-import { Search, Eye, EyeOff, Play, Pause, RotateCcw, Download, ArrowUpDown, ArrowLeftRight } from 'lucide-react';
+import { Search, User, Play, Pause, RotateCcw, Download, ArrowUpDown, ArrowLeftRight } from 'lucide-react';
 import { toPng } from 'html-to-image';
 
 function downloadImage(dataUrl: string, filename: string = 'flowchat-conversation.png') {
@@ -24,8 +24,6 @@ interface FlowControlsProps {
   isAnimating: boolean;
   onStartAnimation: () => void;
   onResetTimeline: () => void;
-  onToggleMiniMap: () => void;
-  showMiniMap: boolean;
   conversationName?: string;
   onApplyLayout: (direction: 'TB' | 'LR') => void;
 }
@@ -41,8 +39,6 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
   isAnimating,
   onStartAnimation,
   onResetTimeline,
-  onToggleMiniMap,
-  showMiniMap,
   conversationName,
   onApplyLayout
 }) => {
@@ -241,16 +237,13 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
             <Download size={14} />
           </button>
 
-          {/* MiniMap Toggle - Only visible when chat panel is expanded */}
-          {!chatPanelCollapsed && (
-            <button
-              onClick={onToggleMiniMap}
-              className="p-1 text-gray-700 hover:bg-gray-100 rounded"
-              title="Toggle MiniMap"
-            >
-              {showMiniMap ? <EyeOff size={14} /> : <Eye size={14} />}
-            </button>
-          )}
+          {/* User Button - Always visible */}
+          <button
+            className="p-1 text-gray-700 hover:bg-gray-100 rounded"
+            title="User Profile"
+          >
+            <User size={14} />
+          </button>
         </div>
       </Panel>
     </>

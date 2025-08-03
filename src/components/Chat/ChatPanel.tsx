@@ -25,12 +25,6 @@ interface ChatPanelProps {
   activeConversation: string;
   onConversationChange: (id: string) => void;
   onCreateConversation: () => void;
-  selectedNodes: Set<string>;
-  canMerge: boolean;
-  onPerformMerge: () => void;
-  effectiveMergeCount: number;
-  onClearSelection: () => void;
-  onFitView: () => void;
   // Renaming
   isRenamingConversation: boolean;
   tempConversationName: string;
@@ -59,12 +53,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   activeConversation,
   onConversationChange,
   onCreateConversation,
-  selectedNodes,
-  canMerge,
-  onPerformMerge,
-  effectiveMergeCount,
-  onClearSelection,
-  onFitView,
   isRenamingConversation,
   tempConversationName,
   onStartRenaming,
@@ -97,13 +85,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         activeConversation={activeConversation}
         onConversationChange={onConversationChange}
         onCreateConversation={onCreateConversation}
-        selectedNodes={selectedNodes}
-        canMerge={canMerge}
-        onPerformMerge={onPerformMerge}
-        effectiveMergeCount={effectiveMergeCount}
-        onClearSelection={onClearSelection}
-        onFitView={onFitView}
-        isLoading={isLoading}
         isRenamingConversation={isRenamingConversation}
         tempConversationName={tempConversationName}
         onStartRenaming={onStartRenaming}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, ChevronUp, ChevronLeft, Sparkles, GitBranch } from 'lucide-react';
+import { Plus, ChevronUp, ChevronLeft, Sparkles } from 'lucide-react';
 import { ConversationSelector } from '../Chat/ConversationSelector.tsx';
 import { Conversation } from '../../types/conversation.ts';
 
@@ -11,13 +11,6 @@ interface SidebarProps {
   activeConversation: string;
   onConversationChange: (id: string) => void;
   onCreateConversation: () => void;
-  selectedNodes: Set<string>;
-  canMerge: boolean;
-  onPerformMerge: () => void;
-  effectiveMergeCount: number;
-  onClearSelection: () => void;
-  onFitView: () => void;
-  isLoading: boolean;
   isRenamingConversation: boolean;
   tempConversationName: string;
   onStartRenaming: () => void;
@@ -34,13 +27,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeConversation,
   onConversationChange,
   onCreateConversation,
-  selectedNodes,
-  canMerge,
-  onPerformMerge,
-  effectiveMergeCount,
-  onClearSelection,
-  onFitView,
-  isLoading,
   isRenamingConversation,
   tempConversationName,
   onStartRenaming,
@@ -150,50 +136,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           />
         </div>
 
-        {/* Merge Controls */}
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-          <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-            <GitBranch size={14} />
-            <span>Ctrl+click nodes • Double-click to focus</span>
-          </div>
-
-          <div className="text-sm mb-3">
-            <span className="text-blue-600 font-medium">Selected: {selectedNodes.size} nodes</span>
-            {effectiveMergeCount > selectedNodes.size && (
-              <span className="text-green-600 ml-1">+ active node</span>
-            )}
-          </div>
-
-          {canMerge ? (
-            <button
-              onClick={onPerformMerge}
-              className="flex items-center gap-2 w-full px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm hover:bg-purple-200 transition-colors font-medium mb-2"
-              disabled={isLoading}
-            >
-              <Sparkles size={14} />
-              {isLoading ? 'Merging...' : `Smart Merge ${effectiveMergeCount} nodes`}
-            </button>
-          ) : (
-            <div className="text-sm text-gray-500 text-center py-2 mb-2 border border-dashed border-gray-300 rounded">
-              Select 2+ nodes to merge
-            </div>
-          )}
-
-          <div className="flex gap-2">
-            <button
-              onClick={onClearSelection}
-              className="flex-1 px-2 py-1 bg-white text-gray-600 rounded text-xs hover:bg-gray-100 border border-gray-200"
-            >
-              Clear
-            </button>
-            <button
-              onClick={onFitView}
-              className="flex-1 px-2 py-1 bg-white text-gray-600 rounded text-xs hover:bg-gray-100 border border-gray-200"
-            >
-              Fit View
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

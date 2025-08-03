@@ -3,7 +3,6 @@ import { Panel } from 'reactflow';
 import { GitBranch, Sparkles } from 'lucide-react';
 
 interface FlowPanelsProps {
-  chatPanelCollapsed: boolean;
   selectedNodes: Set<string>;
   onClearSelection: () => void;
   onFitView: () => void;
@@ -15,7 +14,6 @@ interface FlowPanelsProps {
 }
 
 export const FlowPanels: React.FC<FlowPanelsProps> = ({
-  chatPanelCollapsed,
   selectedNodes,
   onClearSelection,
   onFitView,
@@ -27,9 +25,8 @@ export const FlowPanels: React.FC<FlowPanelsProps> = ({
 }) => {
   return (
     <>
-      {/* Merge Controls - Show when chat collapsed */}
-      {chatPanelCollapsed && (
-        <Panel position="bottom-left">
+      {/* Merge Controls - Always visible */}
+      <Panel position="bottom-left">
           <div className="p-4 bg-white rounded-lg shadow-lg border border-gray-200 max-w-sm">
             <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
               <GitBranch size={14} />
@@ -74,7 +71,6 @@ export const FlowPanels: React.FC<FlowPanelsProps> = ({
             </div>
           </div>
         </Panel>
-      )}
 
       {/* Status Panel */}
       <Panel position="bottom-right">
