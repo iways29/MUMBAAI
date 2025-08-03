@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { MessageCircle, User, Bot, GitBranch, Sparkles, Share2, Bookmark } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { Message } from '../../types/conversation.ts';
 import { MessageHelpers } from '../../utils/messageHelpers.ts';
 import { ThinkingIndicator } from '../UI/LoadingSpinner.tsx';
@@ -88,7 +89,32 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
                 </span>
               </div>
 
-              <div className="text-sm leading-relaxed whitespace-pre-wrap mb-2 break-words">{message.content}</div>
+              <div className="text-sm leading-relaxed mb-2 break-words">
+                {message.type === 'assistant' ? (
+                  <div className="prose prose-sm max-w-none prose-gray">
+                    <ReactMarkdown 
+                      components={{
+                      p: ({children}) => <p className="mb-2 last:mb-0">{children}</p>,
+                      strong: ({children}) => <strong className="font-semibold text-gray-900">{children}</strong>,
+                      em: ({children}) => <em className="italic">{children}</em>,
+                      code: ({children}) => <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono">{children}</code>,
+                      pre: ({children}) => <pre className="bg-gray-100 p-3 rounded-lg overflow-x-auto text-sm font-mono">{children}</pre>,
+                      ul: ({children}) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
+                      ol: ({children}) => <ol className="list-decimal pl-4 mb-2">{children}</ol>,
+                      li: ({children}) => <li className="mb-1">{children}</li>,
+                      h1: ({children}) => <h1 className="text-lg font-semibold mb-2 text-gray-900">{children}</h1>,
+                      h2: ({children}) => <h2 className="text-base font-semibold mb-2 text-gray-900">{children}</h2>,
+                      h3: ({children}) => <h3 className="text-sm font-semibold mb-1 text-gray-900">{children}</h3>,
+                      blockquote: ({children}) => <blockquote className="border-l-4 border-gray-300 pl-4 italic text-gray-700 mb-2">{children}</blockquote>
+                    }}
+                    >
+                      {message.content}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <div className="whitespace-pre-wrap">{message.content}</div>
+                )}
+              </div>
 
               {/* Message Actions and Info */}
               <div className={`flex items-center gap-3 pt-1 border-t ${

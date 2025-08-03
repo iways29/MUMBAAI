@@ -1,6 +1,7 @@
 import React from 'react';
 import { Handle, Position } from 'reactflow';
 import { User, Bot, GitBranch, Sparkles, Star } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { MessageNodeData } from '../../types/flow.ts';
 import { MessageHelpers } from '../../utils/messageHelpers.ts';
 
@@ -80,8 +81,33 @@ export const MessageNode: React.FC<MessageNodeProps> = ({ data, selected }) => {
 
       {/* Content */}
       <div className="p-4">
-        <div className="text-sm text-gray-900 leading-relaxed mb-3 break-words whitespace-pre-wrap">
-          {MessageHelpers.truncateText(message.content)}
+        <div className="text-sm text-gray-900 leading-relaxed mb-3 break-words">
+          {message.type === 'assistant' ? (
+            <div className="prose prose-sm max-w-none prose-gray">
+              <ReactMarkdown 
+                components={{
+                  p: ({children}) => <p className="mb-1 last:mb-0">{children}</p>,
+                  strong: ({children}) => <strong className="font-semibold text-gray-900">{children}</strong>,
+                  em: ({children}) => <em className="italic">{children}</em>,
+                  code: ({children}) => <code className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
+                  pre: ({children}) => <pre className="bg-gray-100 p-2 rounded text-xs font-mono overflow-x-auto">{children}</pre>,
+                  ul: ({children}) => <ul className="list-disc pl-3 mb-1">{children}</ul>,
+                  ol: ({children}) => <ol className="list-decimal pl-3 mb-1">{children}</ol>,
+                  li: ({children}) => <li className="mb-0.5">{children}</li>,
+                  h1: ({children}) => <h1 className="text-base font-semibold mb-1 text-gray-900">{children}</h1>,
+                  h2: ({children}) => <h2 className="text-sm font-semibold mb-1 text-gray-900">{children}</h2>,
+                  h3: ({children}) => <h3 className="text-sm font-semibold mb-1 text-gray-900">{children}</h3>,
+                  blockquote: ({children}) => <blockquote className="border-l-2 border-gray-300 pl-2 italic text-gray-700 mb-1">{children}</blockquote>
+                }}
+              >
+                {MessageHelpers.truncateText(message.content)}
+              </ReactMarkdown>
+            </div>
+          ) : (
+            <div className="whitespace-pre-wrap">
+              {MessageHelpers.truncateText(message.content)}
+            </div>
+          )}
         </div>
 
         {message.children && message.children.length > 0 && (

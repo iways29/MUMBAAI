@@ -38,7 +38,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           value={inputText}
           onChange={(e) => onInputChange(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder={selectedMessageId ? "Reply to selected message..." : "Start a new conversation..."}
+          placeholder={selectedMessageId ? "Ask Awayyy..." : "Start Ideating..."}
           className="flex-1 border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm resize-none min-h-[44px] max-h-32 overflow-y-auto"
           disabled={isLoading}
           rows={1}
