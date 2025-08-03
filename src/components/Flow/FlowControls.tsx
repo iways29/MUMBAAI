@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Panel, useReactFlow, getNodesBounds, getViewportForBounds } from 'reactflow';
-import { Search, User, Play, Pause, RotateCcw, Download, ArrowUpDown, ArrowLeftRight } from 'lucide-react';
+import { Search, Play, Pause, RotateCcw, Download, ArrowUpDown, ArrowLeftRight } from 'lucide-react';
 import { toPng } from 'html-to-image';
 
 function downloadImage(dataUrl: string, filename: string = 'flowchat-conversation.png') {
@@ -237,13 +237,6 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
             <Download size={14} />
           </button>
 
-          {/* User Button - Always visible */}
-          <button
-            className="p-1 text-gray-700 hover:bg-gray-100 rounded"
-            title="User Profile"
-          >
-            <User size={14} />
-          </button>
         </div>
       </Panel>
     </>

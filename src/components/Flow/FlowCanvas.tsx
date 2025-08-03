@@ -130,7 +130,7 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
   }, [nodes.length, fitView]);
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-50 relative">
+    <div className="flex-1 flex flex-col bg-gray-50 relative" style={{ width: '100%' }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
