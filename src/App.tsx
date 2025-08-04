@@ -45,6 +45,9 @@ const FlowChatAI: React.FC = () => {
   
   // Chat view mode state (Combined vs Flow view)
   const [chatViewMode, setChatViewMode] = useState<'combined' | 'flow'>('combined');
+  
+  // Selected AI model state
+  const [selectedModel, setSelectedModel] = useState<string>('gemini-1.5-flash');
 
   // Flow elements with proper change handling
   const flowElements = useFlowElements(
@@ -302,6 +305,8 @@ const FlowChatAI: React.FC = () => {
             }
             setBookmarkedNodes(newBookmarks);
           }}
+          selectedModel={selectedModel}
+          onModelChange={setSelectedModel}
         />
       )}
 

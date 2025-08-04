@@ -17,6 +17,8 @@ interface ChatPanelProps {
   currentMessage: Message | null;
   bookmarkedNodes: Set<string>;
   onToggleBookmark: (nodeId: string) => void;
+  selectedModel?: string;
+  onModelChange?: (modelId: string) => void;
 }
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({
@@ -31,7 +33,9 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   canSendMessage,
   currentMessage,
   bookmarkedNodes,
-  onToggleBookmark
+  onToggleBookmark,
+  selectedModel,
+  onModelChange
 }) => {
   if (collapsed) {
     return (
@@ -67,6 +71,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         isLoading={isLoading}
         selectedMessageId={selectedMessageId}
         currentMessage={currentMessage}
+        selectedModel={selectedModel}
+        onModelChange={onModelChange}
       />
     </div>
   );
