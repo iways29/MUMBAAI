@@ -69,7 +69,7 @@ export const ConversationsListPage: React.FC<ConversationsListPageProps> = ({
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Conversations</h1>
-              <p className="text-gray-600">Manage and explore your FlowChat AI conversations</p>
+              <p className="text-gray-600">Manage and explore your MUMBAAI conversations</p>
             </div>
             <button
               onClick={onCreateConversation}

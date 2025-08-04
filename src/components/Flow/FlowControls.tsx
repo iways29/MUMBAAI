@@ -3,7 +3,7 @@ import { Panel, useReactFlow, getNodesBounds, getViewportForBounds } from 'react
 import { Search, Play, Pause, RotateCcw, Download, ArrowUpDown, ArrowLeftRight } from 'lucide-react';
 import { toPng } from 'html-to-image';
 
-function downloadImage(dataUrl: string, filename: string = 'flowchat-conversation.png') {
+function downloadImage(dataUrl: string, filename: string = 'mumbaai-conversation.png') {
   const a = document.createElement('a');
   a.setAttribute('download', filename);
   a.setAttribute('href', dataUrl);
@@ -84,7 +84,7 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
       const filename = conversationName 
         ? `${conversationName.replace(/[^a-z0-9]/gi, '_')}_${timestamp}.png`
-        : `flowchat_conversation_${timestamp}.png`;
+        : `mumbaai_conversation_${timestamp}.png`;
 
       // Convert to PNG with custom styling
       toPng(document.querySelector('.react-flow__viewport') as HTMLElement, {

@@ -20,7 +20,7 @@ import { usePanelManager } from './components/Layout/PanelManager.tsx';
 // Authentication
 import { useAuth } from './hooks/useAuth.ts';
 
-const FlowChatAI: React.FC = () => {
+const MUMBAAI: React.FC = () => {
   // ALL HOOKS MUST BE AT THE TOP - BEFORE ANY EARLY RETURNS
   const { user, loading } = useAuth();
   
@@ -226,14 +226,15 @@ const FlowChatAI: React.FC = () => {
     );
   }
 
-  // Show landing page with auth if user wants to start but isn't logged in
-  // OR show landing page if user hasn't clicked start yet
-  if (!user || !wantsToStart) {
+  // Show landing page only if user is not logged in
+  if (!user) {
     return (
-      <EmptyState
-        onCreateConversation={handleCreateFirstConversation}
-        showAuth={wantsToStart && !user}
-      />
+      <div className="h-screen overflow-y-auto">
+        <EmptyState
+          onCreateConversation={handleCreateFirstConversation}
+          showAuth={wantsToStart && !user}
+        />
+      </div>
     );
   }
 
@@ -242,7 +243,7 @@ const FlowChatAI: React.FC = () => {
     return (
       <>
         <FloatingToolbar
-          brandName="FlowChat AI"
+          brandName="MUMBAAI"
           conversationName=""
           onBrandClick={handleNavigateToConversations}
           onConversationNameChange={() => {}} // Not used on conversations page
@@ -268,7 +269,7 @@ const FlowChatAI: React.FC = () => {
   return (
     <>
       <FloatingToolbar
-        brandName="FlowChat AI"
+        brandName="MUMBAAI"
         conversationName={conversationHook.currentConversation?.name || 'New Conversation'}
         onBrandClick={handleNavigateToConversations}
         onConversationNameChange={handleConversationNameChange}
@@ -344,7 +345,7 @@ const FlowChatAI: React.FC = () => {
 const App: React.FC = () => {
   return (
     <ReactFlowProvider>
-      <FlowChatAI />
+      <MUMBAAI />
       <Analytics />
       <SpeedInsights />
     </ReactFlowProvider>

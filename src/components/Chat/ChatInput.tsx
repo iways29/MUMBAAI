@@ -45,7 +45,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             value={inputText}
             onChange={(e) => onInputChange(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={selectedMessageId ? "Ask away..." : "Message FlowChat AI"}
+            placeholder={selectedMessageId ? "Ask away..." : "Message MUMBAAI"}
             className="flex-1 bg-transparent text-gray-900 placeholder-gray-500 text-sm resize-none min-h-[24px] max-h-32 overflow-y-auto outline-none border-none p-0"
             disabled={isLoading}
             rows={1}

@@ -46,7 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <Sparkles size={16} className="text-white" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-gray-800">FlowChat AI</h3>
+                <h3 className="text-sm font-bold text-gray-800">MUMBAAI</h3>
                 {currentConversation && (
                   <span className="text-xs text-gray-500">
                     {currentConversation.name}
@@ -92,7 +92,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <Sparkles size={20} className="text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">FlowChat AI</h2>
+              <h2 className="text-xl font-bold text-gray-900">MUMBAAI</h2>
               <p className="text-xs text-gray-500">Visualize your conversations</p>
             </div>
           </div>
