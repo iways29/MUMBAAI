@@ -126,7 +126,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
                   onClick={onCreateConversation}
                   className="bg-gray-900 text-white px-8 py-4 rounded-lg font-medium hover:bg-gray-800 transition-colors w-full text-lg"
                 >
-                  Start Your First Conversation
+                  Get Started
                 </button>
               )}
             </div>

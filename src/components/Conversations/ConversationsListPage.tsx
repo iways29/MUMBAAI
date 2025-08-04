@@ -124,7 +124,7 @@ export const ConversationsListPage: React.FC<ConversationsListPageProps> = ({
                   onClick={onCreateConversation}
                   className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  Start Your First Conversation
+                  Create New Conversation
                 </button>
               </div>
             )}

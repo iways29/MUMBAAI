@@ -228,8 +228,7 @@ const FlowChatAI: React.FC = () => {
 
   // Show landing page with auth if user wants to start but isn't logged in
   // OR show landing page if user hasn't clicked start yet
-  // OR show landing page if no conversations exist
-  if (!user || !wantsToStart || conversationHook.conversations.length === 0) {
+  if (!user || !wantsToStart) {
     return (
       <EmptyState
         onCreateConversation={handleCreateFirstConversation}
