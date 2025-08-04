@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Panel, useReactFlow, getNodesBounds, getViewportForBounds } from 'reactflow';
-import { Search, Eye, EyeOff, Play, Pause, RotateCcw, Download, ArrowUpDown, ArrowLeftRight } from 'lucide-react';
+import { Search, Play, Pause, RotateCcw, Download, ArrowUpDown, ArrowLeftRight } from 'lucide-react';
 import { toPng } from 'html-to-image';
 
-function downloadImage(dataUrl: string, filename: string = 'flowchat-conversation.png') {
+function downloadImage(dataUrl: string, filename: string = 'mumbaai-conversation.png') {
   const a = document.createElement('a');
   a.setAttribute('download', filename);
   a.setAttribute('href', dataUrl);
@@ -24,8 +24,6 @@ interface FlowControlsProps {
   isAnimating: boolean;
   onStartAnimation: () => void;
   onResetTimeline: () => void;
-  onToggleMiniMap: () => void;
-  showMiniMap: boolean;
   conversationName?: string;
   onApplyLayout: (direction: 'TB' | 'LR') => void;
 }
@@ -41,8 +39,6 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
   isAnimating,
   onStartAnimation,
   onResetTimeline,
-  onToggleMiniMap,
-  showMiniMap,
   conversationName,
   onApplyLayout
 }) => {
@@ -88,7 +84,7 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
       const filename = conversationName 
         ? `${conversationName.replace(/[^a-z0-9]/gi, '_')}_${timestamp}.png`
-        : `flowchat_conversation_${timestamp}.png`;
+        : `mumbaai_conversation_${timestamp}.png`;
 
       // Convert to PNG with custom styling
       toPng(document.querySelector('.react-flow__viewport') as HTMLElement, {
@@ -241,16 +237,6 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
             <Download size={14} />
           </button>
 
-          {/* MiniMap Toggle - Only visible when chat panel is expanded */}
-          {!chatPanelCollapsed && (
-            <button
-              onClick={onToggleMiniMap}
-              className="p-1 text-gray-700 hover:bg-gray-100 rounded"
-              title="Toggle MiniMap"
-            >
-              {showMiniMap ? <EyeOff size={14} /> : <Eye size={14} />}
-            </button>
-          )}
         </div>
       </Panel>
     </>

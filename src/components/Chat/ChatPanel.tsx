@@ -1,6 +1,5 @@
 import React from 'react';
 import { ChevronLeft } from 'lucide-react';
-import { Sidebar } from '../Layout/Sidebar.tsx';
 import { MessageThread } from './MessageThread.tsx';
 import { ChatInput } from './ChatInput.tsx';
 import { Message } from '../../types/conversation.ts';
@@ -8,8 +7,6 @@ import { Message } from '../../types/conversation.ts';
 interface ChatPanelProps {
   collapsed: boolean;
   onToggleCollapse: () => void;
-  infoPanelCollapsed: boolean;
-  onToggleInfoPanel: () => void;
   messageThread: Message[];
   selectedMessageId: string;
   isLoading: boolean;
@@ -20,31 +17,13 @@ interface ChatPanelProps {
   currentMessage: Message | null;
   bookmarkedNodes: Set<string>;
   onToggleBookmark: (nodeId: string) => void;
-  // Sidebar props
-  conversations: any[];
-  activeConversation: string;
-  onConversationChange: (id: string) => void;
-  onCreateConversation: () => void;
-  selectedNodes: Set<string>;
-  canMerge: boolean;
-  onPerformMerge: () => void;
-  effectiveMergeCount: number;
-  onClearSelection: () => void;
-  onFitView: () => void;
-  // Renaming
-  isRenamingConversation: boolean;
-  tempConversationName: string;
-  onStartRenaming: () => void;
-  onSaveRename: () => void;
-  onCancelRename: () => void;
-  onTempNameChange: (name: string) => void;
+  selectedModel?: string;
+  onModelChange?: (modelId: string) => void;
 }
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({
   collapsed,
   onToggleCollapse,
-  infoPanelCollapsed,
-  onToggleInfoPanel,
   messageThread,
   selectedMessageId,
   isLoading,
@@ -55,22 +34,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   currentMessage,
   bookmarkedNodes,
   onToggleBookmark,
-  conversations,
-  activeConversation,
-  onConversationChange,
-  onCreateConversation,
-  selectedNodes,
-  canMerge,
-  onPerformMerge,
-  effectiveMergeCount,
-  onClearSelection,
-  onFitView,
-  isRenamingConversation,
-  tempConversationName,
-  onStartRenaming,
-  onSaveRename,
-  onCancelRename,
-  onTempNameChange
+  selectedModel,
+  onModelChange
 }) => {
   if (collapsed) {
     return (
@@ -88,30 +53,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 
   return (
     <div className="w-2/5 bg-white border-r border-gray-200 flex flex-col shadow-sm transition-all duration-300">
-      {/* Sidebar/Info Panel */}
-      <Sidebar
-        collapsed={infoPanelCollapsed}
-        onToggleCollapse={onToggleInfoPanel}
-        onToggleChatPanel={onToggleCollapse}
-        conversations={conversations}
-        activeConversation={activeConversation}
-        onConversationChange={onConversationChange}
-        onCreateConversation={onCreateConversation}
-        selectedNodes={selectedNodes}
-        canMerge={canMerge}
-        onPerformMerge={onPerformMerge}
-        effectiveMergeCount={effectiveMergeCount}
-        onClearSelection={onClearSelection}
-        onFitView={onFitView}
-        isLoading={isLoading}
-        isRenamingConversation={isRenamingConversation}
-        tempConversationName={tempConversationName}
-        onStartRenaming={onStartRenaming}
-        onSaveRename={onSaveRename}
-        onCancelRename={onCancelRename}
-        onTempNameChange={onTempNameChange}
-      />
-
       {/* Message Thread */}
       <MessageThread
         messages={messageThread}
@@ -130,6 +71,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         isLoading={isLoading}
         selectedMessageId={selectedMessageId}
         currentMessage={currentMessage}
+        selectedModel={selectedModel}
+        onModelChange={onModelChange}
       />
     </div>
   );

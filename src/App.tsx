@@ -8,6 +8,8 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import { EmptyState } from './components/UI/EmptyState.tsx';
 import { ChatPanel } from './components/Chat/ChatPanel.tsx';
 import { FlowCanvas } from './components/Flow/FlowCanvas.tsx';
+import { ConversationsListPage } from './components/Conversations/ConversationsListPage.tsx';
+import { FloatingToolbar } from './components/Layout/FloatingToolbar.tsx';
 
 // Hooks
 import { useConversations } from './hooks/useConversations.ts';
@@ -18,7 +20,7 @@ import { usePanelManager } from './components/Layout/PanelManager.tsx';
 // Authentication
 import { useAuth } from './hooks/useAuth.ts';
 
-const FlowChatAI: React.FC = () => {
+const MUMBAAI: React.FC = () => {
   // ALL HOOKS MUST BE AT THE TOP - BEFORE ANY EARLY RETURNS
   const { user, loading } = useAuth();
   
@@ -29,13 +31,23 @@ const FlowChatAI: React.FC = () => {
   // UI state
   const [selectedMessageId, setSelectedMessageId] = useState('');
   const [selectedNodes, setSelectedNodes] = useState(new Set<string>());
-  const [showMiniMap, setShowMiniMap] = useState(false);
   const [bookmarkedNodes, setBookmarkedNodes] = useState(new Set<string>());
   const [isAnimating, setIsAnimating] = useState(false);
   const animationRef = useRef<NodeJS.Timeout | null>(null);
 
   // Track if user wants to start (clicked the button)
   const [wantsToStart, setWantsToStart] = useState(false);
+  
+  // View state management - start with chat if there are conversations, otherwise conversations list
+  const [currentView, setCurrentView] = useState<'conversations' | 'chat'>(() => {
+    return conversationHook.conversations.length > 0 ? 'chat' : 'conversations';
+  });
+  
+  // Chat view mode state (Combined vs Flow view)
+  const [chatViewMode, setChatViewMode] = useState<'combined' | 'flow'>('combined');
+  
+  // Selected AI model state
+  const [selectedModel, setSelectedModel] = useState<string>('gemini-1.5-flash');
 
   // Flow elements with proper change handling
   const flowElements = useFlowElements(
@@ -128,37 +140,40 @@ const FlowChatAI: React.FC = () => {
     // This is called when user clicks "Start Your First Conversation"
     setWantsToStart(true);
     
-    // If user is already logged in, create conversation immediately
+    // If user is already logged in, just proceed to conversations view
     if (user) {
-      const newId = conversationHook.createNewConversation();
-      setSelectedMessageId('');
-      setSelectedNodes(new Set());
-      return newId;
+      setCurrentView('conversations');
+      return;
     }
     // If not logged in, the EmptyState will show the auth form
-  }, [conversationHook, user]);
+  }, [user]);
 
   const handleCreateNewConversation = useCallback(() => {
     const newId = conversationHook.createNewConversation();
     // Clear selections for new conversation
     setSelectedMessageId('');
     setSelectedNodes(new Set());
+    // Navigate to chat view when creating new conversation
+    setCurrentView('chat');
     return newId;
   }, [conversationHook]);
 
-  const handleStartRenaming = useCallback(() => {
-    const currentConv = conversationHook.currentConversation;
-    if (currentConv) {
-      panelManager.startRenamingConversation(currentConv.name);
-    }
-  }, [conversationHook.currentConversation, panelManager]);
+  // Navigation handlers
+  const handleNavigateToConversations = useCallback(() => {
+    setCurrentView('conversations');
+  }, []);
 
-  const handleSaveRename = useCallback(() => {
-    const newName = panelManager.controls.saveConversationName();
-    if (newName && conversationHook.activeConversation) {
+  const handleSelectConversationFromList = useCallback((id: string) => {
+    handleConversationChange(id);
+    setCurrentView('chat');
+  }, [handleConversationChange]);
+
+  const handleConversationNameChange = useCallback((newName: string) => {
+    if (conversationHook.activeConversation) {
       conversationHook.renameConversation(conversationHook.activeConversation, newName);
     }
-  }, [panelManager, conversationHook]);
+  }, [conversationHook]);
+
 
   // Timeline animation
   const startTimelineAnimation = useCallback(() => {
@@ -211,62 +226,89 @@ const FlowChatAI: React.FC = () => {
     );
   }
 
-  // Show landing page with auth if user wants to start but isn't logged in
-  // OR show landing page if user hasn't clicked start yet
-  // OR show landing page if no conversations exist
-  if (!user || !wantsToStart || conversationHook.conversations.length === 0) {
+  // Show landing page only if user is not logged in
+  if (!user) {
     return (
-      <EmptyState
-        onCreateConversation={handleCreateFirstConversation}
-        showAuth={wantsToStart && !user}
-      />
+      <div className="h-screen overflow-y-auto">
+        <EmptyState
+          onCreateConversation={handleCreateFirstConversation}
+          showAuth={wantsToStart && !user}
+        />
+      </div>
     );
   }
 
   // Show the main app interface
+  if (currentView === 'conversations') {
+    return (
+      <>
+        <FloatingToolbar
+          brandName="MUMBAAI"
+          conversationName=""
+          onBrandClick={handleNavigateToConversations}
+          onConversationNameChange={() => {}} // Not used on conversations page
+          showBackButton={false}
+          isConversationsPage={true}
+        />
+        <div style={{ marginTop: '72px', height: 'calc(100vh - 72px)', overflowY: 'auto' }}>
+          <ConversationsListPage
+            conversations={conversationHook.conversations}
+            onSelectConversation={handleSelectConversationFromList}
+            onCreateConversation={() => {
+              handleCreateNewConversation();
+              setCurrentView('chat');
+            }}
+            onDeleteConversation={conversationHook.deleteConversation}
+            currentUserId={user?.id || ''}
+          />
+        </div>
+      </>
+    );
+  }
+
   return (
-    <div className="flex h-screen bg-gray-50 app-main-container">
-      {/* Chat Panel */}
-      <ChatPanel
-        collapsed={panelManager.isChatCollapsed}
-        onToggleCollapse={panelManager.toggleChatPanel}
-        infoPanelCollapsed={panelManager.isInfoCollapsed}
-        onToggleInfoPanel={panelManager.toggleInfoPanel}
-        messageThread={conversationHook.getMessageThread(selectedMessageId)}
-        selectedMessageId={selectedMessageId}
-        isLoading={messageOps.isLoading}
-        inputText={messageOps.inputText}
-        onInputChange={messageOps.setInputText}
-        onSendMessage={messageOps.sendMessage}
-        canSendMessage={messageOps.canSendMessage}
-        currentMessage={messageOps.getCurrentMessage()}
-        bookmarkedNodes={bookmarkedNodes}
-        onToggleBookmark={(nodeId) => {
-          const newBookmarks = new Set(bookmarkedNodes);
-          if (newBookmarks.has(nodeId)) {
-            newBookmarks.delete(nodeId);
-          } else {
-            newBookmarks.add(nodeId);
-          }
-          setBookmarkedNodes(newBookmarks);
-        }}
-        conversations={conversationHook.conversations}
-        activeConversation={conversationHook.activeConversation}
-        onConversationChange={handleConversationChange}
-        onCreateConversation={handleCreateNewConversation}
-        selectedNodes={selectedNodes}
-        canMerge={messageOps.canMerge()}
-        onPerformMerge={messageOps.performIntelligentMerge}
-        effectiveMergeCount={messageOps.getEffectiveMergeCount()}
-        onClearSelection={() => setSelectedNodes(new Set())}
-        onFitView={() => {}}
-        isRenamingConversation={panelManager.isRenaming}
-        tempConversationName={panelManager.tempName}
-        onStartRenaming={handleStartRenaming}
-        onSaveRename={handleSaveRename}
-        onCancelRename={panelManager.controls.cancelRenamingConversation}
-        onTempNameChange={panelManager.setTempConversationName}
+    <>
+      <FloatingToolbar
+        brandName="MUMBAAI"
+        conversationName={conversationHook.currentConversation?.name || 'New Conversation'}
+        onBrandClick={handleNavigateToConversations}
+        onConversationNameChange={handleConversationNameChange}
+        showBackButton={true}
+        onBackClick={handleNavigateToConversations}
+        showNewChatButton={true}
+        onNewChat={handleCreateNewConversation}
+        showViewToggle={true}
+        viewMode={chatViewMode}
+        onViewModeChange={setChatViewMode}
       />
+      <div className="flex bg-gray-50" style={{ marginTop: '72px', height: 'calc(100vh - 72px)', overflow: 'hidden' }}>
+      {/* Chat Panel - Only visible in Combined view */}
+      {chatViewMode === 'combined' && (
+        <ChatPanel
+          collapsed={panelManager.isChatCollapsed}
+          onToggleCollapse={panelManager.toggleChatPanel}
+          messageThread={conversationHook.getMessageThread(selectedMessageId)}
+          selectedMessageId={selectedMessageId}
+          isLoading={messageOps.isLoading}
+          inputText={messageOps.inputText}
+          onInputChange={messageOps.setInputText}
+          onSendMessage={messageOps.sendMessage}
+          canSendMessage={messageOps.canSendMessage}
+          currentMessage={messageOps.getCurrentMessage()}
+          bookmarkedNodes={bookmarkedNodes}
+          onToggleBookmark={(nodeId) => {
+            const newBookmarks = new Set(bookmarkedNodes);
+            if (newBookmarks.has(nodeId)) {
+              newBookmarks.delete(nodeId);
+            } else {
+              newBookmarks.add(nodeId);
+            }
+            setBookmarkedNodes(newBookmarks);
+          }}
+          selectedModel={selectedModel}
+          onModelChange={setSelectedModel}
+        />
+      )}
 
       {/* Flow Canvas */}
       <FlowCanvas
@@ -274,8 +316,7 @@ const FlowChatAI: React.FC = () => {
         edges={flowElements.edges}
         onNodesChange={flowElements.handleNodesChange}
         onEdgesChange={flowElements.handleEdgesChange}
-        showMiniMap={showMiniMap}
-        chatPanelCollapsed={panelManager.isChatCollapsed}
+        chatPanelCollapsed={chatViewMode === 'flow'}
         selectedNodes={selectedNodes}
         onClearSelection={() => setSelectedNodes(new Set())}
         onFitView={() => {}}
@@ -292,19 +333,19 @@ const FlowChatAI: React.FC = () => {
         onPerformMerge={messageOps.performIntelligentMerge}
         isLoading={messageOps.isLoading}
         effectiveMergeCount={messageOps.getEffectiveMergeCount()}
-        onToggleMiniMap={() => setShowMiniMap(!showMiniMap)}
         allMessagesCount={conversationHook.getAllMessages().length}
         conversationName={conversationHook.currentConversation?.name}
         onLayoutApplied={handleLayoutApplied}
       />
-    </div>
+      </div>
+    </>
   );
 };
 
 const App: React.FC = () => {
   return (
     <ReactFlowProvider>
-      <FlowChatAI />
+      <MUMBAAI />
       <Analytics />
       <SpeedInsights />
     </ReactFlowProvider>

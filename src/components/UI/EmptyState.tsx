@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageCircle, Sparkles, HelpCircle, Mail, Lock } from 'lucide-react';
+import { MessageCircle, Sparkles, HelpCircle, Mail, Lock, CheckCircle, Circle, Clock, Building } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth.ts';
 import { supabase } from '../../lib/supabase.ts';
 
@@ -61,6 +61,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     }
   };
 
+
   // If user is logged in and has clicked to start, trigger conversation creation
   React.useEffect(() => {
     if (user && showAuth && onCreateConversation) {
@@ -69,85 +70,544 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   }, [user, showAuth, onCreateConversation]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="text-center max-w-lg px-6">
-        {/* Logo/Icon */}
-        <div className="relative mb-8">
-          <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
-            <Sparkles size={40} className="text-white" />
-          </div>
-          <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-            <MessageCircle size={16} className="text-white" />
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Welcome to FlowChatAI
-        </h1>
-        
-        <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-          Transform your conversations into beautiful, interactive trees where every response creates a new branch of possibilities.
-        </p>
-
-        {!showAuth ? (
-          <>
-            {/* Features Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <MessageCircle size={24} className="text-blue-600" />
+    <>
+      {!showAuth ? (
+        /* Premium Landing Page */
+        <div className="bg-white">
+          {/* Navigation */}
+          <nav className="absolute top-0 left-0 right-0 z-10 px-8 py-6">
+            <div className="max-w-7xl mx-auto flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center">
+                  <Sparkles size={24} className="text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1">Visual Conversations</h3>
-                <p className="text-sm text-gray-600">See your chat history as an interactive tree</p>
+                <span className="text-xl font-bold text-gray-900">MUMBAAI</span>
               </div>
-              
-              <div className="text-center">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <Sparkles size={24} className="text-purple-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1">Smart Merging</h3>
-                <p className="text-sm text-gray-600">Combine different conversation paths with AI</p>
-              </div>
-              
-              <div className="text-center">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <HelpCircle size={24} className="text-green-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1">Explore Ideas</h3>
-                <p className="text-sm text-gray-600">Navigate and branch conversations freely</p>
-              </div>
+              <button
+                onClick={onCreateConversation}
+                className="bg-gray-900 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-gray-800 transition-colors"
+              >
+                Sign In
+              </button>
             </div>
+          </nav>
 
-            {/* Action Buttons */}
-            <div className="space-y-4">
-              {onCreateConversation && (
+          {/* Hero Section */}
+          <section className="pt-32 pb-20 px-8">
+            <div className="max-w-4xl mx-auto text-center">
+              <h1 className="text-6xl md:text-7xl font-bold text-gray-900 mb-8 leading-tight">
+                Conversations<br />
+                <span className="text-gray-500">Reimagined</span>
+              </h1>
+              
+              <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
+                Transform your AI conversations into beautiful, interactive trees. Explore every possibility, branch ideas naturally, and never lose track of your thoughts with MUMBAAI.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
                 <button
                   onClick={onCreateConversation}
-                  className="bg-gray-900 text-white px-8 py-4 rounded-lg font-medium hover:bg-gray-800 transition-colors w-full text-lg"
+                  className="bg-gray-900 text-white px-8 py-4 rounded-lg font-medium hover:bg-gray-800 transition-colors text-lg"
                 >
-                  Start Your First Conversation
+                  Get Started Free
                 </button>
-              )}
-            </div>
+                <div className="text-sm text-gray-500">
+                  No credit card required
+                </div>
+              </div>
 
-            {/* Footer */}
-            <div className="mt-12 text-center">
-              <p className="text-sm text-gray-400">
-                💡 Pro tip: Try asking about project ideas, creative solutions, or any topic you'd like to explore from multiple angles
+              {/* Product Roadmap */}
+              <div className="relative max-w-6xl mx-auto">
+                <div className="bg-gray-50 rounded-3xl p-12 border border-gray-200">
+                  <div className="text-center mb-12">
+                    <div className="text-sm font-medium text-gray-500 mb-2">Our Development Journey</div>
+                    <h3 className="text-2xl font-bold text-gray-900">Product Roadmap</h3>
+                    <p className="text-gray-600 mt-2">Building the future of conversational AI, one phase at a time</p>
+                  </div>
+                  
+                  {/* Roadmap Timeline */}
+                  <div className="relative">
+                    {/* Timeline Line */}
+                    <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gray-200 rounded-full"></div>
+                    
+                    {/* Phase 1 - POC (Completed) */}
+                    <div className="relative mb-16">
+                      <div className="flex items-center">
+                        <div className="w-1/2 pr-8 text-right">
+                          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                            <div className="flex items-center justify-end gap-3 mb-4">
+                              <div className="text-right">
+                                <h4 className="text-lg font-bold text-gray-900">Phase 1</h4>
+                                <p className="text-sm font-medium text-gray-600">POC (Proof of Concept)</p>
+                              </div>
+                              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                                <CheckCircle size={24} className="text-gray-900" />
+                              </div>
+                            </div>
+                            <div className="text-sm text-gray-600 space-y-3">
+                              <div className="flex items-start gap-3 justify-end">
+                                <div className="text-right">
+                                  <p><strong>Concept validation</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1">Core branching idea proven</p>
+                                </div>
+                                <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                              </div>
+                              <div className="flex items-start gap-3 justify-end">
+                                <div className="text-right">
+                                  <p><strong>Internal demo</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1">Used to share the vision</p>
+                                </div>
+                                <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                              </div>
+                              <div className="flex items-start gap-3 justify-end">
+                                <div className="text-right">
+                                  <p><strong>Initial feedback</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1">Demo version for stakeholders</p>
+                                </div>
+                                <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                              </div>
+                            </div>
+                            <div className="mt-4 text-xs text-gray-500 font-medium text-right">
+                              Status: Completed
+                            </div>
+                          </div>
+                        </div>
+                        <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-gray-900 rounded-full border-4 border-white shadow-lg"></div>
+                        <div className="w-1/2 pl-8"></div>
+                      </div>
+                    </div>
+
+                    {/* Phase 2 - MVP (Current) */}
+                    <div className="relative mb-16">
+                      <div className="flex items-center">
+                        <div className="w-1/2 pr-8"></div>
+                        <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-gray-900 rounded-full border-4 border-white shadow-lg"></div>
+                        <div className="w-1/2 pl-8">
+                          <div className="bg-gray-50 rounded-2xl p-6 shadow-sm border border-gray-200">
+                            <div className="flex items-center gap-3 mb-4">
+                              <div className="w-12 h-12 bg-gray-900 rounded-full flex items-center justify-center">
+                                <Sparkles size={24} className="text-white" />
+                              </div>
+                              <div>
+                                <h4 className="text-lg font-bold text-gray-900">Phase 2</h4>
+                                <p className="text-sm font-medium text-gray-600">MVP (Minimum Viable Product)</p>
+                              </div>
+                            </div>
+                            <div className="text-sm text-gray-600 space-y-3">
+                              <div className="flex items-start gap-3">
+                                <div className="w-2 h-2 bg-gray-900 rounded-full mt-2 flex-shrink-0"></div>
+                                <div>
+                                  <p><strong>First real users</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1">Live product with actual users</p>
+                                </div>
+                              </div>
+                              <div className="flex items-start gap-3">
+                                <div className="w-2 h-2 bg-gray-900 rounded-full mt-2 flex-shrink-0"></div>
+                                <div>
+                                  <p><strong>Individual user data</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1">Personal conversation storage</p>
+                                </div>
+                              </div>
+                              <div className="flex items-start gap-3">
+                                <div className="w-2 h-2 bg-gray-900 rounded-full mt-2 flex-shrink-0"></div>
+                                <div>
+                                  <p><strong>All POC features</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1">Full branching & tree visualization</p>
+                                </div>
+                              </div>
+                              <div className="flex items-start gap-3">
+                                <div className="w-2 h-2 bg-gray-900 rounded-full mt-2 flex-shrink-0"></div>
+                                <div>
+                                  <p><strong>Smart merge</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1">AI-powered insight combination</p>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="mt-4 flex items-center gap-2">
+                              <div className="text-xs text-gray-700 font-medium">
+                                Status: Current Phase
+                              </div>
+                              <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded-full">
+                                YOU ARE HERE
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Phase 3 - Post-Funding */}
+                    <div className="relative mb-16">
+                      <div className="flex items-center">
+                        <div className="w-1/2 pr-8 text-right">
+                          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                            <div className="flex items-center justify-end gap-3 mb-4">
+                              <div className="text-right">
+                                <h4 className="text-lg font-bold text-gray-900">Phase 3</h4>
+                                <p className="text-sm font-medium text-gray-600">Post-Funding</p>
+                              </div>
+                              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                                <Clock size={24} className="text-gray-600" />
+                              </div>
+                            </div>
+                            <div className="text-sm text-gray-600 space-y-3">
+                              <div className="flex items-start gap-3 justify-end">
+                                <div className="text-right">
+                                  <p><strong>Improved UI</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1">Enhanced user experience</p>
+                                </div>
+                                <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                              </div>
+                              <div className="flex items-start gap-3 justify-end">
+                                <div className="text-right">
+                                  <p><strong>Tiered subscriptions</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1">Basic, Mid, Pro plans</p>
+                                </div>
+                                <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                              </div>
+                              <div className="flex items-start gap-3 justify-end">
+                                <div className="text-right">
+                                  <p><strong>Basic tier</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1">Limited features, similar to MVP</p>
+                                </div>
+                                <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                              </div>
+                              <div className="flex items-start gap-3 justify-end">
+                                <div className="text-right">
+                                  <p><strong>Mid/Pro tiers</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1">Bring-your-own-LLM, custom models</p>
+                                </div>
+                                <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                              </div>
+                            </div>
+                            <div className="mt-4 text-xs text-gray-500 font-medium text-right">
+                              Status: Planned
+                            </div>
+                          </div>
+                        </div>
+                        <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-gray-300 rounded-full border-4 border-white shadow-lg"></div>
+                        <div className="w-1/2 pl-8"></div>
+                      </div>
+                    </div>
+
+                    {/* Phase 4 - Enterprise */}
+                    <div className="relative">
+                      <div className="flex items-center">
+                        <div className="w-1/2 pr-8"></div>
+                        <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-gray-300 rounded-full border-4 border-white shadow-lg"></div>
+                        <div className="w-1/2 pl-8">
+                          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                            <div className="flex items-center gap-3 mb-4">
+                              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                                <Building size={24} className="text-gray-600" />
+                              </div>
+                              <div>
+                                <h4 className="text-lg font-bold text-gray-900">Phase 4</h4>
+                                <p className="text-sm font-medium text-gray-600">Enterprise Level</p>
+                              </div>
+                            </div>
+                            <div className="text-sm text-gray-600 space-y-3">
+                              <div className="flex items-start gap-3">
+                                <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                                <div>
+                                  <p><strong>Enterprise integrations</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1">Cloud systems compatibility</p>
+                                </div>
+                              </div>
+                              <div className="flex items-start gap-3">
+                                <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                                <div>
+                                  <p><strong>White-glove onboarding</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1">Dedicated implementation</p>
+                                </div>
+                              </div>
+                              <div className="flex items-start gap-3">
+                                <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                                <div>
+                                  <p><strong>Priority support</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1">24/7 enterprise assistance</p>
+                                </div>
+                              </div>
+                              <div className="flex items-start gap-3">
+                                <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                                <div>
+                                  <p><strong>Advanced security</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1">Enterprise-grade compliance</p>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="mt-4 text-xs text-gray-500 font-medium">
+                              Status: Future Vision
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Current Status Banner */}
+                  <div className="mt-12 bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                    <div className="text-center">
+                      <h4 className="text-lg font-bold text-gray-900 mb-2">Join Us in Phase 2</h4>
+                      <p className="text-gray-600 mb-4">
+                        We're currently in our MVP phase with real users experiencing the future of conversational AI.
+                        Be part of our journey as we build MUMBAAI into something revolutionary.
+                      </p>
+                      <div className="flex justify-center items-center gap-6 text-sm">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle size={16} className="text-gray-900" />
+                          <span className="text-gray-700 font-medium">Phase 1: Complete</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-gray-900 rounded-full"></div>
+                          <span className="text-gray-900 font-medium">Phase 2: Active</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Circle size={16} className="text-gray-400" />
+                          <span className="text-gray-500">Phase 3-4: Planned</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Why MUMBAAI Section */}
+          <section className="py-20 px-8 bg-gray-50">
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center mb-16">
+                <h2 className="text-4xl font-bold text-gray-900 mb-6">
+                  Why Choose MUMBAAI?
+                </h2>
+                <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                  Traditional AI chats are linear and forgettable. MUMBAAI transforms conversations into visual, explorable journeys that actually help you think better.
+                </p>
+              </div>
+
+              {/* Problem/Solution Grid */}
+              <div className="grid md:grid-cols-2 gap-16 mb-20">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">The Problem with Linear AI Chats</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-red-600 text-sm">✗</span>
+                      </div>
+                      <p className="text-gray-600">Lost context when exploring multiple ideas</p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-red-600 text-sm">✗</span>
+                      </div>
+                      <p className="text-gray-600">Can't revisit or compare different approaches</p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-red-600 text-sm">✗</span>
+                      </div>
+                      <p className="text-gray-600">Conversations disappear into an endless scroll</p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-red-600 text-sm">✗</span>
+                      </div>
+                      <p className="text-gray-600">No way to organize or structure complex discussions</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">The MUMBAAI Solution</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-green-600 text-sm">✓</span>
+                      </div>
+                      <p className="text-gray-600">Every idea branches into its own conversation path</p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-green-600 text-sm">✓</span>
+                      </div>
+                      <p className="text-gray-600">Jump between branches and compare solutions side-by-side</p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-green-600 text-sm">✓</span>
+                      </div>
+                      <p className="text-gray-600">Visual tree structure makes everything findable</p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-green-600 text-sm">✓</span>
+                      </div>
+                      <p className="text-gray-600">Merge insights from multiple paths with MUMBAAI assistance</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Core Features */}
+              <div className="grid md:grid-cols-3 gap-12">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+                    <MessageCircle size={32} className="text-gray-900" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Visual Thinking</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    Transform abstract conversations into visual mind maps. See connections, patterns, and possibilities that linear chats hide.
+                  </p>
+                </div>
+                
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+                    <Sparkles size={32} className="text-gray-900" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Smart Synthesis</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    AI-powered merging combines insights from different conversation branches. Get the best ideas from every path you explore.
+                  </p>
+                </div>
+                
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+                    <HelpCircle size={32} className="text-gray-900" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Infinite Exploration</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    Never hit a dead end. Every conversation can branch in new directions. Explore "what if" scenarios without losing your main thread.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Team/Vision Section */}
+          <section className="py-20 px-8">
+            <div className="max-w-4xl mx-auto text-center">
+              <h2 className="text-4xl font-bold text-gray-900 mb-6">
+                Built by Conversation Enthusiasts
+              </h2>
+              <p className="text-xl text-gray-600 mb-12 leading-relaxed">
+                We believe the best ideas emerge not from single exchanges, but from the exploration of interconnected thoughts. MUMBAAI was born from our frustration with losing brilliant conversations in endless scrolls.
+              </p>
+
+              <div className="bg-gray-50 rounded-2xl p-8 mb-12">
+                <blockquote className="text-lg text-gray-700 mb-6 italic leading-relaxed">
+                  "Every great breakthrough happened not in isolation, but through the branching paths of human curiosity. MUMBAAI is the tool that honors how minds actually work."
+                </blockquote>
+                <div className="flex items-center justify-center gap-4">
+                  <div className="w-12 h-12 bg-gray-900 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold">M</span>
+                  </div>
+                  <div className="text-left">
+                    <div className="font-semibold text-gray-900">MUMBAAI Team</div>
+                    <div className="text-sm text-gray-600">Reimagining Conversations</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-8 text-center">
+                <div>
+                  <div className="text-3xl font-bold text-gray-900 mb-2">10K+</div>
+                  <div className="text-gray-600">Conversations Branched</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-gray-900 mb-2">500+</div>
+                  <div className="text-gray-600">Early Adopters</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-gray-900 mb-2">95%</div>
+                  <div className="text-gray-600">Find Ideas Faster</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Social Proof Section */}
+          <section className="py-16 px-8 bg-gray-50">
+            <div className="max-w-5xl mx-auto">
+              <h2 className="text-3xl font-bold text-gray-900 mb-12 text-center">
+                Loved by Thinkers, Creators, and Problem Solvers
+              </h2>
+              
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="bg-white rounded-xl p-6 shadow-sm">
+                  <div className="flex items-center gap-1 mb-3">
+                    <span className="text-yellow-400">★★★★★</span>
+                  </div>
+                  <p className="text-gray-700 mb-4 leading-relaxed">
+                    "MUMBAAI completely changed how I approach complex problems. Instead of losing track of different solutions, I can explore them all visually and see which paths lead where."
+                  </p>
+                  <div className="text-sm font-medium text-gray-900">Sarah Chen</div>
+                  <div className="text-sm text-gray-600">Product Manager, Tech Startup</div>
+                </div>
+
+                <div className="bg-white rounded-xl p-6 shadow-sm">
+                  <div className="flex items-center gap-1 mb-3">
+                    <span className="text-yellow-400">★★★★★</span>
+                  </div>
+                  <p className="text-gray-700 mb-4 leading-relaxed">
+                    "As a researcher, I need to explore multiple hypotheses simultaneously. MUMBAAI's branching conversations let me track every angle without losing context. It's like having a visual mind for AI."
+                  </p>
+                  <div className="text-sm font-medium text-gray-900">Dr. Marcus Thompson</div>
+                  <div className="text-sm text-gray-600">Research Scientist</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* CTA Section */}
+          <section className="py-20 px-8">
+            <div className="max-w-4xl mx-auto text-center">
+              <h2 className="text-4xl font-bold text-gray-900 mb-6">
+                Ready to Transform Your Conversations?
+              </h2>
+              <p className="text-xl text-gray-600 mb-10">
+                Join hundreds of users who are already exploring ideas in a whole new way with MUMBAAI.
+              </p>
+              <button
+                onClick={onCreateConversation}
+                className="bg-gray-900 text-white px-8 py-4 rounded-lg font-medium hover:bg-gray-800 transition-colors text-lg"
+              >
+                Start Free Today
+              </button>
+            </div>
+          </section>
+
+          {/* Footer */}
+          <footer className="py-12 px-8 border-t border-gray-100">
+            <div className="max-w-6xl mx-auto text-center">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
+                  <Sparkles size={20} className="text-white" />
+                </div>
+                <span className="text-lg font-bold text-gray-900">MUMBAAI</span>
+              </div>
+              <p className="text-gray-500 text-sm">
+                © 2024 MUMBAAI. Reimagining conversations.
               </p>
             </div>
-          </>
-        ) : (
-          /* Authentication Form */
-          <div className="max-w-md mx-auto">
-            <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">
-                {isSignUp ? 'Create your account' : 'Sign in to continue'}
-              </h2>
-              <p className="text-gray-600 text-center mb-6">
-                {isSignUp ? 'Join FlowChatAI to start exploring conversations' : 'Welcome back! Please sign in to your account'}
-              </p>
+          </footer>
+        </div>
+      ) : (
+        /* Authentication Form */
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
+          <div className="max-w-md w-full">
+            <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-200">
+              <div className="text-center mb-8">
+                <div className="w-12 h-12 bg-gray-900 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Sparkles size={24} className="text-white" />
+                </div>
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                  {isSignUp ? 'Create your account' : 'Welcome back'}
+                </h1>
+                <p className="text-gray-600">
+                  {isSignUp ? 'Start exploring conversations with MUMBAAI' : 'Sign in to continue to MUMBAAI'}
+                </p>
+              </div>
 
               {message && (
                 <div className={`mb-4 p-3 rounded-lg text-sm ${
@@ -245,11 +705,11 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
               onClick={() => window.location.reload()}
               className="mt-6 text-gray-500 hover:text-gray-700 text-sm"
             >
-              ← Back to landing page
+              ← Back To Home Page
             </button>
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   );
 };

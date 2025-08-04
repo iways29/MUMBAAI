@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Reset any default margins/padding */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
 /* React Flow custom styles */
 .react-flow__node-message {
   background: transparent;

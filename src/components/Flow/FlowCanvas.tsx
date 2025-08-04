@@ -3,7 +3,6 @@ import {
   ReactFlow,
   Background,
   Controls,
-  MiniMap,
   ConnectionLineType,
   useReactFlow,
   BackgroundVariant,
@@ -25,7 +24,6 @@ interface FlowCanvasProps {
   edges: any[];
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
-  showMiniMap: boolean;
   chatPanelCollapsed: boolean;
   selectedNodes: Set<string>;
   onClearSelection: () => void;
@@ -45,7 +43,6 @@ interface FlowCanvasProps {
   onPerformMerge: () => void;
   isLoading: boolean;
   effectiveMergeCount: number;
-  onToggleMiniMap: () => void;
   allMessagesCount: number;
   // Add this prop for the download button
   conversationName?: string;
@@ -58,7 +55,6 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
   edges,
   onNodesChange,
   onEdgesChange,
-  showMiniMap,
   chatPanelCollapsed,
   selectedNodes,
   onClearSelection,
@@ -76,7 +72,6 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
   onPerformMerge,
   isLoading,
   effectiveMergeCount,
-  onToggleMiniMap,
   allMessagesCount,
   conversationName, // Add this prop
   onLayoutApplied
@@ -135,7 +130,7 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
   }, [nodes.length, fitView]);
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-50 relative">
+    <div className="flex-1 flex flex-col bg-gray-50 relative" style={{ width: '100%' }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -158,17 +153,6 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
       >
         <Controls showInteractive={false} position="top-left" />
         
-        {showMiniMap && (
-          <MiniMap
-            nodeColor={(node) => {
-              if (node.data?.message?.type === 'user') return '#3b82f6';
-              if (node.data?.message?.mergedFrom) return '#a855f7';
-              return '#10b981';
-            }}
-            className="bg-white border border-gray-200 rounded-lg"
-            position="bottom-left"
-          />
-        )}
         
         <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
 
@@ -184,15 +168,12 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
           isAnimating={isAnimating}
           onStartAnimation={onStartAnimation}
           onResetTimeline={onResetTimeline}
-          onToggleMiniMap={onToggleMiniMap}
-          showMiniMap={showMiniMap}
           conversationName={conversationName}
           onApplyLayout={handleApplyLayout}
         />
 
         {/* Flow Panels */}
         <FlowPanels
-          chatPanelCollapsed={chatPanelCollapsed}
           selectedNodes={selectedNodes}
           onClearSelection={onClearSelection}
           onFitView={handleFitView}
