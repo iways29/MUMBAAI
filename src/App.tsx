@@ -331,6 +331,8 @@ const MUMBAAI: React.FC = () => {
         onResetTimeline={resetTimeline}
         canMerge={messageOps.canMerge()}
         onPerformMerge={messageOps.performIntelligentMerge}
+        mergeTemplate={messageOps.mergeTemplate}
+        onMergeTemplateChange={messageOps.setMergeTemplate}
         isLoading={messageOps.isLoading}
         effectiveMergeCount={messageOps.getEffectiveMergeCount()}
         allMessagesCount={conversationHook.getAllMessages().length}

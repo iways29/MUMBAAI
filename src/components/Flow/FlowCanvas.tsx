@@ -14,6 +14,7 @@ import { MessageNode } from './MessageNode.tsx';
 import { FlowControls } from './FlowControls.tsx';
 import { FlowPanels } from './FlowPanels.tsx';
 import { getLayoutedElements, LayoutDirection } from '../../utils/layoutUtils.ts';
+import { MergeTemplate } from '../../utils/api.ts';
 
 const nodeTypes = {
   message: MessageNode,
@@ -40,10 +41,12 @@ interface FlowCanvasProps {
   onResetTimeline: () => void;
   // Merge controls
   canMerge: boolean;
-  onPerformMerge: () => void;
+  onPerformMerge: (template?: MergeTemplate) => void;
   isLoading: boolean;
   effectiveMergeCount: number;
   allMessagesCount: number;
+  mergeTemplate: MergeTemplate;
+  onMergeTemplateChange: (template: MergeTemplate) => void;
   // Add this prop for the download button
   conversationName?: string;
   // Add callback for layout
@@ -73,7 +76,9 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
   isLoading,
   effectiveMergeCount,
   allMessagesCount,
-  conversationName, // Add this prop
+  mergeTemplate,
+  onMergeTemplateChange,
+  conversationName,
   onLayoutApplied
 }) => {
   const { fitView } = useReactFlow();
@@ -182,6 +187,8 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
           isLoading={isLoading}
           effectiveMergeCount={effectiveMergeCount}
           allMessagesCount={allMessagesCount}
+          mergeTemplate={mergeTemplate}
+          onMergeTemplateChange={onMergeTemplateChange}
         />
       </ReactFlow>
     </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageCircle, Sparkles, HelpCircle, Mail, Lock, CheckCircle, Circle, Clock, Building } from 'lucide-react';
+import { MessageCircle, Sparkles, HelpCircle, Mail, Lock, CheckCircle, Circle, Clock, Building, Zap } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth.ts';
 import { supabase } from '../../lib/supabase.ts';
 
@@ -188,38 +188,38 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
                               <div className="w-12 h-12 bg-gray-900 rounded-full flex items-center justify-center">
                                 <Sparkles size={24} className="text-white" />
                               </div>
-                              <div>
-                                <h4 className="text-lg font-bold text-gray-900">Phase 2</h4>
-                                <p className="text-sm font-medium text-gray-600">MVP (Minimum Viable Product)</p>
+                              <div className="text-left">
+                                <h4 className="text-lg font-bold text-gray-900 text-left">Phase 2</h4>
+                                <p className="text-sm font-medium text-gray-600 text-left">MVP (Minimum Viable Product)</p>
                               </div>
                             </div>
                             <div className="text-sm text-gray-600 space-y-3">
                               <div className="flex items-start gap-3">
                                 <div className="w-2 h-2 bg-gray-900 rounded-full mt-2 flex-shrink-0"></div>
-                                <div>
-                                  <p><strong>First real users</strong></p>
-                                  <p className="text-xs text-gray-500 mt-1">Live product with actual users</p>
+                                <div className="text-left">
+                                  <p className="text-left"><strong>First real users</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1 text-left">Live product with actual users</p>
                                 </div>
                               </div>
                               <div className="flex items-start gap-3">
                                 <div className="w-2 h-2 bg-gray-900 rounded-full mt-2 flex-shrink-0"></div>
-                                <div>
-                                  <p><strong>Individual user data</strong></p>
-                                  <p className="text-xs text-gray-500 mt-1">Personal conversation storage</p>
+                                <div className="text-left">
+                                  <p className="text-left"><strong>Individual user data</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1 text-left">Personal conversation storage</p>
                                 </div>
                               </div>
                               <div className="flex items-start gap-3">
                                 <div className="w-2 h-2 bg-gray-900 rounded-full mt-2 flex-shrink-0"></div>
-                                <div>
-                                  <p><strong>All POC features</strong></p>
-                                  <p className="text-xs text-gray-500 mt-1">Full branching & tree visualization</p>
+                                <div className="text-left">
+                                  <p className="text-left"><strong>All POC features</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1 text-left">Full branching & tree visualization</p>
                                 </div>
                               </div>
                               <div className="flex items-start gap-3">
                                 <div className="w-2 h-2 bg-gray-900 rounded-full mt-2 flex-shrink-0"></div>
-                                <div>
-                                  <p><strong>Smart merge</strong></p>
-                                  <p className="text-xs text-gray-500 mt-1">AI-powered insight combination</p>
+                                <div className="text-left">
+                                  <p className="text-left"><strong>Smart merge</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1 text-left">AI-powered insight combination</p>
                                 </div>
                               </div>
                             </div>
@@ -290,8 +290,8 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
                       </div>
                     </div>
 
-                    {/* Phase 4 - Enterprise */}
-                    <div className="relative">
+                    {/* Phase 4 - Advanced Features */}
+                    <div className="relative mb-16">
                       <div className="flex items-center">
                         <div className="w-1/2 pr-8"></div>
                         <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-gray-300 rounded-full border-4 border-white shadow-lg"></div>
@@ -299,48 +299,102 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
                           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                             <div className="flex items-center gap-3 mb-4">
                               <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                                <Building size={24} className="text-gray-600" />
+                                <Zap size={24} className="text-gray-600" />
                               </div>
-                              <div>
-                                <h4 className="text-lg font-bold text-gray-900">Phase 4</h4>
-                                <p className="text-sm font-medium text-gray-600">Enterprise Level</p>
+                              <div className="text-left">
+                                <h4 className="text-lg font-bold text-gray-900 text-left">Phase 4</h4>
+                                <p className="text-sm font-medium text-gray-600 text-left">Advanced Features</p>
                               </div>
                             </div>
                             <div className="text-sm text-gray-600 space-y-3">
                               <div className="flex items-start gap-3">
                                 <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
-                                <div>
-                                  <p><strong>Enterprise integrations</strong></p>
-                                  <p className="text-xs text-gray-500 mt-1">Cloud systems compatibility</p>
+                                <div className="text-left">
+                                  <p className="text-left"><strong>Deep research support</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1 text-left">Advanced research workflows & citations</p>
                                 </div>
                               </div>
                               <div className="flex items-start gap-3">
                                 <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
-                                <div>
-                                  <p><strong>White-glove onboarding</strong></p>
-                                  <p className="text-xs text-gray-500 mt-1">Dedicated implementation</p>
+                                <div className="text-left">
+                                  <p className="text-left"><strong>Artifacts and canvas</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1 text-left">Interactive documents & visual collaboration</p>
                                 </div>
                               </div>
                               <div className="flex items-start gap-3">
                                 <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
-                                <div>
-                                  <p><strong>Priority support</strong></p>
-                                  <p className="text-xs text-gray-500 mt-1">24/7 enterprise assistance</p>
+                                <div className="text-left">
+                                  <p className="text-left"><strong>MCP connectors</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1 text-left">Model Context Protocol integrations</p>
                                 </div>
                               </div>
                               <div className="flex items-start gap-3">
                                 <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
-                                <div>
-                                  <p><strong>Advanced security</strong></p>
-                                  <p className="text-xs text-gray-500 mt-1">Enterprise-grade compliance</p>
+                                <div className="text-left">
+                                  <p className="text-left"><strong>Projects & context awareness</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1 text-left">Enhanced usability with project-based organization</p>
                                 </div>
                               </div>
                             </div>
-                            <div className="mt-4 text-xs text-gray-500 font-medium">
+                            <div className="mt-4 text-xs text-gray-500 font-medium text-left">
                               Status: Future Vision
                             </div>
                           </div>
                         </div>
+                      </div>
+                    </div>
+
+                    {/* Phase 5 - Enterprise */}
+                    <div className="relative">
+                      <div className="flex items-center">
+                        <div className="w-1/2 pr-8 text-right">
+                          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                            <div className="flex items-center justify-end gap-3 mb-4">
+                              <div className="text-right">
+                                <h4 className="text-lg font-bold text-gray-900">Phase 5</h4>
+                                <p className="text-sm font-medium text-gray-600">Enterprise Level</p>
+                              </div>
+                              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                                <Building size={24} className="text-gray-600" />
+                              </div>
+                            </div>
+                            <div className="text-sm text-gray-600 space-y-3">
+                              <div className="flex items-start gap-3 justify-end">
+                                <div className="text-right">
+                                  <p><strong>Enterprise integrations</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1">Cloud systems compatibility</p>
+                                </div>
+                                <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                              </div>
+                              <div className="flex items-start gap-3 justify-end">
+                                <div className="text-right">
+                                  <p><strong>White-glove onboarding</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1">Dedicated implementation</p>
+                                </div>
+                                <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                              </div>
+                              <div className="flex items-start gap-3 justify-end">
+                                <div className="text-right">
+                                  <p><strong>Priority support</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1">24/7 enterprise assistance</p>
+                                </div>
+                                <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                              </div>
+                              <div className="flex items-start gap-3 justify-end">
+                                <div className="text-right">
+                                  <p><strong>Advanced security</strong></p>
+                                  <p className="text-xs text-gray-500 mt-1">Enterprise-grade compliance</p>
+                                </div>
+                                <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
+                              </div>
+                            </div>
+                            <div className="mt-4 text-xs text-gray-500 font-medium text-right">
+                              Status: Future Vision
+                            </div>
+                          </div>
+                        </div>
+                        <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-gray-300 rounded-full border-4 border-white shadow-lg"></div>
+                        <div className="w-1/2 pl-8"></div>
                       </div>
                     </div>
                   </div>
@@ -364,7 +418,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
                         </div>
                         <div className="flex items-center gap-2">
                           <Circle size={16} className="text-gray-400" />
-                          <span className="text-gray-500">Phase 3-4: Planned</span>
+                          <span className="text-gray-500">Phase 3-5: Starting Soon</span>
                         </div>
                       </div>
                     </div>
