@@ -6,6 +6,8 @@ export interface ApiError {
   error: string;
 }
 
+export type MergeTemplate = 'smart' | 'compare' | 'extract' | 'resolve';
+
 export class ApiService {
   static async sendMessage(prompt: string): Promise<string> {
     try {
@@ -31,8 +33,31 @@ export class ApiService {
     }
   }
 
-  static async generateMergedResponse(selectedMessages: string[]): Promise<string> {
-    const mergePrompt = `Please analyze and synthesize these different conversation branches into a unified response that captures the key insights from each path:
+  static getMergeTemplatePrompt(template: MergeTemplate, userInput?: string): string {
+    const templates = {
+      smart: "Please analyze and synthesize these different conversation branches into a unified response that captures the key insights from each path:",
+      compare: "Compare and contrast these different approaches, highlighting key similarities and differences while providing a balanced analysis:",
+      extract: "Extract the key insights and main points from these conversations in a clear, organized format with bullet points or numbered lists:",
+      resolve: "These conversations show different viewpoints. Find common ground and resolve any conflicts while addressing the core concerns from each perspective:"
+    };
+
+    let prompt = templates[template];
+    
+    if (userInput && userInput.trim()) {
+      prompt += `\n\nUser specific instructions: ${userInput.trim()}`;
+    }
+    
+    return prompt;
+  }
+
+  static async generateMergedResponse(
+    selectedMessages: string[], 
+    template: MergeTemplate = 'smart',
+    userInput?: string
+  ): Promise<string> {
+    const templatePrompt = this.getMergeTemplatePrompt(template, userInput);
+    
+    const mergePrompt = `${templatePrompt}
 
 ${selectedMessages.join('\n\n')}
 
@@ -49,7 +74,9 @@ Create a comprehensive response that merges the best elements from these differe
   }
 
   static createContextPrompt(thread: Array<{type: string, content: string}>, userInput: string): string {
-    const contextMessages = thread.map(msg =>
+    // Limit to last 10 messages for normal conversation
+    const recentThread = thread.slice(-10);
+    const contextMessages = recentThread.map(msg =>
       `${msg.type === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`
     ).join('\n');
 

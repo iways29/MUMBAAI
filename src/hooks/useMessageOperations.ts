@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Message } from '../types/conversation.ts';
 import { MessageHelpers } from '../utils/messageHelpers.ts';
-import { ApiService } from '../utils/api.ts';
+import { ApiService, MergeTemplate } from '../utils/api.ts';
 
 interface UseMessageOperationsProps {
   activeConversation: string;
@@ -26,6 +26,7 @@ export const useMessageOperations = ({
 }: UseMessageOperationsProps) => {
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [mergeTemplate, setMergeTemplate] = useState<MergeTemplate>('smart');
 
   const sendMessage = useCallback(async () => {
     if (!inputText.trim() || !activeConversation) return;
@@ -80,7 +81,7 @@ export const useMessageOperations = ({
     onMessageSent
   ]);
 
-  const performIntelligentMerge = useCallback(async () => {
+  const performIntelligentMerge = useCallback(async (customTemplate?: MergeTemplate, userInput?: string) => {
     const effectiveMergeNodes = Array.from(selectedNodes);
     if (selectedMessageId && !selectedNodes.has(selectedMessageId)) {
       effectiveMergeNodes.push(selectedMessageId);
@@ -90,11 +91,17 @@ export const useMessageOperations = ({
 
     setIsLoading(true);
     try {
-      // Get the selected messages content for merging
+      // Get the full conversation branches for merging
       const selectedMessages = effectiveMergeNodes
         .map(nodeId => {
-          const message = findMessage(nodeId);
-          return message ? `${message.type === 'user' ? 'Human' : 'Assistant'}: ${message.content}` : '';
+          const thread = getMessageThread(nodeId);
+          if (thread.length === 0) return '';
+          
+          const branchContent = thread
+            .map(msg => `${msg.type === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`)
+            .join('\n');
+          
+          return `=== Conversation Branch ${nodeId.slice(0, 8)} ===\n${branchContent}\n=== End Branch ===`;
         })
         .filter(Boolean);
 
@@ -105,8 +112,9 @@ export const useMessageOperations = ({
       // Add delay for better UX
       await ApiService.delay(800);
 
-      // Generate merged response
-      const mergedContent = await ApiService.generateMergedResponse(selectedMessages);
+      // Generate merged response with template and user input
+      const templateToUse = customTemplate || mergeTemplate;
+      const mergedContent = await ApiService.generateMergedResponse(selectedMessages, templateToUse, userInput);
 
       // Find a suitable parent for the merged message
       const parentMessage = effectiveMergeNodes
@@ -159,7 +167,9 @@ export const useMessageOperations = ({
     findMessage,
     addMessage,
     onMessageSent,
-    onClearSelection
+    onClearSelection,
+    mergeTemplate,
+    getMessageThread
   ]);
 
   const getEffectiveMergeCount = useCallback(() => {
@@ -171,7 +181,7 @@ export const useMessageOperations = ({
   }, [selectedNodes, selectedMessageId]);
 
   const canMerge = useCallback(() => {
-    return getEffectiveMergeCount() >= 2 && activeConversation && !isLoading;
+    return getEffectiveMergeCount() >= 2 && !!activeConversation && !isLoading;
   }, [getEffectiveMergeCount, activeConversation, isLoading]);
 
   const getCurrentMessage = useCallback(() => {
@@ -184,6 +194,10 @@ export const useMessageOperations = ({
     inputText,
     setInputText,
     isLoading,
+    
+    // Merge template state
+    mergeTemplate,
+    setMergeTemplate,
     
     // Operations
     sendMessage,
