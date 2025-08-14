@@ -336,7 +336,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
                                 </div>
                               </div>
                             </div>
-                            <div className="mt-4 text-xs text-gray-500 font-medium">
+                            <div className="mt-4 text-xs text-gray-500 font-medium text-left">
                               Status: Future Vision
                             </div>
                           </div>
