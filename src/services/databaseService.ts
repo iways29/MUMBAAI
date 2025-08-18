@@ -210,6 +210,8 @@ export class DatabaseService {
           message_id: messageId,
           x,
           y
+        }, { 
+          onConflict: 'user_id,conversation_id,message_id'
         });
 
       if (error) throw error;
@@ -238,7 +240,9 @@ export class DatabaseService {
 
       const { error } = await supabase
         .from('node_positions')
-        .upsert(upsertData);
+        .upsert(upsertData, { 
+          onConflict: 'user_id,conversation_id,message_id'
+        });
 
       if (error) throw error;
       return true;
