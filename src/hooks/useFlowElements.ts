@@ -96,8 +96,8 @@ export const useFlowElements = (
     const horizontalSpacing = 400;
     const verticalSpacing = 250;
 
-    // Handle empty messages case
-    if (!messages || messages.length === 0) {
+    // Handle empty messages case or invalid state
+    if (!messages || messages.length === 0 || !conversationId) {
       return { nodes: flowNodes, edges: flowEdges };
     }
 
@@ -258,6 +258,7 @@ export const useFlowElements = (
     filterType,
     nodePositions,
     positionsLoaded,
+    conversationId,
     onNodeClick,
     onNodeDoubleClick
   ]);
@@ -274,6 +275,7 @@ export const useFlowElements = (
     if (positionChanges.length > 0) {
       setNodePositions(prev => {
         const newPositions = { ...prev };
+        
         positionChanges.forEach(change => {
           if (change.type === 'position' && change.position) {
             newPositions[change.id] = change.position;
@@ -289,7 +291,7 @@ export const useFlowElements = (
   }, [debouncedSavePositions]);
 
   // Handle edge changes
-  const handleEdgesChange = useCallback((changes: EdgeChange[]) => {
+  const handleEdgesChange = useCallback((_changes: EdgeChange[]) => {
     // For now, we don't allow edge modification in this app
     // This could be extended to support custom connections
   }, []);
