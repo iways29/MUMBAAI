@@ -641,7 +641,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
                 <span className="text-lg font-bold text-gray-900">MUMBAAI</span>
               </div>
               <p className="text-gray-500 text-sm">
-                © 2024 MUMBAAI. Reimagining conversations.
+                © 2025 MUMBAAI. Reimagining conversations.
               </p>
             </div>
           </footer>

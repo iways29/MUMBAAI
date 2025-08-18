@@ -10,6 +10,7 @@ import { ChatPanel } from './components/Chat/ChatPanel.tsx';
 import { FlowCanvas } from './components/Flow/FlowCanvas.tsx';
 import { ConversationsListPage } from './components/Conversations/ConversationsListPage.tsx';
 import { FloatingToolbar } from './components/Layout/FloatingToolbar.tsx';
+import { ErrorBoundary } from './components/UI/ErrorBoundary.tsx';
 
 // Hooks
 import { useConversations } from './hooks/useConversations.ts';
@@ -107,7 +108,7 @@ const MUMBAAI: React.FC = () => {
     }
   }
 
-  const handleLayoutApplied = useCallback((layoutedNodes: any[], layoutedEdges: any[]) => {
+  const handleLayoutApplied = useCallback((layoutedNodes: any[], _layoutedEdges: any[]) => {
     // Update the flow elements with the new layouted positions
     flowElements.handleNodesChange(
       layoutedNodes.map(node => ({
@@ -251,16 +252,34 @@ const MUMBAAI: React.FC = () => {
           isConversationsPage={true}
         />
         <div style={{ marginTop: '72px', height: 'calc(100vh - 72px)', overflowY: 'auto' }}>
-          <ConversationsListPage
-            conversations={conversationHook.conversations}
-            onSelectConversation={handleSelectConversationFromList}
-            onCreateConversation={() => {
-              handleCreateNewConversation();
-              setCurrentView('chat');
-            }}
-            onDeleteConversation={conversationHook.deleteConversation}
-            currentUserId={user?.id || ''}
-          />
+          <ErrorBoundary
+            fallback={
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center p-8">
+                  <div className="text-red-600 text-6xl mb-4">📝</div>
+                  <p className="text-red-700 font-medium text-xl mb-2">Conversations List Error</p>
+                  <p className="text-red-600 mb-4">Unable to load your conversations</p>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                  >
+                    Refresh Page
+                  </button>
+                </div>
+              </div>
+            }
+          >
+            <ConversationsListPage
+              conversations={conversationHook.conversations}
+              onSelectConversation={handleSelectConversationFromList}
+              onCreateConversation={() => {
+                handleCreateNewConversation();
+                setCurrentView('chat');
+              }}
+              onDeleteConversation={conversationHook.deleteConversation}
+              currentUserId={user?.id || ''}
+            />
+          </ErrorBoundary>
         </div>
       </>
     );
@@ -284,61 +303,91 @@ const MUMBAAI: React.FC = () => {
       <div className="flex bg-gray-50" style={{ marginTop: '72px', height: 'calc(100vh - 72px)', overflow: 'hidden' }}>
       {/* Chat Panel - Only visible in Combined view */}
       {chatViewMode === 'combined' && (
-        <ChatPanel
-          collapsed={panelManager.isChatCollapsed}
-          onToggleCollapse={panelManager.toggleChatPanel}
-          messageThread={conversationHook.getMessageThread(selectedMessageId)}
-          selectedMessageId={selectedMessageId}
-          isLoading={messageOps.isLoading}
-          inputText={messageOps.inputText}
-          onInputChange={messageOps.setInputText}
-          onSendMessage={messageOps.sendMessage}
-          canSendMessage={messageOps.canSendMessage}
-          currentMessage={messageOps.getCurrentMessage()}
-          bookmarkedNodes={bookmarkedNodes}
-          onToggleBookmark={(nodeId) => {
-            const newBookmarks = new Set(bookmarkedNodes);
-            if (newBookmarks.has(nodeId)) {
-              newBookmarks.delete(nodeId);
-            } else {
-              newBookmarks.add(nodeId);
-            }
-            setBookmarkedNodes(newBookmarks);
-          }}
-          selectedModel={selectedModel}
-          onModelChange={setSelectedModel}
-        />
+        <ErrorBoundary
+          fallback={
+            <div className="w-96 bg-red-50 border-r border-red-200 flex items-center justify-center">
+              <div className="text-center p-4">
+                <div className="text-red-600 text-4xl mb-2">💬</div>
+                <p className="text-red-700 font-medium">Chat Panel Error</p>
+                <p className="text-red-600 text-sm">Please refresh to restore chat</p>
+              </div>
+            </div>
+          }
+        >
+          <ChatPanel
+            collapsed={panelManager.isChatCollapsed}
+            onToggleCollapse={panelManager.toggleChatPanel}
+            messageThread={conversationHook.getMessageThread(selectedMessageId)}
+            selectedMessageId={selectedMessageId}
+            isLoading={messageOps.isLoading}
+            inputText={messageOps.inputText}
+            onInputChange={messageOps.setInputText}
+            onSendMessage={messageOps.sendMessage}
+            canSendMessage={messageOps.canSendMessage}
+            currentMessage={messageOps.getCurrentMessage()}
+            bookmarkedNodes={bookmarkedNodes}
+            onToggleBookmark={(nodeId) => {
+              const newBookmarks = new Set(bookmarkedNodes);
+              if (newBookmarks.has(nodeId)) {
+                newBookmarks.delete(nodeId);
+              } else {
+                newBookmarks.add(nodeId);
+              }
+              setBookmarkedNodes(newBookmarks);
+            }}
+            selectedModel={selectedModel}
+            onModelChange={setSelectedModel}
+          />
+        </ErrorBoundary>
       )}
 
       {/* Flow Canvas */}
-      <FlowCanvas
-        nodes={flowElements.nodes}
-        edges={flowElements.edges}
-        onNodesChange={flowElements.handleNodesChange}
-        onEdgesChange={flowElements.handleEdgesChange}
-        chatPanelCollapsed={chatViewMode === 'flow'}
-        selectedNodes={selectedNodes}
-        onClearSelection={() => setSelectedNodes(new Set())}
-        onFitView={() => {}}
-        searchTerm={flowElements.searchTerm}
-        onSearchChange={flowElements.setSearchTerm}
-        filterType={flowElements.filterType}
-        onFilterChange={flowElements.setFilterType}
-        timelinePosition={flowElements.timelinePosition}
-        onTimelineChange={flowElements.setTimelinePosition}
-        isAnimating={isAnimating}
-        onStartAnimation={startTimelineAnimation}
-        onResetTimeline={resetTimeline}
-        canMerge={messageOps.canMerge()}
-        onPerformMerge={messageOps.performIntelligentMerge}
-        mergeTemplate={messageOps.mergeTemplate}
-        onMergeTemplateChange={messageOps.setMergeTemplate}
-        isLoading={messageOps.isLoading}
-        effectiveMergeCount={messageOps.getEffectiveMergeCount()}
-        allMessagesCount={conversationHook.getAllMessages().length}
-        conversationName={conversationHook.currentConversation?.name}
-        onLayoutApplied={handleLayoutApplied}
-      />
+      <ErrorBoundary
+        fallback={
+          <div className="flex-1 bg-red-50 flex items-center justify-center">
+            <div className="text-center p-8">
+              <div className="text-red-600 text-6xl mb-4">🌐</div>
+              <p className="text-red-700 font-medium text-xl mb-2">Flow Visualization Error</p>
+              <p className="text-red-600">The conversation flow couldn't be displayed</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Refresh to Restore
+              </button>
+            </div>
+          </div>
+        }
+      >
+        <FlowCanvas
+          nodes={flowElements.nodes}
+          edges={flowElements.edges}
+          onNodesChange={flowElements.handleNodesChange}
+          onEdgesChange={flowElements.handleEdgesChange}
+          chatPanelCollapsed={chatViewMode === 'flow'}
+          selectedNodes={selectedNodes}
+          onClearSelection={() => setSelectedNodes(new Set())}
+          onFitView={() => {}}
+          searchTerm={flowElements.searchTerm}
+          onSearchChange={flowElements.setSearchTerm}
+          filterType={flowElements.filterType}
+          onFilterChange={flowElements.setFilterType}
+          timelinePosition={flowElements.timelinePosition}
+          onTimelineChange={flowElements.setTimelinePosition}
+          isAnimating={isAnimating}
+          onStartAnimation={startTimelineAnimation}
+          onResetTimeline={resetTimeline}
+          canMerge={messageOps.canMerge()}
+          onPerformMerge={messageOps.performIntelligentMerge}
+          mergeTemplate={messageOps.mergeTemplate}
+          onMergeTemplateChange={messageOps.setMergeTemplate}
+          isLoading={messageOps.isLoading}
+          effectiveMergeCount={messageOps.getEffectiveMergeCount()}
+          allMessagesCount={conversationHook.getAllMessages().length}
+          conversationName={conversationHook.currentConversation?.name}
+          onLayoutApplied={handleLayoutApplied}
+        />
+      </ErrorBoundary>
       </div>
     </>
   );
@@ -346,11 +395,13 @@ const MUMBAAI: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <ReactFlowProvider>
-      <MUMBAAI />
-      <Analytics />
-      <SpeedInsights />
-    </ReactFlowProvider>
+    <ErrorBoundary>
+      <ReactFlowProvider>
+        <MUMBAAI />
+        <Analytics />
+        <SpeedInsights />
+      </ReactFlowProvider>
+    </ErrorBoundary>
   );
 };
 
