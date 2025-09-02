@@ -181,9 +181,12 @@ export const useMessageOperations = ({
       return performIntelligentMerge();
     }
     
+    // Clear the input text when using custom prompt
+    setInputText('');
+    
     // Use the custom prompt as user input to the merge function
     return performIntelligentMerge(undefined, customPrompt);
-  }, [performIntelligentMerge]);
+  }, [performIntelligentMerge, setInputText]);
 
   const getEffectiveMergeCount = useCallback(() => {
     let count = selectedNodes.size;
