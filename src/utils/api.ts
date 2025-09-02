@@ -55,9 +55,9 @@ export class ApiService {
     template: MergeTemplate = 'smart',
     userInput?: string
   ): Promise<string> {
-    let finalPrompt: string;    
+    let finalPrompt: string; 
    
- if (userInput && userInput.trim()) {
+    if (userInput && userInput.trim()) {
       // User provided custom prompt - use it directly with context
       finalPrompt = `${userInput.trim()}
 
@@ -90,12 +90,13 @@ Create a comprehensive response that merges the best elements from these differe
     const recentThread = thread.slice(-10);
     
     if (recentThread.length === 0) {
-      // First message - add a friendly system context
-      return `You are a helpful AI assistant in MUMBAAI, a branching conversation platform. Be conversational, engaging, and helpful. Feel free to ask follow-up questions to better understand what the user needs.
+      // First message - provide MUMBAAI context while preserving model identity
+      return `Context: You are responding within MUMBAAI, a branching conversation platform that allows users to explore multiple conversation paths and compare responses from different AI models. Users can branch conversations at any point to explore different directions, then merge insights from multiple branches. This enables more thorough exploration of topics and better decision-making.
 
-User: ${userInput}
+Your role: Maintain your authentic identity and capabilities while being helpful in this branching conversation context. Users may compare your responses with other AI models, so showcase your unique strengths and perspective.Human: ${
+userInput}
 
-Please respond naturally and helpfully.`;
+Please respond authentically as yourself while being helpful in this context.`;
     }
     
     // Ongoing conversation - include context
@@ -103,12 +104,13 @@ Please respond naturally and helpfully.`;
       `${msg.type === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`
     ).join('\n');
 
-    return `You are a helpful AI assistant. Here is our conversation history:
+    return `Context: You are in MUMBAAI, a branching conversation platform where users explore multiple conversation paths and compare different AI models. This conversation may be branched or merged with others.
 
-${contextMessages}H
-uman: ${userInput}
+Conversation history:
+${contextMessages}Human
+: ${userInput}
 
-Please respond naturally, taking into account the full conversation context above.`;
+Please respond as yourself, maintaining your authentic identity while being helpful in this branching conversation context.`;
   }
 
   // Mock delay for better UX
