@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowUp, History } from 'lucide-react';
+import { ArrowUp, History, Sparkles } from 'lucide-react';
 import { Message } from '../../types/conversation.ts';
 import { MessageHelpers } from '../../utils/messageHelpers.ts';
 import { LLMSelector } from './LLMSelector.tsx';
@@ -14,6 +14,10 @@ interface ChatInputProps {
   currentMessage: Message | null;
   selectedModel?: string;
   onModelChange?: (modelId: string) => void;
+  // New merge props
+  isMultiSelectMode?: boolean;
+  onPerformMerge?: (customPrompt?: string) => void;
+  mergeCount?: number;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
@@ -25,25 +29,73 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   selectedMessageId,
   currentMessage,
   selectedModel = 'gemini-1.5-flash',
-  onModelChange
+  onModelChange,
+  isMultiSelectMode = false,
+  onPerformMerge,
+  mergeCount = 0
 }) => {
+  const isInMergeMode = isMultiSelectMode;
+  const canPerformAction = isInMergeMode ? 
+    (!isLoading && inputText.trim().length > 0) : 
+    canSendMessage;
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('ChatInput Debug:', {
+      isMultiSelectMode,
+      mergeCount,
+      isInMergeMode,
+      canPerformAction
+    });
+  }, [isMultiSelectMode, mergeCount, isInMergeMode, canPerformAction]);
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (canSendMessage) {
-        onSendMessage();
+      if (canPerformAction) {
+        if (isInMergeMode) {
+          onPerformMerge?.(inputText.trim() || undefined);
+        } else {
+          onSendMessage();
+        }
       }
     }
   };
 
+  const handleButtonClick = () => {
+    if (isInMergeMode) {
+      onPerformMerge?.(inputText.trim() || undefined);
+    } else {
+      onSendMessage();
+    }
+  };
+
   const getPlaceholderText = () => {
+    if (isInMergeMode) {
+      return "Enter custom merge prompt (required for custom merge)...";
+    }
     return selectedMessageId ? "Ask away..." : "Message MUMBAAI";
+  };
+
+  const getButtonTitle = () => {
+    if (isLoading) return 'Processing...';
+    if (isInMergeMode) {
+      if (inputText.trim().length === 0) {
+        return 'Enter custom prompt to merge, or use template buttons below';
+      }
+      return `Merge ${mergeCount} nodes with custom prompt`;
+    }
+    return 'Send message';
   };
 
   return (
     <div className="bg-white p-6">
       {/* Input Container */}
-      <div className="relative bg-gray-50 rounded-2xl border border-gray-100 p-4 focus-within:bg-white focus-within:border-gray-200 transition-all">
+      <div className={`relative rounded-2xl border p-4 transition-all ${
+        isInMergeMode 
+          ? 'bg-purple-50 border-purple-200 focus-within:bg-white focus-within:border-purple-300'
+          : 'bg-gray-50 border-gray-100 focus-within:bg-white focus-within:border-gray-200'
+      }`}>
         <div className="flex items-end gap-3">
           <textarea
             value={inputText}
@@ -64,16 +116,18 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             }}
           />
           <button
-            onClick={onSendMessage}
-            disabled={!canSendMessage}
+            onClick={handleButtonClick}
+            disabled={!canPerformAction}
             className={`w-8 h-8 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${
-              canSendMessage
-                ? 'bg-blue-500 hover:bg-blue-600 text-white'
+              canPerformAction
+                ? isInMergeMode 
+                  ? 'bg-purple-500 hover:bg-purple-600 text-white'
+                  : 'bg-blue-500 hover:bg-blue-600 text-white'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
-            title={isLoading ? 'Sending...' : 'Send message'}
+            title={getButtonTitle()}
           >
-            <ArrowUp size={14} />
+            {isInMergeMode ? <Sparkles size={14} /> : <ArrowUp size={14} />}
           </button>
         </div>
 
@@ -88,8 +142,16 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         )}
       </div>
 
-      {/* Reply Context */}
-      {selectedMessageId && currentMessage && (
+      {/* Context Indicators */}
+      {isInMergeMode ? (
+        <div className="mt-3 text-xs text-purple-600 flex items-center gap-2 px-2">
+          <Sparkles size={12} />
+          <span>Custom merge mode:</span>
+          <span className="text-purple-700 font-medium">
+            {mergeCount} nodes selected • Enter prompt above or use template buttons in flow panel
+          </span>
+        </div>
+      ) : selectedMessageId && currentMessage && (
         <div className="mt-3 text-xs text-gray-500 flex items-center gap-2 px-2">
           <History size={12} />
           <span>Replying to:</span>

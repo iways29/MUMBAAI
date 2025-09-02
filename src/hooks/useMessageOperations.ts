@@ -91,13 +91,15 @@ export const useMessageOperations = ({
 
     setIsLoading(true);
     try {
-      // Get the full conversation branches for merging
+      // Get the conversation branches with limited context (15 recent messages per branch)
       const selectedMessages = effectiveMergeNodes
         .map(nodeId => {
           const thread = getMessageThread(nodeId);
           if (thread.length === 0) return '';
           
-          const branchContent = thread
+          // Limit to last 15 messages for context
+          const recentThread = thread.slice(-15);
+          const branchContent = recentThread
             .map(msg => `${msg.type === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`)
             .join('\n');
           
@@ -112,7 +114,7 @@ export const useMessageOperations = ({
       // Add delay for better UX
       await ApiService.delay(800);
 
-      // Generate merged response with template and user input
+      // Generate merged response with custom prompt or template
       const templateToUse = customTemplate || mergeTemplate;
       const mergedContent = await ApiService.generateMergedResponse(selectedMessages, templateToUse, userInput);
 
@@ -172,11 +174,29 @@ export const useMessageOperations = ({
     getMessageThread
   ]);
 
+  // New function specifically for custom prompt merges from chat input
+  const performCustomMerge = useCallback(async (customPrompt?: string) => {
+    // If no custom prompt provided, use the current template
+    if (!customPrompt) {
+      return performIntelligentMerge();
+    }
+    
+    // Use the custom prompt as user input to the merge function
+    return performIntelligentMerge(undefined, customPrompt);
+  }, [performIntelligentMerge]);
+
   const getEffectiveMergeCount = useCallback(() => {
     let count = selectedNodes.size;
     if (selectedMessageId && !selectedNodes.has(selectedMessageId)) {
       count += 1;
     }
+    console.log('Effective merge count:', {
+      selectedNodesSize: selectedNodes.size,
+      selectedMessageId,
+      hasSelectedMessage: !!selectedMessageId,
+      isSelectedMessageInNodes: selectedNodes.has(selectedMessageId || ''),
+      finalCount: count
+    });
     return count;
   }, [selectedNodes, selectedMessageId]);
 
@@ -202,6 +222,7 @@ export const useMessageOperations = ({
     // Operations
     sendMessage,
     performIntelligentMerge,
+    performCustomMerge,
     
     // Helpers
     getEffectiveMergeCount,
