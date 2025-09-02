@@ -12,6 +12,7 @@ interface UseMessageOperationsProps {
   getMessageThread: (selectedMessageId: string) => Message[];
   onMessageSent?: (messageId: string) => void;
   onClearSelection?: () => void;
+  selectedModel?: string;
 }
 
 export const useMessageOperations = ({
@@ -22,7 +23,8 @@ export const useMessageOperations = ({
   findMessage,
   getMessageThread,
   onMessageSent,
-  onClearSelection
+  onClearSelection,
+  selectedModel = 'gemini-1.5-flash'
 }: UseMessageOperationsProps) => {
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +56,7 @@ export const useMessageOperations = ({
       await ApiService.delay(500);
 
       // Get AI response
-      const aiResponse = await ApiService.sendMessage(contextPrompt);
+      const aiResponse = await ApiService.sendMessage(contextPrompt, selectedModel);
 
       const assistantMessage = MessageHelpers.createMessage('assistant', aiResponse);
       
@@ -78,7 +80,8 @@ export const useMessageOperations = ({
     selectedMessageId,
     addMessage,
     getMessageThread,
-    onMessageSent
+    onMessageSent,
+    selectedModel
   ]);
 
   const performIntelligentMerge = useCallback(async (customTemplate?: MergeTemplate, userInput?: string) => {

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Sparkles, Brain, Zap, Bot, Settings } from 'lucide-react';
+import { Sparkles, Brain, Zap } from 'lucide-react';
 
 interface LLMModel {
   id: string;
@@ -37,67 +37,83 @@ const llmProviders: LLMProvider[] = [
     ]
   },
   {
-    name: 'OpenAI',
-    icon: <Brain size={16} className="text-green-500" />,
-    models: [
-      {
-        id: 'gpt-4',
-        name: 'GPT-4',
-        provider: 'OpenAI',
-        description: 'Most capable GPT model',
-        enabled: false
-      },
-      {
-        id: 'gpt-3.5-turbo',
-        name: 'GPT-3.5 Turbo',
-        provider: 'OpenAI',
-        description: 'Fast and cost-effective',
-        enabled: false
-      }
-    ]
-  },
-  {
     name: 'Anthropic',
     icon: <Zap size={16} className="text-purple-500" />,
     models: [
       {
-        id: 'claude-3-opus',
-        name: 'Claude 3 Opus',
+        id: 'claude-3-5-haiku-20241022',
+        name: 'Claude 3.5 Haiku',
         provider: 'Anthropic',
-        description: 'Most powerful Claude model',
+        description: 'Fast and efficient Claude model',
+        enabled: true
+      },
+      {
+        id: 'claude-3-7-sonnet-20250219',
+        name: 'Claude 3.7 Sonnet',
+        provider: 'Anthropic',
+        description: 'Enhanced reasoning and analysis',
         enabled: false
       },
       {
-        id: 'claude-3-sonnet',
-        name: 'Claude 3 Sonnet',
+        id: 'claude-sonnet-4-20250514',
+        name: 'Claude 4 Sonnet',
         provider: 'Anthropic',
-        description: 'Balanced performance and speed',
+        description: 'Next-generation Claude model',
+        enabled: false
+      },
+      {
+        id: 'claude-opus-4-20250514',
+        name: 'Claude 4 Opus',
+        provider: 'Anthropic',
+        description: 'Most powerful Claude 4 model',
+        enabled: false
+      },
+      {
+        id: 'claude-opus-4-1-20250805',
+        name: 'Claude 4.1 Opus',
+        provider: 'Anthropic',
+        description: 'Latest and most advanced Claude model',
         enabled: false
       }
     ]
   },
   {
-    name: 'Meta',
-    icon: <Bot size={16} className="text-orange-500" />,
+    name: 'OpenAI',
+    icon: <Brain size={16} className="text-green-500" />,
     models: [
       {
-        id: 'llama-2-70b',
-        name: 'Llama 2 70B',
-        provider: 'Meta',
-        description: 'Open source large language model',
+        id: 'gpt-4o-mini',
+        name: 'GPT-4.1 Mini',
+        provider: 'OpenAI',
+        description: 'Efficient and fast GPT model',
+        enabled: true
+      },
+      {
+        id: 'gpt-5-mini',
+        name: 'GPT-5 Mini',
+        provider: 'OpenAI',
+        description: 'Next-gen compact model',
+        enabled: true
+      },
+      {
+        id: 'gpt-4o',
+        name: 'GPT-4o',
+        provider: 'OpenAI',
+        description: 'Advanced multimodal model',
         enabled: false
-      }
-    ]
-  },
-  {
-    name: 'Custom',
-    icon: <Settings size={16} className="text-gray-500" />,
-    models: [
+      },
       {
-        id: 'custom-llm',
-        name: 'Bring Your Own LLM',
-        provider: 'Custom',
-        description: 'Connect your own API endpoints',
+        id: 'gpt-4-turbo',
+        name: 'GPT-4.1',
+        provider: 'OpenAI',
+        description: 'Enhanced GPT-4 with better performance',
+        enabled: false
+      },
+      {
+        id: 'gpt-5',
+        name: 'GPT-5',
+        provider: 'OpenAI',
+        description: 'Most advanced OpenAI model',
         enabled: false
       }
     ]
@@ -182,7 +198,7 @@ export const LLMSelector: React.FC<LLMSelectorProps> = ({
           </div>
 
           {/* Models Content */}
-          <div className="p-4">
+          <div className="p-4 max-h-80 overflow-y-auto">
             {llmProviders
               .filter(provider => provider.name === activeTab)
               .map((provider) => (

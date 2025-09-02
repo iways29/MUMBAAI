@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { LLMService } from './services/llm-service.mjs';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -6,22 +6,26 @@ export default async function handler(req, res) {
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    const { prompt } = req.body;
+    const { prompt, model = 'gemini-1.5-flash' } = req.body;
 
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    if (!model) {
+      return res.status(400).json({ error: 'Model is required' });
+    }
 
-    res.status(200).json({ response: text });
+    console.log(`Processing request with model: ${model}`);
+    
+    const result = await LLMService.generateResponse(model, prompt);
+    
+    res.status(200).json(result);
   } catch (error) {
-    console.error('Error calling Gemini API:', error);
-    res.status(500).json({ error: 'Failed to get response from AI' });
+    console.error('Error calling LLM API:', error);
+    res.status(500).json({ 
+      error: 'Failed to get response from AI',
+      details: error.message 
+    });
   }
 }

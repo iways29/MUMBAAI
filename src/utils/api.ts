@@ -9,14 +9,14 @@ export interface ApiError {
 export type MergeTemplate = 'smart' | 'compare' | 'extract' | 'resolve';
 
 export class ApiService {
-  static async sendMessage(prompt: string): Promise<string> {
+  static async sendMessage(prompt: string, model: string = 'gemini-1.5-flash'): Promise<string> {
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompt })
+        body: JSON.stringify({ prompt, model })
       });
 
       if (!response.ok) {

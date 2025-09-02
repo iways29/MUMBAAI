@@ -75,7 +75,8 @@ const MUMBAAI: React.FC = () => {
     findMessage: conversationHook.findMessage,
     getMessageThread: conversationHook.getMessageThread,
     onMessageSent: setSelectedMessageId,
-    onClearSelection: () => setSelectedNodes(new Set())
+    onClearSelection: () => setSelectedNodes(new Set()),
+    selectedModel
   });
 
   // Event handlers
