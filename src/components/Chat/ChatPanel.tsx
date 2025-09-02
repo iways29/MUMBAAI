@@ -19,6 +19,10 @@ interface ChatPanelProps {
   onToggleBookmark: (nodeId: string) => void;
   selectedModel?: string;
   onModelChange?: (modelId: string) => void;
+  // New merge props
+  isMultiSelectMode?: boolean;
+  onPerformMerge?: (customPrompt?: string) => void;
+  mergeCount?: number;
 }
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({
@@ -35,7 +39,10 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   bookmarkedNodes,
   onToggleBookmark,
   selectedModel,
-  onModelChange
+  onModelChange,
+  isMultiSelectMode = false,
+  onPerformMerge,
+  mergeCount = 0
 }) => {
   if (collapsed) {
     return (
@@ -73,6 +80,9 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         currentMessage={currentMessage}
         selectedModel={selectedModel}
         onModelChange={onModelChange}
+        isMultiSelectMode={isMultiSelectMode}
+        onPerformMerge={onPerformMerge}
+        mergeCount={mergeCount}
       />
     </div>
   );

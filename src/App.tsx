@@ -87,6 +87,7 @@ const MUMBAAI: React.FC = () => {
       } else {
         newSelected.add(messageId);
       }
+      console.log('Multi-select updated:', Array.from(newSelected));
       setSelectedNodes(newSelected);
     } else {
       setSelectedMessageId(messageId);
@@ -337,6 +338,9 @@ const MUMBAAI: React.FC = () => {
             }}
             selectedModel={selectedModel}
             onModelChange={setSelectedModel}
+            isMultiSelectMode={messageOps.getEffectiveMergeCount() > 1}
+            onPerformMerge={messageOps.performCustomMerge}
+            mergeCount={messageOps.getEffectiveMergeCount()}
           />
         </ErrorBoundary>
       )}

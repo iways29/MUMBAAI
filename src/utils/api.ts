@@ -55,16 +55,28 @@ export class ApiService {
     template: MergeTemplate = 'smart',
     userInput?: string
   ): Promise<string> {
-    const templatePrompt = this.getMergeTemplatePrompt(template, userInput);
+    let finalPrompt: string;
     
-    const mergePrompt = `${templatePrompt}
+    if (userInput && userInput.trim()) {
+      // User provided custom prompt - use it directly with context
+      finalPrompt = `${userInput.trim()}
+
+Context from conversation branches:
+${selectedMessages.join('\n\n')}
+
+Please provide a comprehensive response based on the above prompt and context.`;
+    } else {
+      // Use template-based approach
+      const templatePrompt = this.getMergeTemplatePrompt(template);
+      finalPrompt = `${templatePrompt}
 
 ${selectedMessages.join('\n\n')}
 
 Create a comprehensive response that merges the best elements from these different directions while maintaining coherence and adding new insights where appropriate.`;
+    }
 
     try {
-      return await this.sendMessage(mergePrompt);
+      return await this.sendMessage(finalPrompt);
     } catch (error) {
       console.error('Merge generation failed:', error);
       
