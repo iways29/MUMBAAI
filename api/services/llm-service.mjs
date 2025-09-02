@@ -46,7 +46,7 @@ export class LLMService {
         'claude-opus-4-20250514',
         'claude-opus-4-1-20250805'
       ],
-      openai: ['gpt-4o-mini', 'gpt-5-mini', 'gpt-4o', 'gpt-4-turbo', 'gpt-5']
+      openai: ['gpt-5-mini', 'gpt-4.1-mini', 'gpt-4o-mini', 'gpt-5', 'gpt-4.1', 'gpt-4o']
     };
   }
 }

@@ -82,13 +82,6 @@ const llmProviders: LLMProvider[] = [
     icon: <Brain size={16} className="text-green-500" />,
     models: [
       {
-        id: 'gpt-4o-mini',
-        name: 'GPT-4.1 Mini',
-        provider: 'OpenAI',
-        description: 'Efficient and fast GPT model',
-        enabled: true
-      },
-      {
         id: 'gpt-5-mini',
         name: 'GPT-5 Mini',
         provider: 'OpenAI',
@@ -96,24 +89,38 @@ const llmProviders: LLMProvider[] = [
         enabled: true
       },
       {
-        id: 'gpt-4o',
-        name: 'GPT-4o',
+        id: 'gpt-4.1-mini',
+        name: 'GPT-4.1 Mini',
         provider: 'OpenAI',
-        description: 'Advanced multimodal model',
-        enabled: false
+        description: 'Efficient and fast GPT model',
+        enabled: true
       },
       {
-        id: 'gpt-4-turbo',
-        name: 'GPT-4.1',
+        id: 'gpt-4o-mini',
+        name: 'GPT-4o Mini',
         provider: 'OpenAI',
-        description: 'Enhanced GPT-4 with better performance',
-        enabled: false
+        description: 'Compact multimodal model',
+        enabled: true
       },
       {
         id: 'gpt-5',
         name: 'GPT-5',
         provider: 'OpenAI',
         description: 'Most advanced OpenAI model',
+        enabled: false
+      },
+      {
+        id: 'gpt-4.1',
+        name: 'GPT-4.1',
+        provider: 'OpenAI',
+        description: 'Enhanced GPT-4 with better performance',
+        enabled: false
+      },
+      {
+        id: 'gpt-4o',
+        name: 'GPT-4o',
+        provider: 'OpenAI',
+        description: 'Advanced multimodal model',
         enabled: false
       }
     ]

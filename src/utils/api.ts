@@ -55,9 +55,9 @@ export class ApiService {
     template: MergeTemplate = 'smart',
     userInput?: string
   ): Promise<string> {
-    let finalPrompt: string;
-    
-    if (userInput && userInput.trim()) {
+    let finalPrompt: string;    
+   
+ if (userInput && userInput.trim()) {
       // User provided custom prompt - use it directly with context
       finalPrompt = `${userInput.trim()}
 
@@ -88,11 +88,27 @@ Create a comprehensive response that merges the best elements from these differe
   static createContextPrompt(thread: Array<{type: string, content: string}>, userInput: string): string {
     // Limit to last 10 messages for normal conversation
     const recentThread = thread.slice(-10);
+    
+    if (recentThread.length === 0) {
+      // First message - add a friendly system context
+      return `You are a helpful AI assistant in MUMBAAI, a branching conversation platform. Be conversational, engaging, and helpful. Feel free to ask follow-up questions to better understand what the user needs.
+
+User: ${userInput}
+
+Please respond naturally and helpfully.`;
+    }
+    
+    // Ongoing conversation - include context
     const contextMessages = recentThread.map(msg =>
       `${msg.type === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`
     ).join('\n');
 
-    return `Here is our conversation history:\n\n${contextMessages}\n\nHuman: ${userInput}\n\nPlease respond naturally, taking into account the full conversation context above.`;
+    return `You are a helpful AI assistant. Here is our conversation history:
+
+${contextMessages}H
+uman: ${userInput}
+
+Please respond naturally, taking into account the full conversation context above.`;
   }
 
   // Mock delay for better UX
@@ -112,16 +128,16 @@ Create a comprehensive response that merges the best elements from these differe
 
     const randomResponse = responses[Math.floor(Math.random() * responses.length)];
     
-    // Add some topic-specific content based on keywords
+    // Add topic-specific content based on keywords
     if (prompt.toLowerCase().includes('project')) {
-      return `${randomResponse}\n\nFor project planning, consider these key elements:\n• Scope and objectives\n• Timeline and milestones\n• Required resources\n• Potential challenges\n• Success metrics`;
+      return randomResponse + '\n\nFor project planning, consider these key elements:\n• Scope and objectives\n• Timeline and milestones\n• Required resources\n• Potential challenges\n• Success metrics';
     } else if (prompt.toLowerCase().includes('creative')) {
-      return `${randomResponse}\n\nCreative approaches often benefit from:\n• Brainstorming without constraints\n• Drawing inspiration from diverse sources\n• Iterating on initial ideas\n• Combining unexpected elements\n• Embracing experimentation`;
+      return randomResponse + '\n\nCreative approaches often benefit from:\n• Brainstorming without constraints\n• Drawing inspiration from diverse sources\n• Iterating on initial ideas\n• Combining unexpected elements\n• Embracing experimentation';
     } else if (prompt.toLowerCase().includes('tech')) {
-      return `${randomResponse}\n\nTechnology considerations include:\n• Current best practices\n• Scalability requirements\n• Security implications\n• User experience design\n• Maintenance and updates`;
+      return randomResponse + '\n\nTechnology considerations include:\n• Current best practices\n• Scalability requirements\n• Security implications\n• User experience design\n• Maintenance and updates';
     }
 
-    return `${randomResponse}\n\nThis is a development environment response. The actual AI service would provide more detailed and contextual answers.`;
+    return randomResponse + '\n\nThis is a development environment response. The actual AI service would provide more detailed and contextual answers.';
   }
 
   private static generateMockMergeResponse(selectedMessages: string[]): string {
