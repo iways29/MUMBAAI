@@ -53,6 +53,15 @@
     transition: all 0.2s ease;
   }
   
+  /* Ensure all node content is clickable */
+  .react-flow__node * {
+    pointer-events: none;
+  }
+  
+  .react-flow__node {
+    pointer-events: all;
+  }
+  
   /* Custom scrollbar for panels */
   .react-flow__panel::-webkit-scrollbar {
     width: 6px;
