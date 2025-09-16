@@ -8,6 +8,7 @@ import { FlowCanvas } from '../components/Flow/FlowCanvas.tsx';
 import { ConversationsListPage } from '../components/Conversations/ConversationsListPage.tsx';
 import { FloatingToolbar } from '../components/Layout/FloatingToolbar.tsx';
 import { ErrorBoundary } from '../components/UI/ErrorBoundary.tsx';
+import UserProfile from './UserProfile.tsx';
 
 // Hooks
 import { useConversations } from '../hooks/useConversations.ts';
@@ -32,7 +33,7 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
   const animationRef = useRef<NodeJS.Timeout | null>(null);
 
   // View state management - start with chat if there are conversations, otherwise conversations list
-  const [currentView, setCurrentView] = useState<'conversations' | 'chat'>(() => {
+  const [currentView, setCurrentView] = useState<'conversations' | 'chat' | 'profile'>(() => {
     return conversationHook.conversations.length > 0 ? 'chat' : 'conversations';
   });
 
@@ -146,6 +147,10 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
     setCurrentView('conversations');
   }, []);
 
+  const handleNavigateToProfile = useCallback(() => {
+    setCurrentView('profile');
+  }, []);
+
   const handleSelectConversationFromList = useCallback((id: string) => {
     handleConversationChange(id);
     setCurrentView('chat');
@@ -215,6 +220,8 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
           onConversationNameChange={() => { }} // Not used on conversations page
           showBackButton={false}
           isConversationsPage={true}
+          showProfileButton={true}
+          onProfileClick={handleNavigateToProfile}
         />
         <div style={{ marginTop: '72px', height: 'calc(100vh - 72px)', overflowY: 'auto' }}>
           <ErrorBoundary
@@ -248,6 +255,10 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
         </div>
       </ReactFlowProvider>
     );
+  }
+
+  if (currentView === 'profile') {
+    return <UserProfile user={user} onBack={handleNavigateToConversations} />;
   }
 
   return (
