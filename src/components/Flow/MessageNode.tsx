@@ -7,14 +7,17 @@ import { MessageHelpers } from '../../utils/messageHelpers.ts';
 
 interface MessageNodeProps {
   data: MessageNodeData;
-  selected?: boolean;
+  selected: boolean;
 }
 
-export const MessageNode: React.FC<MessageNodeProps> = ({ data, selected }) => {
+export const MessageNode: React.FC<MessageNodeProps> = ({ data, selected = false }) => {
   const { message, onNodeClick, onNodeDoubleClick, isMultiSelected, selectedMessageId, hasMultiSelections } = data;
 
   const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+    // Don't stop propagation for Ctrl+click - let React Flow handle multi-selection
+    if (!(e.ctrlKey || e.metaKey)) {
+      e.stopPropagation();
+    }
     onNodeClick?.(message.id, e);
   };
 
@@ -30,10 +33,14 @@ export const MessageNode: React.FC<MessageNodeProps> = ({ data, selected }) => {
 
   // Determine border styling based on selection state
   const getBorderStyling = () => {
+    // Check both our custom selection state AND React Flow's built-in selection
+    const isSelected = isCurrentlySelected || selected;
+    const isMultiSelected = isThisNodeMultiSelected || (selected && isMultiSelectModeActive);
+    
     // If this node is multi-selected OR (this is active node AND multi-select mode is active)
-    if (isThisNodeMultiSelected || (isCurrentlySelected && isMultiSelectModeActive)) {
+    if (isMultiSelected || (isSelected && isMultiSelectModeActive)) {
       return 'border-red-400 ring-2 ring-red-200';
-    } else if (isCurrentlySelected && !isMultiSelectModeActive) {
+    } else if (isSelected && !isMultiSelectModeActive) {
       // Single selection gets blue border only when no multi-selection is happening
       return 'border-blue-400 ring-2 ring-blue-200';
     } else {

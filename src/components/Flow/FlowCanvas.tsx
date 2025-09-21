@@ -28,6 +28,7 @@ interface FlowCanvasProps {
   chatPanelCollapsed: boolean;
   selectedNodes: Set<string>;
   onClearSelection: () => void;
+  onSelectionChange?: (selectedNodeIds: string[]) => void;
   onFitView: () => void;
   // Flow controls props
   searchTerm: string;
@@ -61,6 +62,7 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
   chatPanelCollapsed,
   selectedNodes,
   onClearSelection,
+  onSelectionChange,
   onFitView,
   searchTerm,
   onSearchChange,
@@ -85,11 +87,46 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
 
   const handleNodesChange = useCallback((changes: NodeChange[]) => {
     onNodesChange(changes);
-  }, [onNodesChange]);
+    
+    // Handle selection changes from React Flow
+    const selectionChanges = changes.filter(change => change.type === 'select');
+    if (selectionChanges.length > 0 && onSelectionChange) {
+      
+      // Calculate the new selection state based on the changes
+      const currentSelection = new Set(nodes.filter(node => node.selected).map(node => node.id));
+      
+      selectionChanges.forEach(change => {
+        if (change.type === 'select' && 'selected' in change) {
+          if (change.selected) {
+            currentSelection.add(change.id);
+          } else {
+            currentSelection.delete(change.id);
+          }
+        }
+      });
+      
+      onSelectionChange(Array.from(currentSelection));
+    }
+  }, [onNodesChange, onSelectionChange, nodes]);
 
   const handleEdgesChange = useCallback((changes: EdgeChange[]) => {
     onEdgesChange(changes);
   }, [onEdgesChange]);
+
+  const handleNodeDragStart = useCallback(() => {
+    // Node drag started - this can be used to set drag state if needed
+  }, []);
+
+  const handleNodeDragStop = useCallback(() => {
+    // Node drag ended - this can be used to clear drag state if needed
+  }, []);
+
+  const handlePaneClick = useCallback(() => {
+    // Clear selection when clicking on background
+    if (onClearSelection) {
+      onClearSelection();
+    }
+  }, [onClearSelection]);
 
   const handleFitView = useCallback(() => {
     fitView({ padding: 0.2, duration: 800 });
@@ -141,12 +178,17 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
         edges={edges}
         onNodesChange={handleNodesChange}
         onEdgesChange={handleEdgesChange}
+        onPaneClick={handlePaneClick}
+        onNodeDragStart={handleNodeDragStart}
+        onNodeDragStop={handleNodeDragStop}
         nodeTypes={nodeTypes}
         connectionLineType={ConnectionLineType.SmoothStep}
         className="bg-gray-50 h-full"
         nodesDraggable={true}
         nodesConnectable={false}
         elementsSelectable={true}
+        selectNodesOnDrag={false}
+        panOnDrag={[1, 2]} // Allow panning with left and right mouse buttons
         defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
         minZoom={0.3}
         maxZoom={2}

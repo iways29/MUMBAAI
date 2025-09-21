@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { ReactFlowProvider } from 'reactflow';
+import { ReactFlowProvider, useNodesState, useEdgesState } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
@@ -24,11 +24,11 @@ import { useAuth } from './hooks/useAuth.ts';
 const MUMBAAI: React.FC = () => {
   // ALL HOOKS MUST BE AT THE TOP - BEFORE ANY EARLY RETURNS
   const { user, loading } = useAuth();
-  
+
   // Core state management
   const conversationHook = useConversations([]);
   const panelManager = usePanelManager();
-  
+
   // UI state
   const [selectedMessageId, setSelectedMessageId] = useState('');
   const [selectedNodes, setSelectedNodes] = useState(new Set<string>());
@@ -38,15 +38,15 @@ const MUMBAAI: React.FC = () => {
 
   // Track if user wants to start (clicked the button)
   const [wantsToStart, setWantsToStart] = useState(false);
-  
+
   // View state management - start with chat if there are conversations, otherwise conversations list
   const [currentView, setCurrentView] = useState<'conversations' | 'chat'>(() => {
     return conversationHook.conversations.length > 0 ? 'chat' : 'conversations';
   });
-  
+
   // Chat view mode state (Combined vs Flow view)
   const [chatViewMode, setChatViewMode] = useState<'combined' | 'flow'>('combined');
-  
+
   // Selected AI model state
   const [selectedModel, setSelectedModel] = useState<string>('gemini-1.5-flash');
 
@@ -59,6 +59,55 @@ const MUMBAAI: React.FC = () => {
     handleNodeClick,
     handleNodeDoubleClick
   );
+
+  // React Flow state management - this is crucial for drag functionality
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
+  // Update React Flow state when nodes/edges actually change
+  // Use a simple comparison to avoid infinite loops
+  const prevNodesRef = useRef<any[]>([]);
+  const prevEdgesRef = useRef<any[]>([]);
+
+  useEffect(() => {
+    // Compare current nodes/edges with previous ones
+    const nodesChanged = flowElements.nodes.length !== prevNodesRef.current.length ||
+      flowElements.nodes.some((node, index) =>
+        !prevNodesRef.current[index] || node.id !== prevNodesRef.current[index]?.id
+      );
+
+    const edgesChanged = flowElements.edges.length !== prevEdgesRef.current.length ||
+      flowElements.edges.some((edge, index) =>
+        !prevEdgesRef.current[index] || edge.id !== prevEdgesRef.current[index]?.id
+      );
+
+    if (nodesChanged || edgesChanged) {
+      setNodes(flowElements.nodes);
+      setEdges(flowElements.edges);
+
+      // Update refs to prevent re-triggering
+      prevNodesRef.current = [...flowElements.nodes];
+      prevEdgesRef.current = [...flowElements.edges];
+    }
+  }, [flowElements.nodes, flowElements.edges, setNodes, setEdges]);
+
+  // Update node selection state when selectedNodes changes
+  useEffect(() => {
+    setNodes(currentNodes =>
+      currentNodes.map(node => ({
+        ...node,
+        selected: selectedNodes.has(node.id)
+      }))
+    );
+  }, [selectedNodes, setNodes]);
+
+  // Combine our position saving with React Flow's state management
+  const handleNodesChangeWithSaving = useCallback((changes: any[]) => {
+    // Let React Flow update its state first
+    onNodesChange(changes);
+    // Then save positions to database
+    flowElements.handleNodesChange(changes);
+  }, [onNodesChange, flowElements]);
 
   // Clear selections when conversation changes
   useEffect(() => {
@@ -81,19 +130,26 @@ const MUMBAAI: React.FC = () => {
 
   // Event handlers
   function handleNodeClick(messageId: string, event?: React.MouseEvent) {
+    // Don't interfere with React Flow if Ctrl is pressed
     if (event?.ctrlKey || event?.metaKey) {
-      const newSelected = new Set(selectedNodes);
-      if (newSelected.has(messageId)) {
-        newSelected.delete(messageId);
-      } else {
-        newSelected.add(messageId);
-      }
-      console.log('Multi-select updated:', Array.from(newSelected));
-      setSelectedNodes(newSelected);
-    } else {
-      setSelectedMessageId(messageId);
-      setSelectedNodes(new Set());
+      return; // Let React Flow handle it
     }
+    
+    // For normal clicks, toggle selection instead of replacing
+    const newSelected = new Set(selectedNodes);
+    if (newSelected.has(messageId)) {
+      // Node is selected, remove it
+      newSelected.delete(messageId);
+      // If this was the selectedMessageId, clear it
+      if (selectedMessageId === messageId) {
+        setSelectedMessageId('');
+      }
+    } else {
+      // Node is not selected, add it
+      newSelected.add(messageId);
+      setSelectedMessageId(messageId);
+    }
+    setSelectedNodes(newSelected);
   }
 
   function handleNodeDoubleClick(messageId: string, _event?: React.MouseEvent) {
@@ -110,8 +166,12 @@ const MUMBAAI: React.FC = () => {
     }
   }
 
-  const handleLayoutApplied = useCallback((layoutedNodes: any[], _layoutedEdges: any[]) => {
-    // Update the flow elements with the new layouted positions
+  const handleLayoutApplied = useCallback((layoutedNodes: any[], layoutedEdges: any[]) => {
+    // Update React Flow state with layouted positions
+    setNodes(layoutedNodes);
+    setEdges(layoutedEdges);
+
+    // Also save the new positions to database
     flowElements.handleNodesChange(
       layoutedNodes.map(node => ({
         type: 'position',
@@ -119,17 +179,30 @@ const MUMBAAI: React.FC = () => {
         position: node.position
       }))
     );
-  }, [flowElements]);
+  }, [setNodes, setEdges, flowElements]);
+
+  // Handle selection changes from React Flow
+  const handleSelectionChange = useCallback((selectedNodeIds: string[]) => {
+    setSelectedNodes(new Set(selectedNodeIds));
+    
+    // If exactly one node is selected, also set it as the selected message
+    if (selectedNodeIds.length === 1) {
+      setSelectedMessageId(selectedNodeIds[0]);
+    } else if (selectedNodeIds.length === 0) {
+      setSelectedMessageId('');
+    }
+    // For multi-selection, keep the current selectedMessageId or clear it
+  }, []);
 
   const handleConversationChange = useCallback((id: string) => {
     // Only change if it's actually a different conversation
     if (id === conversationHook.activeConversation) return;
-    
+
     conversationHook.setActiveConversation(id);
     // Clear selections immediately when changing conversations
     setSelectedMessageId('');
     setSelectedNodes(new Set());
-    
+
     // Set the first message as selected if the conversation has messages
     setTimeout(() => {
       const newConv = conversationHook.conversations.find(c => c.id === id);
@@ -142,7 +215,7 @@ const MUMBAAI: React.FC = () => {
   const handleCreateFirstConversation = useCallback(() => {
     // This is called when user clicks "Start Your First Conversation"
     setWantsToStart(true);
-    
+
     // If user is already logged in, just proceed to conversations view
     if (user) {
       setCurrentView('conversations');
@@ -214,7 +287,7 @@ const MUMBAAI: React.FC = () => {
   }, [flowElements]);
 
   // NOW WE CAN DO EARLY RETURNS AFTER ALL HOOKS ARE DEFINED
-  
+
   // Show loading while checking authentication OR loading conversations
   if (loading || conversationHook.loading) {
     return (
@@ -249,7 +322,7 @@ const MUMBAAI: React.FC = () => {
           brandName="MUMBAAI"
           conversationName=""
           onBrandClick={handleNavigateToConversations}
-          onConversationNameChange={() => {}} // Not used on conversations page
+          onConversationNameChange={() => { }} // Not used on conversations page
           showBackButton={false}
           isConversationsPage={true}
         />
@@ -303,96 +376,97 @@ const MUMBAAI: React.FC = () => {
         onViewModeChange={setChatViewMode}
       />
       <div className="flex bg-gray-50" style={{ marginTop: '72px', height: 'calc(100vh - 72px)', overflow: 'hidden' }}>
-      {/* Chat Panel - Only visible in Combined view */}
-      {chatViewMode === 'combined' && (
+        {/* Chat Panel - Only visible in Combined view */}
+        {chatViewMode === 'combined' && (
+          <ErrorBoundary
+            fallback={
+              <div className="w-96 bg-red-50 border-r border-red-200 flex items-center justify-center">
+                <div className="text-center p-4">
+                  <div className="text-red-600 text-4xl mb-2">💬</div>
+                  <p className="text-red-700 font-medium">Chat Panel Error</p>
+                  <p className="text-red-600 text-sm">Please refresh to restore chat</p>
+                </div>
+              </div>
+            }
+          >
+            <ChatPanel
+              collapsed={panelManager.isChatCollapsed}
+              onToggleCollapse={panelManager.toggleChatPanel}
+              messageThread={conversationHook.getMessageThread(selectedMessageId)}
+              selectedMessageId={selectedMessageId}
+              isLoading={messageOps.isLoading}
+              inputText={messageOps.inputText}
+              onInputChange={messageOps.setInputText}
+              onSendMessage={messageOps.sendMessage}
+              canSendMessage={messageOps.canSendMessage}
+              currentMessage={messageOps.getCurrentMessage()}
+              bookmarkedNodes={bookmarkedNodes}
+              onToggleBookmark={(nodeId) => {
+                const newBookmarks = new Set(bookmarkedNodes);
+                if (newBookmarks.has(nodeId)) {
+                  newBookmarks.delete(nodeId);
+                } else {
+                  newBookmarks.add(nodeId);
+                }
+                setBookmarkedNodes(newBookmarks);
+              }}
+              selectedModel={selectedModel}
+              onModelChange={setSelectedModel}
+              isMultiSelectMode={messageOps.getEffectiveMergeCount() > 1}
+              onPerformMerge={messageOps.performCustomMerge}
+              mergeCount={messageOps.getEffectiveMergeCount()}
+            />
+          </ErrorBoundary>
+        )}
+
+        {/* Flow Canvas */}
         <ErrorBoundary
           fallback={
-            <div className="w-96 bg-red-50 border-r border-red-200 flex items-center justify-center">
-              <div className="text-center p-4">
-                <div className="text-red-600 text-4xl mb-2">💬</div>
-                <p className="text-red-700 font-medium">Chat Panel Error</p>
-                <p className="text-red-600 text-sm">Please refresh to restore chat</p>
+            <div className="flex-1 bg-red-50 flex items-center justify-center">
+              <div className="text-center p-8">
+                <div className="text-red-600 text-6xl mb-4">🌐</div>
+                <p className="text-red-700 font-medium text-xl mb-2">Flow Visualization Error</p>
+                <p className="text-red-600">The conversation flow couldn't be displayed</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  Refresh to Restore
+                </button>
               </div>
             </div>
           }
         >
-          <ChatPanel
-            collapsed={panelManager.isChatCollapsed}
-            onToggleCollapse={panelManager.toggleChatPanel}
-            messageThread={conversationHook.getMessageThread(selectedMessageId)}
-            selectedMessageId={selectedMessageId}
+          <FlowCanvas
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={handleNodesChangeWithSaving}
+            onEdgesChange={onEdgesChange}
+            chatPanelCollapsed={chatViewMode === 'flow'}
+            selectedNodes={selectedNodes}
+            onClearSelection={() => setSelectedNodes(new Set())}
+            onSelectionChange={handleSelectionChange}
+            onFitView={() => { }}
+            searchTerm={flowElements.searchTerm}
+            onSearchChange={flowElements.setSearchTerm}
+            filterType={flowElements.filterType}
+            onFilterChange={flowElements.setFilterType}
+            timelinePosition={flowElements.timelinePosition}
+            onTimelineChange={flowElements.setTimelinePosition}
+            isAnimating={isAnimating}
+            onStartAnimation={startTimelineAnimation}
+            onResetTimeline={resetTimeline}
+            canMerge={messageOps.canMerge()}
+            onPerformMerge={messageOps.performIntelligentMerge}
+            mergeTemplate={messageOps.mergeTemplate}
+            onMergeTemplateChange={messageOps.setMergeTemplate}
             isLoading={messageOps.isLoading}
-            inputText={messageOps.inputText}
-            onInputChange={messageOps.setInputText}
-            onSendMessage={messageOps.sendMessage}
-            canSendMessage={messageOps.canSendMessage}
-            currentMessage={messageOps.getCurrentMessage()}
-            bookmarkedNodes={bookmarkedNodes}
-            onToggleBookmark={(nodeId) => {
-              const newBookmarks = new Set(bookmarkedNodes);
-              if (newBookmarks.has(nodeId)) {
-                newBookmarks.delete(nodeId);
-              } else {
-                newBookmarks.add(nodeId);
-              }
-              setBookmarkedNodes(newBookmarks);
-            }}
-            selectedModel={selectedModel}
-            onModelChange={setSelectedModel}
-            isMultiSelectMode={messageOps.getEffectiveMergeCount() > 1}
-            onPerformMerge={messageOps.performCustomMerge}
-            mergeCount={messageOps.getEffectiveMergeCount()}
+            effectiveMergeCount={messageOps.getEffectiveMergeCount()}
+            allMessagesCount={conversationHook.getAllMessages().length}
+            conversationName={conversationHook.currentConversation?.name}
+            onLayoutApplied={handleLayoutApplied}
           />
         </ErrorBoundary>
-      )}
-
-      {/* Flow Canvas */}
-      <ErrorBoundary
-        fallback={
-          <div className="flex-1 bg-red-50 flex items-center justify-center">
-            <div className="text-center p-8">
-              <div className="text-red-600 text-6xl mb-4">🌐</div>
-              <p className="text-red-700 font-medium text-xl mb-2">Flow Visualization Error</p>
-              <p className="text-red-600">The conversation flow couldn't be displayed</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-              >
-                Refresh to Restore
-              </button>
-            </div>
-          </div>
-        }
-      >
-        <FlowCanvas
-          nodes={flowElements.nodes}
-          edges={flowElements.edges}
-          onNodesChange={flowElements.handleNodesChange}
-          onEdgesChange={flowElements.handleEdgesChange}
-          chatPanelCollapsed={chatViewMode === 'flow'}
-          selectedNodes={selectedNodes}
-          onClearSelection={() => setSelectedNodes(new Set())}
-          onFitView={() => {}}
-          searchTerm={flowElements.searchTerm}
-          onSearchChange={flowElements.setSearchTerm}
-          filterType={flowElements.filterType}
-          onFilterChange={flowElements.setFilterType}
-          timelinePosition={flowElements.timelinePosition}
-          onTimelineChange={flowElements.setTimelinePosition}
-          isAnimating={isAnimating}
-          onStartAnimation={startTimelineAnimation}
-          onResetTimeline={resetTimeline}
-          canMerge={messageOps.canMerge()}
-          onPerformMerge={messageOps.performIntelligentMerge}
-          mergeTemplate={messageOps.mergeTemplate}
-          onMergeTemplateChange={messageOps.setMergeTemplate}
-          isLoading={messageOps.isLoading}
-          effectiveMergeCount={messageOps.getEffectiveMergeCount()}
-          allMessagesCount={conversationHook.getAllMessages().length}
-          conversationName={conversationHook.currentConversation?.name}
-          onLayoutApplied={handleLayoutApplied}
-        />
-      </ErrorBoundary>
       </div>
     </>
   );

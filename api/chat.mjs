@@ -16,16 +16,16 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Model is required' });
     }
 
-    console.log(`Processing request with model: ${model}`);
-    
+    // console.log(`Processing request with model: ${model}`);
+
     const result = await LLMService.generateResponse(model, prompt);
-    
+
     res.status(200).json(result);
   } catch (error) {
     console.error('Error calling LLM API:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to get response from AI',
-      details: error.message 
+      details: error.message
     });
   }
 }

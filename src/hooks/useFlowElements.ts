@@ -19,24 +19,29 @@ export const useFlowElements = (
   const [timelinePosition, setTimelinePosition] = useState(1.0);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'user' | 'assistant' | 'merged'>('all');
-  const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>({});
+  const [, setNodePositions] = useState<Record<string, { x: number; y: number }>>({});
   const [positionsLoaded, setPositionsLoaded] = useState(false);
-  
+  const [isLoadingPositions, setIsLoadingPositions] = useState(false);
+
+  // Use a ref to store node positions to avoid triggering re-renders during drag
+  const nodePositionsRef = useRef<Record<string, { x: number; y: number }>>({});
+
   // Track previous messages to detect changes
   const prevMessagesRef = useRef<Message[]>([]);
   const prevConversationRef = useRef<string>('');
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const loadNodePositions = useCallback(async () => {
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null); const loadNodePositions = useCallback(async () => {
     if (!conversationId || !user) return;
 
+    setIsLoadingPositions(true);
     try {
       const positions = await DatabaseService.loadNodePositions(conversationId);
       setNodePositions(positions);
+      nodePositionsRef.current = positions;
       setPositionsLoaded(true);
     } catch (error) {
-      console.error('Failed to load node positions:', error);
       setPositionsLoaded(true); // Still mark as loaded to prevent infinite loading
+    } finally {
+      setIsLoadingPositions(false);
     }
   }, [conversationId, user]);
 
@@ -51,15 +56,16 @@ export const useFlowElements = (
   // Reset positions only when switching conversations
   useEffect(() => {
     const currentConversationId = conversationId;
-    
+
     // Only reset positions if we've switched to a completely different conversation
-    if (prevConversationRef.current && 
-        prevConversationRef.current !== currentConversationId && 
-        currentConversationId !== '') {
+    if (prevConversationRef.current &&
+      prevConversationRef.current !== currentConversationId &&
+      currentConversationId !== '') {
       setNodePositions({});
       setPositionsLoaded(false);
+      setIsLoadingPositions(false);
     }
-    
+
     prevMessagesRef.current = messages;
   }, [messages, conversationId]);
 
@@ -70,7 +76,6 @@ export const useFlowElements = (
       try {
         await DatabaseService.saveNodePositions(conversationId, positions);
       } catch (error) {
-        console.error('Failed to save node positions:', error);
       }
     },
     [conversationId, user]
@@ -82,7 +87,7 @@ export const useFlowElements = (
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
-      
+
       saveTimeoutRef.current = setTimeout(() => {
         saveNodePositions(positions);
       }, 1000); // Save after 1 second of no changes
@@ -90,7 +95,7 @@ export const useFlowElements = (
     [saveNodePositions]
   );
 
-      const convertToFlowElements = useCallback(() => {
+  const convertToFlowElements = useCallback(() => {
     const flowNodes: Node<MessageNodeData>[] = [];
     const flowEdges: Edge[] = [];
     const horizontalSpacing = 400;
@@ -103,7 +108,7 @@ export const useFlowElements = (
 
     // Get all messages for timeline calculation
     const allMessages = MessageHelpers.getAllMessages(messages);
-    
+
     const processNode = (message: Message, x: number, y: number, level = 0) => {
       // Apply timeline filter with better distribution
       if (timelinePosition < 1.0) {
@@ -111,11 +116,11 @@ export const useFlowElements = (
         const allMessageTimes = allMessages.map(m => new Date(m.timestamp).getTime()).sort((a, b) => a - b);
         const messageIndex = allMessageTimes.indexOf(messageTime);
         const totalMessages = allMessageTimes.length;
-        
+
         // Better distribution: use exponential curve for more gradual reveal
         const messageProgress = messageIndex / Math.max(1, totalMessages - 1);
         const adjustedProgress = Math.pow(messageProgress, 0.7); // Slower start, faster end
-        
+
         if (adjustedProgress > timelinePosition) {
           return;
         }
@@ -150,14 +155,20 @@ export const useFlowElements = (
       if (matchesType) {
         const isMultiSelected = selectedNodes.has(message.id);
 
-        // Use saved position if available and positions are loaded, otherwise use calculated position
-        const savedPosition = positionsLoaded ? nodePositions[message.id] : null;
-        const nodePosition = savedPosition || { x, y };
+        // Always use calculated positions for flow creation
+        // Let React Flow manage positions internally after creation
+        const nodePosition = { x, y };
+
+        // Validate position bounds to prevent nodes from being too far off-screen
+        const validatedPosition = {
+          x: Math.max(-5000, Math.min(5000, nodePosition.x)),
+          y: Math.max(-5000, Math.min(5000, nodePosition.y))
+        };
 
         flowNodes.push({
           id: message.id,
           type: 'message',
-          position: nodePosition,
+          position: validatedPosition,
           data: {
             message,
             onNodeClick,
@@ -250,14 +261,12 @@ export const useFlowElements = (
 
     return { nodes: flowNodes, edges: flowEdges };
   }, [
-    messages, 
-    selectedMessageId, 
-    selectedNodes, 
-    timelinePosition, 
-    searchTerm, 
+    messages,
+    selectedMessageId,
+    selectedNodes,
+    timelinePosition,
+    searchTerm,
     filterType,
-    nodePositions,
-    positionsLoaded,
     conversationId,
     onNodeClick,
     onNodeDoubleClick
@@ -268,29 +277,32 @@ export const useFlowElements = (
     return result;
   }, [convertToFlowElements]);
 
-  // Handle node changes (including position updates)
-  const handleNodesChange = useCallback((changes: NodeChange[]) => {
+  // Handle node changes for position saving (doesn't interfere with React Flow)
+  const handlePositionSave = useCallback((changes: NodeChange[]) => {
     const positionChanges = changes.filter(change => change.type === 'position');
-    
+
     if (positionChanges.length > 0) {
-      setNodePositions(prev => {
-        const newPositions = { ...prev };
-        
-        positionChanges.forEach(change => {
-          if (change.type === 'position' && change.position) {
-            newPositions[change.id] = change.position;
-          }
-        });
-        
-        // Debounce saving to database
-        debouncedSavePositions(newPositions);
-        
-        return newPositions;
+
+      positionChanges.forEach(change => {
+        if (change.type === 'position' && change.position) {
+          nodePositionsRef.current[change.id] = change.position;
+        }
       });
+
+      // Save to database with debouncing
+      debouncedSavePositions(nodePositionsRef.current);
     }
   }, [debouncedSavePositions]);
 
-  // Handle edge changes
+  // This is the function that should be called by React Flow
+  // It handles both React Flow's internal state AND our position saving
+  const handleNodesChange = useCallback((changes: NodeChange[]) => {
+    // Save positions for persistence
+    handlePositionSave(changes);
+
+    // Let the parent component handle the actual React Flow state updates
+    // The parent needs to call applyNodeChanges or use useNodesState
+  }, [handlePositionSave]);  // Handle edge changes
   const handleEdgesChange = useCallback((_changes: EdgeChange[]) => {
     // For now, we don't allow edge modification in this app
     // This could be extended to support custom connections
@@ -335,27 +347,28 @@ export const useFlowElements = (
     // Flow elements
     nodes,
     edges,
-    
+
     // Change handlers
     handleNodesChange,
     handleEdgesChange,
-    
+
     // Filter state
     timelinePosition,
     searchTerm,
     filterType,
-    
+
     // Filter controls
     setTimelinePosition: setTimelinePositionSafe,
     setSearchTerm,
     setFilterType,
     resetFilters,
-    
+
     // Position management
     loadNodePositions,
     saveNodePositions,
     positionsLoaded,
-    
+    isLoadingPositions,
+
     // Stats
     getFilteredMessageCount
   };

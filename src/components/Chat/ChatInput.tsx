@@ -35,19 +35,19 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   mergeCount = 0
 }) => {
   const isInMergeMode = isMultiSelectMode;
-  const canPerformAction = isInMergeMode ? 
-    (!isLoading && inputText.trim().length > 0) : 
+  const canPerformAction = isInMergeMode ?
+    (!isLoading && inputText.trim().length > 0) :
     canSendMessage;
 
   // Debug logging
-  React.useEffect(() => {
-    console.log('ChatInput Debug:', {
-      isMultiSelectMode,
-      mergeCount,
-      isInMergeMode,
-      canPerformAction
-    });
-  }, [isMultiSelectMode, mergeCount, isInMergeMode, canPerformAction]);
+  // React.useEffect(() => {
+  //   console.log('ChatInput Debug:', {
+  //     isMultiSelectMode,
+  //     mergeCount,
+  //     isInMergeMode,
+  //     canPerformAction
+  //   });
+  // }, [isMultiSelectMode, mergeCount, isInMergeMode, canPerformAction]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -91,11 +91,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   return (
     <div className="bg-white p-6">
       {/* Input Container */}
-      <div className={`relative rounded-2xl border p-4 transition-all ${
-        isInMergeMode 
+      <div className={`relative rounded-2xl border p-4 transition-all ${isInMergeMode
           ? 'bg-purple-50 border-purple-200 focus-within:bg-white focus-within:border-purple-300'
           : 'bg-gray-50 border-gray-100 focus-within:bg-white focus-within:border-gray-200'
-      }`}>
+        }`}>
         <div className="flex items-end gap-3">
           <textarea
             value={inputText}
@@ -118,13 +117,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           <button
             onClick={handleButtonClick}
             disabled={!canPerformAction}
-            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${
-              canPerformAction
-                ? isInMergeMode 
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${canPerformAction
+                ? isInMergeMode
                   ? 'bg-purple-500 hover:bg-purple-600 text-white'
                   : 'bg-blue-500 hover:bg-blue-600 text-white'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            }`}
+              }`}
             title={getButtonTitle()}
           >
             {isInMergeMode ? <Sparkles size={14} /> : <ArrowUp size={14} />}

@@ -34,7 +34,7 @@ export const useMessageOperations = ({
     if (!inputText.trim() || !activeConversation) return;
 
     const userMessage = MessageHelpers.createMessage('user', inputText);
-    
+
     // Add user message - use null as parent for first message in conversation
     const parentId = selectedMessageId || null;
     addMessage(activeConversation, parentId, userMessage);
@@ -59,15 +59,14 @@ export const useMessageOperations = ({
       const aiResponse = await ApiService.sendMessage(contextPrompt, selectedModel);
 
       const assistantMessage = MessageHelpers.createMessage('assistant', aiResponse);
-      
+
       // Add AI response
       addMessage(activeConversation, userMessage.id, assistantMessage);
       onMessageSent?.(assistantMessage.id);
 
     } catch (error) {
-      console.error('Error sending message:', error);
       const errorMessage = MessageHelpers.createMessage(
-        'assistant', 
+        'assistant',
         'Sorry, I encountered an error. Please try again.'
       );
       addMessage(activeConversation, userMessage.id, errorMessage);
@@ -99,13 +98,13 @@ export const useMessageOperations = ({
         .map(nodeId => {
           const thread = getMessageThread(nodeId);
           if (thread.length === 0) return '';
-          
+
           // Limit to last 15 messages for context
           const recentThread = thread.slice(-15);
           const branchContent = recentThread
             .map(msg => `${msg.type === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`)
             .join('\n');
-          
+
           return `=== Conversation Branch ${nodeId.slice(0, 8)} ===\n${branchContent}\n=== End Branch ===`;
         })
         .filter(Boolean);
@@ -142,11 +141,10 @@ export const useMessageOperations = ({
       onClearSelection?.();
 
     } catch (error) {
-      console.error('Intelligent merge failed:', error);
-      
+
       // Create a fallback merged message
       const fallbackContent = `I've combined insights from ${effectiveMergeNodes.length} different conversation paths. While I couldn't generate a full synthesis due to a technical issue, these different perspectives offer valuable viewpoints on the topic.`;
-      
+
       const parentMessage = effectiveMergeNodes
         .map(id => findMessage(id))
         .find(msg => msg !== null);
@@ -158,7 +156,7 @@ export const useMessageOperations = ({
         });
         addMessage(activeConversation, parentMessage.id, fallbackMessage);
         onMessageSent?.(fallbackMessage.id);
-        
+
         // Clear selections after fallback merge too
         onClearSelection?.();
       }
@@ -183,10 +181,10 @@ export const useMessageOperations = ({
     if (!customPrompt) {
       return performIntelligentMerge();
     }
-    
+
     // Clear the input text when using custom prompt
     setInputText('');
-    
+
     // Use the custom prompt as user input to the merge function
     return performIntelligentMerge(undefined, customPrompt);
   }, [performIntelligentMerge, setInputText]);
@@ -196,13 +194,6 @@ export const useMessageOperations = ({
     if (selectedMessageId && !selectedNodes.has(selectedMessageId)) {
       count += 1;
     }
-    console.log('Effective merge count:', {
-      selectedNodesSize: selectedNodes.size,
-      selectedMessageId,
-      hasSelectedMessage: !!selectedMessageId,
-      isSelectedMessageInNodes: selectedNodes.has(selectedMessageId || ''),
-      finalCount: count
-    });
     return count;
   }, [selectedNodes, selectedMessageId]);
 
@@ -220,21 +211,21 @@ export const useMessageOperations = ({
     inputText,
     setInputText,
     isLoading,
-    
+
     // Merge template state
     mergeTemplate,
     setMergeTemplate,
-    
+
     // Operations
     sendMessage,
     performIntelligentMerge,
     performCustomMerge,
-    
+
     // Helpers
     getEffectiveMergeCount,
     canMerge,
     getCurrentMessage,
-    
+
     // State checkers
     canSendMessage: !isLoading && inputText.trim().length > 0,
     hasSelectedMessage: !!selectedMessageId,
