@@ -216,8 +216,6 @@ const MUMBAAI: React.FC = () => {
       }
     });
 
-    console.log('DEBUG: Saving positions on drag stop:', currentPositions);
-
     // Save positions to database
     if (Object.keys(currentPositions).length > 0) {
       flowElements.saveNodePositions(currentPositions);

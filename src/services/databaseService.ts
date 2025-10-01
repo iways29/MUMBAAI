@@ -33,7 +33,7 @@ export interface NodePosition {
 
 export class DatabaseService {
   // CONVERSATIONS
-  
+
   static async loadConversations(): Promise<Conversation[]> {
     try {
       const { data: conversations, error } = await supabase
@@ -186,21 +186,16 @@ export class DatabaseService {
         .eq('user_id', user.user.id);  // Filter by user_id
 
       if (error) {
-        console.error('Database error loading positions:', error);
         throw error;
       }
-
-      console.log('DEBUG: Loaded raw position data:', data);
 
       const positions: Record<string, { x: number; y: number }> = {};
       data.forEach(pos => {
         positions[pos.message_id] = { x: pos.x, y: pos.y };
       });
 
-      console.log('DEBUG: Processed positions:', positions);
       return positions;
     } catch (error) {
-      console.error('Error loading node positions:', error);
       return {};
     }
   }
@@ -223,7 +218,7 @@ export class DatabaseService {
           message_id: messageId,
           x,
           y
-        }, { 
+        }, {
           onConflict: 'user_id,conversation_id,message_id'
         });
 
@@ -251,23 +246,19 @@ export class DatabaseService {
         y: pos.y
       }));
 
-      console.log('DEBUG: Saving to database:', upsertData);
 
       const { error } = await supabase
         .from('node_positions')
-        .upsert(upsertData, { 
+        .upsert(upsertData, {
           onConflict: 'user_id,conversation_id,message_id'
         });
 
       if (error) {
-        console.error('Database error saving positions:', error);
         throw error;
       }
-      
-      console.log('DEBUG: Successfully saved to database');
+
       return true;
     } catch (error) {
-      console.error('Error saving node positions:', error);
       return false;
     }
   }
@@ -296,7 +287,7 @@ export class DatabaseService {
     // Second pass: build the tree structure
     dbMessages.forEach(dbMsg => {
       const message = messageMap.get(dbMsg.id)!;
-      
+
       if (dbMsg.parent_id) {
         const parent = messageMap.get(dbMsg.parent_id);
         if (parent) {
@@ -320,7 +311,7 @@ export class DatabaseService {
 
       // Save all messages
       const allMessages = this.flattenMessages(conversation.messages);
-      
+
       for (const messageWithParent of allMessages) {
         await this.saveMessage(conversationId, messageWithParent.parentId, messageWithParent.message);
       }
@@ -333,24 +324,24 @@ export class DatabaseService {
   }
 
   private static flattenMessages(
-    messages: Message[], 
+    messages: Message[],
     parentId: string | null = null
   ): Array<{ message: Message; parentId: string | null }> {
     let result: Array<{ message: Message; parentId: string | null }> = [];
-    
+
     messages.forEach(message => {
       result.push({ message, parentId });
-      
+
       if (message.children && message.children.length > 0) {
         result = result.concat(this.flattenMessages(message.children, message.id));
       }
     });
-    
+
     return result;
   }
 
   // REALTIME SUBSCRIPTIONS (Optional)
-  
+
   static subscribeToConversationChanges(
     conversationId: string,
     onMessagesUpdate: (messages: Message[]) => void

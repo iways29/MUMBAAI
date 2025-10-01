@@ -16,8 +16,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Model is required' });
     }
 
-    // console.log(`Processing request with model: ${model}`);
-
     const result = await LLMService.generateResponse(model, prompt);
 
     res.status(200).json(result);
