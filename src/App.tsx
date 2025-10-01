@@ -114,6 +114,9 @@ const MUMBAAI: React.FC = () => {
   useEffect(() => {
     setSelectedMessageId('');
     setSelectedNodes(new Set());
+    // Reset view mode to combined when conversation changes
+    setChatViewMode('combined');
+    // Note: Input clearing is handled in handleConversationChange for user-initiated changes
   }, [conversationHook.activeConversation]);
 
   // Message operations
@@ -125,7 +128,10 @@ const MUMBAAI: React.FC = () => {
     findMessage: conversationHook.findMessage,
     getMessageThread: conversationHook.getMessageThread,
     onMessageSent: setSelectedMessageId,
-    onClearSelection: () => setSelectedNodes(new Set()),
+    onClearSelection: () => {
+      setSelectedNodes(new Set());
+      setSelectedMessageId('');
+    },
     selectedModel
   });
 
@@ -226,6 +232,12 @@ const MUMBAAI: React.FC = () => {
     // Clear selections immediately when changing conversations
     setSelectedMessageId('');
     setSelectedNodes(new Set());
+    
+    // Reset view mode to combined (default)
+    setChatViewMode('combined');
+    
+    // Clear input text when switching conversations
+    messageOps.setInputText('');
 
     // Set the first message as selected if the conversation has messages
     setTimeout(() => {
@@ -234,7 +246,7 @@ const MUMBAAI: React.FC = () => {
         setSelectedMessageId(newConv.messages[0].id);
       }
     }, 50);
-  }, [conversationHook]);
+  }, [conversationHook, messageOps]);
 
   const handleCreateFirstConversation = useCallback(() => {
     // This is called when user clicks "Start Your First Conversation"
@@ -242,21 +254,33 @@ const MUMBAAI: React.FC = () => {
 
     // If user is already logged in, just proceed to conversations view
     if (user) {
+      // Reset view mode to combined when starting
+      setChatViewMode('combined');
+      // Clear input text when starting
+      messageOps.setInputText('');
+      
       setCurrentView('conversations');
       return;
     }
     // If not logged in, the EmptyState will show the auth form
-  }, [user]);
+  }, [user, messageOps]);
 
   const handleCreateNewConversation = useCallback(() => {
     const newId = conversationHook.createNewConversation();
     // Clear selections for new conversation
     setSelectedMessageId('');
     setSelectedNodes(new Set());
+    
+    // Reset view mode to combined (default)
+    setChatViewMode('combined');
+    
+    // Clear input text when creating new conversation
+    messageOps.setInputText('');
+    
     // Navigate to chat view when creating new conversation
     setCurrentView('chat');
     return newId;
-  }, [conversationHook]);
+  }, [conversationHook, messageOps]);
 
   // Navigation handlers
   const handleNavigateToConversations = useCallback(() => {
@@ -468,7 +492,10 @@ const MUMBAAI: React.FC = () => {
             onEdgesChange={onEdgesChange}
             chatPanelCollapsed={chatViewMode === 'flow'}
             selectedNodes={selectedNodes}
-            onClearSelection={() => setSelectedNodes(new Set())}
+            onClearSelection={() => {
+              setSelectedNodes(new Set());
+              setSelectedMessageId('');
+            }}
             onSelectionChange={handleSelectionChange}
             onFitView={() => { }}
             searchTerm={flowElements.searchTerm}
