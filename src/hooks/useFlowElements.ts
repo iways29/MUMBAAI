@@ -29,45 +29,52 @@ export const useFlowElements = (
   // Track previous messages to detect changes
   const prevMessagesRef = useRef<Message[]>([]);
   const prevConversationRef = useRef<string>('');
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null); const loadNodePositions = useCallback(async () => {
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null); 
+  
+  const loadNodePositions = useCallback(async () => {
     if (!conversationId || !user) return;
 
     setIsLoadingPositions(true);
+    // Clear existing positions first to ensure fresh load
+    nodePositionsRef.current = {};
+    setNodePositions({});
+    
     try {
+      console.log('DEBUG: Fetching positions from database for conversation:', conversationId);
       const positions = await DatabaseService.loadNodePositions(conversationId);
+      console.log('DEBUG: About to set nodePositionsRef to:', positions);
       setNodePositions(positions);
       nodePositionsRef.current = positions;
+      console.log('DEBUG: nodePositionsRef.current is now:', nodePositionsRef.current);
       setPositionsLoaded(true);
     } catch (error) {
+      console.error('Failed to load positions:', error);
       setPositionsLoaded(true); // Still mark as loaded to prevent infinite loading
     } finally {
       setIsLoadingPositions(false);
     }
   }, [conversationId, user]);
 
-  // Load node positions when conversation changes
+  // Load node positions when conversation changes OR on initial load
   useEffect(() => {
-    if (conversationId && conversationId !== prevConversationRef.current && user) {
-      loadNodePositions();
+    if (conversationId && user) {
+      // Clear previous positions immediately when conversation changes
+      if (conversationId !== prevConversationRef.current) {
+        console.log('DEBUG: Conversation changed, clearing positions');
+        nodePositionsRef.current = {};
+        setNodePositions({});
+        setPositionsLoaded(false);
+        setIsLoadingPositions(false);
+      }
+      
+      // Load positions for the new conversation
+      if (conversationId !== prevConversationRef.current || !positionsLoaded) {
+        console.log('DEBUG: Loading positions for conversation:', conversationId);
+        loadNodePositions();
+      }
     }
     prevConversationRef.current = conversationId;
-  }, [conversationId, user, loadNodePositions]);
-
-  // Reset positions only when switching conversations
-  useEffect(() => {
-    const currentConversationId = conversationId;
-
-    // Only reset positions if we've switched to a completely different conversation
-    if (prevConversationRef.current &&
-      prevConversationRef.current !== currentConversationId &&
-      currentConversationId !== '') {
-      setNodePositions({});
-      setPositionsLoaded(false);
-      setIsLoadingPositions(false);
-    }
-
-    prevMessagesRef.current = messages;
-  }, [messages, conversationId]);
+  }, [conversationId, user, loadNodePositions]); // Removed positionsLoaded to avoid circular dependency
 
   const saveNodePositions = useCallback(
     async (positions: Record<string, { x: number; y: number }>) => {
@@ -96,6 +103,14 @@ export const useFlowElements = (
   );
 
   const convertToFlowElements = useCallback(() => {
+    console.log('DEBUG: convertToFlowElements called. positionsLoaded:', positionsLoaded, 'nodePositionsRef.current:', nodePositionsRef.current);
+    
+    // Don't create nodes until we've at least attempted to load positions
+    if (!positionsLoaded) {
+      console.log('DEBUG: Positions not loaded yet, returning empty nodes');
+      return { nodes: [], edges: [] };
+    }
+    
     const flowNodes: Node<MessageNodeData>[] = [];
     const flowEdges: Edge[] = [];
     const horizontalSpacing = 400;
@@ -155,9 +170,15 @@ export const useFlowElements = (
       if (matchesType) {
         const isMultiSelected = selectedNodes.has(message.id);
 
-        // Always use calculated positions for flow creation
-        // Let React Flow manage positions internally after creation
-        const nodePosition = { x, y };
+        // Use saved position from database if available, otherwise use calculated position
+        const savedPosition = nodePositionsRef.current[message.id];
+        const nodePosition = savedPosition ? savedPosition : { x, y };
+        
+        // Debug: Check position values
+        console.log(`Node ${message.id}: savedPosition=${JSON.stringify(savedPosition)}, calculated=(${x}, ${y}), using=${JSON.stringify(nodePosition)}`);
+        if (savedPosition) {
+          console.log(`Node ${message.id}: Using DB position (${savedPosition.x}, ${savedPosition.y}) vs calculated (${x}, ${y})`);
+        }
 
         // Validate position bounds to prevent nodes from being too far off-screen
         const validatedPosition = {
@@ -180,6 +201,8 @@ export const useFlowElements = (
           selected: false,
           draggable: true,
         });
+        
+        console.log(`Created node ${message.id} at position:`, validatedPosition);
       }
 
       // Process children regardless of parent match
@@ -269,7 +292,8 @@ export const useFlowElements = (
     filterType,
     conversationId,
     onNodeClick,
-    onNodeDoubleClick
+    onNodeDoubleClick,
+    positionsLoaded  // Add this to trigger recreation when positions are loaded
   ]);
 
   const { nodes, edges } = useMemo(() => {

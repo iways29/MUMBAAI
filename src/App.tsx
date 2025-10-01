@@ -82,6 +82,7 @@ const MUMBAAI: React.FC = () => {
       );
 
     if (nodesChanged || edgesChanged) {
+      // Apply nodes and edges to React Flow
       setNodes(flowElements.nodes);
       setEdges(flowElements.edges);
 
@@ -193,6 +194,29 @@ const MUMBAAI: React.FC = () => {
     }
     // For multi-selection, keep the current selectedMessageId or clear it
   }, []);
+
+  // Handle node drag stop - save current positions to database
+  const handleNodeDragStop = useCallback(() => {
+    if (!conversationHook.activeConversation) return;
+    
+    // Extract current positions from nodes
+    const currentPositions: Record<string, { x: number; y: number }> = {};
+    nodes.forEach(node => {
+      if (node.position) {
+        currentPositions[node.id] = {
+          x: node.position.x,
+          y: node.position.y
+        };
+      }
+    });
+
+    console.log('DEBUG: Saving positions on drag stop:', currentPositions);
+
+    // Save positions to database
+    if (Object.keys(currentPositions).length > 0) {
+      flowElements.saveNodePositions(currentPositions);
+    }
+  }, [nodes, flowElements, conversationHook.activeConversation]);
 
   const handleConversationChange = useCallback((id: string) => {
     // Only change if it's actually a different conversation
@@ -465,6 +489,8 @@ const MUMBAAI: React.FC = () => {
             allMessagesCount={conversationHook.getAllMessages().length}
             conversationName={conversationHook.currentConversation?.name}
             onLayoutApplied={handleLayoutApplied}
+            onNodeDragStop={handleNodeDragStop}
+            hasLoadedPositions={flowElements.positionsLoaded}
           />
         </ErrorBoundary>
       </div>

@@ -173,18 +173,31 @@ export class DatabaseService {
 
   static async loadNodePositions(conversationId: string): Promise<Record<string, { x: number; y: number }>> {
     try {
+      // Check authentication first
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) {
+        return {};
+      }
+
       const { data, error } = await supabase
         .from('node_positions')
         .select('message_id, x, y')
-        .eq('conversation_id', conversationId);
+        .eq('conversation_id', conversationId)
+        .eq('user_id', user.user.id);  // Filter by user_id
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error loading positions:', error);
+        throw error;
+      }
+
+      console.log('DEBUG: Loaded raw position data:', data);
 
       const positions: Record<string, { x: number; y: number }> = {};
       data.forEach(pos => {
         positions[pos.message_id] = { x: pos.x, y: pos.y };
       });
 
+      console.log('DEBUG: Processed positions:', positions);
       return positions;
     } catch (error) {
       console.error('Error loading node positions:', error);
@@ -238,13 +251,20 @@ export class DatabaseService {
         y: pos.y
       }));
 
+      console.log('DEBUG: Saving to database:', upsertData);
+
       const { error } = await supabase
         .from('node_positions')
         .upsert(upsertData, { 
           onConflict: 'user_id,conversation_id,message_id'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error saving positions:', error);
+        throw error;
+      }
+      
+      console.log('DEBUG: Successfully saved to database');
       return true;
     } catch (error) {
       console.error('Error saving node positions:', error);

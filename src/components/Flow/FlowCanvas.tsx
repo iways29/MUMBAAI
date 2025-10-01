@@ -52,6 +52,10 @@ interface FlowCanvasProps {
   conversationName?: string;
   // Add callback for layout
   onLayoutApplied?: (nodes: any[], edges: any[]) => void;
+  // Add callback for node drag stop to save positions
+  onNodeDragStop?: () => void;
+  // Add flag to indicate if positions were loaded from database
+  hasLoadedPositions?: boolean;
 }
 
 export const FlowCanvas: React.FC<FlowCanvasProps> = ({
@@ -81,7 +85,9 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
   mergeTemplate,
   onMergeTemplateChange,
   conversationName,
-  onLayoutApplied
+  onLayoutApplied,
+  onNodeDragStop,
+  hasLoadedPositions = false
 }) => {
   const { fitView } = useReactFlow();
 
@@ -118,8 +124,14 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
   }, []);
 
   const handleNodeDragStop = useCallback(() => {
-    // Node drag ended - this can be used to clear drag state if needed
-  }, []);
+    // Node drag ended - save positions to database with delay
+    if (onNodeDragStop) {
+      // Add a small delay to ensure the final position is captured
+      setTimeout(() => {
+        onNodeDragStop();
+      }, 100);
+    }
+  }, [onNodeDragStop]);
 
   const handlePaneClick = useCallback(() => {
     // Clear selection when clicking on background
@@ -151,25 +163,65 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
     }, 100);
   }, [nodes, edges, onLayoutApplied, fitView]);
 
-  // Auto-fit view only for the first node in a conversation or significant changes
+  // Auto-fit view for initial load - different behavior for saved vs new nodes
   const prevNodeCountRef = useRef(0);
+  const hasAppliedInitialFit = useRef(false);
+  const prevConversationName = useRef(conversationName);
+  
+  // Reset fit flag when conversation changes
+  useEffect(() => {
+    if (conversationName !== prevConversationName.current) {
+      hasAppliedInitialFit.current = false;
+      prevConversationName.current = conversationName;
+    }
+  }, [conversationName]);
+  
   useEffect(() => {
     // Only auto-fit if this is the first node(s) or if nodes were previously empty
-    if (nodes.length > 0 && prevNodeCountRef.current === 0) {
+    if (nodes.length > 0 && prevNodeCountRef.current === 0 && !hasAppliedInitialFit.current) {
       const timeoutId = setTimeout(() => {
-        fitView({ 
-          padding: 0.2, 
-          duration: 600,
-          minZoom: 0.5,
-          maxZoom: 1.2
-        });
+        if (hasLoadedPositions) {
+          // For saved positions: center view on existing nodes
+          fitView({ 
+            padding: 0.2, 
+            duration: 600,
+            minZoom: 0.3,
+            maxZoom: 1.5
+          });
+        } else {
+          // For new conversations: fit to calculated layout
+          fitView({ 
+            padding: 0.2, 
+            duration: 600,
+            minZoom: 0.5,
+            maxZoom: 1.2
+          });
+        }
+        hasAppliedInitialFit.current = true;
       }, 150);
 
       return () => clearTimeout(timeoutId);
     }
     
     prevNodeCountRef.current = nodes.length;
-  }, [nodes.length, fitView]);
+  }, [nodes.length, fitView, hasLoadedPositions]);
+
+  // Additional effect: Center view when positions are loaded for existing nodes
+  useEffect(() => {
+    if (hasLoadedPositions && nodes.length > 0 && !hasAppliedInitialFit.current) {
+      const timeoutId = setTimeout(() => {
+        fitView({ 
+          padding: 0.2, 
+          duration: 400,
+          minZoom: 0.3,
+          maxZoom: 1.5
+        });
+        hasAppliedInitialFit.current = true;
+      }, 200); // Slightly longer delay to ensure nodes are rendered
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [hasLoadedPositions, nodes.length, fitView]);
 
   return (
     <div className="flex-1 flex flex-col bg-gray-50 relative" style={{ width: '100%' }}>
