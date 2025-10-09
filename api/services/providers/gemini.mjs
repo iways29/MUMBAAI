@@ -3,18 +3,18 @@
 export class GeminiProvider {
   static async generateResponse(model, prompt) {
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error('GEMINI_API_KEY not configured');
-    }
+    if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
 
-    // Map old/alias names to current v1 model slugs
+    // Normalize any old names to the model your key actually has
     const MODEL_MAP = {
-      'gemini-1.5-flash': 'gemini-1.5-flash-002',
-      'gemini-1.5-flash-latest': 'gemini-1.5-flash-002',
-      'gemini-1.5-pro': 'gemini-1.5-pro-002',
-      'gemini-1.5-pro-latest': 'gemini-1.5-pro-002',
+      'gemini-1.5-flash': 'gemini-2.5-flash',
+      'gemini-1.5-flash-002': 'gemini-2.5-flash',
+      'gemini-1.5-flash-latest': 'gemini-2.5-flash',
+      'gemini-1.5-pro': 'gemini-2.5-flash',
+      'gemini-1.5-pro-002': 'gemini-2.5-flash',
+      'gemini-1.5-pro-latest': 'gemini-2.5-flash',
     };
-    const resolvedModel = MODEL_MAP[model] || model;
+    const resolvedModel = MODEL_MAP[model] || model; // e.g., "gemini-2.5-flash"
 
     try {
       const resp = await fetch(
