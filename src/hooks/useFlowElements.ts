@@ -73,10 +73,13 @@ export const useFlowElements = (
     async (positions: Record<string, { x: number; y: number }>) => {
       if (!conversationId || !user) return;
 
+      console.log('🔥 ACTUAL DATABASE CALL - Saving positions for', Object.keys(positions).length, 'nodes');
+      
       try {
         await DatabaseService.saveNodePositions(conversationId, positions);
+        console.log('✅ Database save completed successfully');
       } catch (error) {
-        console.error('Failed to save node positions:', error);
+        console.error('❌ Database save failed:', error);
       }
     },
     [conversationId, user]
@@ -87,12 +90,13 @@ export const useFlowElements = (
     (positions: Record<string, { x: number; y: number }>) => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
+        console.log('⏰ Cancelled previous save timer');
       }
       
-      console.log('🔄 Scheduling position save for', Object.keys(positions).length, 'nodes');
+      console.log('⏳ SCHEDULING database save in 1 second for', Object.keys(positions).length, 'nodes');
       
       saveTimeoutRef.current = setTimeout(() => {
-        console.log('💾 Saving node positions to database');
+        console.log('⚡ Timer expired - executing database save now');
         saveNodePositions(positions);
       }, 1000); // Save after 1 second of no changes
     },
@@ -282,6 +286,8 @@ export const useFlowElements = (
     const positionChanges = changes.filter(change => change.type === 'position');
     
     if (positionChanges.length > 0) {
+      console.log('📍 Processing', positionChanges.length, 'position changes');
+      
       setNodePositions(prev => {
         const newPositions = { ...prev };
         let shouldSave = false;
@@ -298,7 +304,10 @@ export const useFlowElements = (
             if (!currentPos || 
                 Math.abs(currentPos.x - newPos.x) > 1 || 
                 Math.abs(currentPos.y - newPos.y) > 1) {
+              console.log('📍 Meaningful position change detected for node', change.id);
               shouldSave = true;
+            } else {
+              console.log('📍 Ignoring tiny position change for node', change.id);
             }
           }
         });
@@ -306,6 +315,8 @@ export const useFlowElements = (
         // Only save to database if there were meaningful changes
         if (shouldSave) {
           debouncedSavePositions(newPositions);
+        } else {
+          console.log('📍 No meaningful changes - skipping database save');
         }
         
         return newPositions;
