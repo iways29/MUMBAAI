@@ -8,7 +8,6 @@ export interface MessageNodeData {
   isMultiSelected: boolean;
   selectedMessageId: string;
   hasMultiSelections?: boolean;
-  searchTerm?: string;
 }
 
 export type MessageNode = Node<MessageNodeData>;
