@@ -26,7 +26,6 @@ export const useFlowElements = (
   const prevMessagesRef = useRef<Message[]>([]);
   const prevConversationRef = useRef<string>('');
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const isUserInteractionRef = useRef<boolean>(false);
 
   const loadNodePositions = useCallback(async () => {
     if (!conversationId || !user) return;
@@ -163,9 +162,8 @@ export const useFlowElements = (
       if (matchesType) {
         const isMultiSelected = selectedNodes.has(message.id);
 
-        // Use saved position if available and positions are loaded, otherwise use calculated position
-        const savedPosition = positionsLoaded ? nodePositions[message.id] : null;
-        const nodePosition = savedPosition || { x, y };
+        // Use calculated position as base - positions will be updated separately
+        const nodePosition = { x, y };
 
         flowNodes.push({
           id: message.id,
@@ -269,17 +267,36 @@ export const useFlowElements = (
     timelinePosition, 
     searchTerm, 
     filterType,
-    nodePositions,
-    positionsLoaded,
     conversationId,
     onNodeClick,
     onNodeDoubleClick
   ]);
 
+  // Apply saved positions to nodes after they're created
   const { nodes, edges } = useMemo(() => {
-    const result = convertToFlowElements();
-    return result;
-  }, [convertToFlowElements]);
+    const baseResult = convertToFlowElements();
+    
+    // Apply saved positions if available and loaded
+    if (positionsLoaded) {
+      const nodesWithSavedPositions = baseResult.nodes.map(node => {
+        const savedPosition = nodePositions[node.id];
+        if (savedPosition) {
+          return {
+            ...node,
+            position: savedPosition
+          };
+        }
+        return node;
+      });
+      
+      return {
+        nodes: nodesWithSavedPositions,
+        edges: baseResult.edges
+      };
+    }
+    
+    return baseResult;
+  }, [convertToFlowElements, nodePositions, positionsLoaded]);
 
   // Handle node changes (including position updates)
   const handleNodesChange = useCallback((changes: NodeChange[]) => {
