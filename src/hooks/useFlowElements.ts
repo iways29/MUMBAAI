@@ -76,21 +76,26 @@ export const useFlowElements = (
     [conversationId, user]
   );
 
-  // Debounced save function
+  // Debounced save function with logging
   const debouncedSavePositions = useCallback(
     (positions: Record<string, { x: number; y: number }>) => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
       
+      console.log('🔄 Debouncing position save for', Object.keys(positions).length, 'nodes');
+      
       saveTimeoutRef.current = setTimeout(() => {
+        console.log('💾 Saving node positions to database');
         saveNodePositions(positions);
       }, 1000); // Save after 1 second of no changes
     },
     [saveNodePositions]
   );
 
-      const convertToFlowElements = useCallback(() => {
+      // Memoized base flow elements (without visual state)
+  const baseFlowElements = useMemo(() => {
+    console.log('🔄 Recalculating base flow elements');
     const flowNodes: Node<MessageNodeData>[] = [];
     const flowEdges: Edge[] = [];
     const horizontalSpacing = 400;
@@ -121,20 +126,7 @@ export const useFlowElements = (
         }
       }
 
-      // Apply search filter
-      if (searchTerm && !message.content.toLowerCase().includes(searchTerm.toLowerCase())) {
-        // Still process children
-        if (message.children && message.children.length > 0) {
-          const childrenWidth = (message.children.length - 1) * horizontalSpacing;
-          const startX = x - childrenWidth / 2;
-          message.children.forEach((child, index) => {
-            const childX = startX + (index * horizontalSpacing);
-            const childY = y + verticalSpacing;
-            processNode(child, childX, childY, level + 1);
-          });
-        }
-        return;
-      }
+      // Note: Search filtering is now handled at the visual level to prevent unnecessary rebuilds
 
       // Apply type filter
       let matchesType = true;
@@ -148,8 +140,6 @@ export const useFlowElements = (
 
       // Only add node if it matches the filter
       if (matchesType) {
-        const isMultiSelected = selectedNodes.has(message.id);
-
         // Use saved position if available and positions are loaded, otherwise use calculated position
         const savedPosition = positionsLoaded ? nodePositions[message.id] : null;
         const nodePosition = savedPosition || { x, y };
@@ -162,9 +152,7 @@ export const useFlowElements = (
             message,
             onNodeClick,
             onNodeDoubleClick,
-            isMultiSelected,
-            selectedMessageId,
-            hasMultiSelections: selectedNodes.size > 0,
+            // Remove visual state from base data - will be added later
           },
           selected: false,
           draggable: true,
@@ -251,10 +239,7 @@ export const useFlowElements = (
     return { nodes: flowNodes, edges: flowEdges };
   }, [
     messages, 
-    selectedMessageId, 
-    selectedNodes, 
     timelinePosition, 
-    searchTerm, 
     filterType,
     nodePositions,
     positionsLoaded,
@@ -263,27 +248,72 @@ export const useFlowElements = (
     onNodeDoubleClick
   ]);
 
+  // Add visual state to nodes (selection, multi-selection indicators, search highlighting)
   const { nodes, edges } = useMemo(() => {
-    const result = convertToFlowElements();
-    return result;
-  }, [convertToFlowElements]);
+    let filteredNodes = baseFlowElements.nodes;
+    
+    // Apply search filter at the visual level (don't rebuild entire flow)
+    if (searchTerm) {
+      filteredNodes = baseFlowElements.nodes.filter(node => 
+        node.data.message.content.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    const nodesWithVisualState = filteredNodes.map(node => ({
+      ...node,
+      data: {
+        ...node.data,
+        isMultiSelected: selectedNodes.has(node.id),
+        selectedMessageId,
+        hasMultiSelections: selectedNodes.size > 0,
+        searchTerm, // Pass search term for highlighting
+      }
+    }));
 
-  // Handle node changes (including position updates)
+    return {
+      nodes: nodesWithVisualState,
+      edges: baseFlowElements.edges
+    };
+  }, [baseFlowElements, selectedNodes, selectedMessageId, searchTerm]);
+
+  // Handle node changes (including position updates) - only for actual position changes
   const handleNodesChange = useCallback((changes: NodeChange[]) => {
-    const positionChanges = changes.filter(change => change.type === 'position');
+    // Filter for actual position changes only - exclude intermediate drag events
+    const positionChanges = changes.filter(change => 
+      change.type === 'position' && 
+      change.position && 
+      change.dragging === false // Only save when drag is complete
+    );
     
     if (positionChanges.length > 0) {
+      console.log('📍 Processing', positionChanges.length, 'position changes');
+      
       setNodePositions(prev => {
         const newPositions = { ...prev };
+        let hasActualChanges = false;
         
         positionChanges.forEach(change => {
           if (change.type === 'position' && change.position) {
-            newPositions[change.id] = change.position;
+            const currentPos = prev[change.id];
+            const newPos = change.position;
+            
+            // Only update if position actually changed (avoid floating point precision issues)
+            if (!currentPos || 
+                Math.abs(currentPos.x - newPos.x) > 0.1 || 
+                Math.abs(currentPos.y - newPos.y) > 0.1) {
+              newPositions[change.id] = newPos;
+              hasActualChanges = true;
+              console.log('📍 Node', change.id, 'moved to', newPos);
+            }
           }
         });
         
-        // Debounce saving to database
-        debouncedSavePositions(newPositions);
+        // Only save to database if there were actual position changes
+        if (hasActualChanges) {
+          debouncedSavePositions(newPositions);
+        } else {
+          console.log('📍 No actual position changes detected');
+        }
         
         return newPositions;
       });
