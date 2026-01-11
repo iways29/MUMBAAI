@@ -20,6 +20,7 @@ export const useFlowElements = (
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'user' | 'assistant' | 'merged'>('all');
   const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>({});
+  const [nodeDimensions, setNodeDimensions] = useState<Record<string, { width: number; height: number }>>({});
   const [positionsLoaded, setPositionsLoaded] = useState(false);
   
   // Track previous messages to detect changes
@@ -51,15 +52,16 @@ export const useFlowElements = (
   // Reset positions only when switching conversations
   useEffect(() => {
     const currentConversationId = conversationId;
-    
+
     // Only reset positions if we've switched to a completely different conversation
-    if (prevConversationRef.current && 
-        prevConversationRef.current !== currentConversationId && 
+    if (prevConversationRef.current &&
+        prevConversationRef.current !== currentConversationId &&
         currentConversationId !== '') {
       setNodePositions({});
+      setNodeDimensions({}); // Also clear dimensions when switching conversations
       setPositionsLoaded(false);
     }
-    
+
     prevMessagesRef.current = messages;
   }, [messages, conversationId]);
 
@@ -154,7 +156,10 @@ export const useFlowElements = (
         const savedPosition = positionsLoaded ? nodePositions[message.id] : null;
         const nodePosition = savedPosition || { x, y };
 
-        flowNodes.push({
+        // Get measured dimensions if available
+        const measuredDimensions = nodeDimensions[message.id];
+
+        const node: Node<MessageNodeData> = {
           id: message.id,
           type: 'message',
           position: nodePosition,
@@ -168,7 +173,14 @@ export const useFlowElements = (
           },
           selected: false,
           draggable: true,
-        });
+          // Include measured dimensions if available (critical for preventing disappearing nodes)
+          ...(measuredDimensions && {
+            width: measuredDimensions.width,
+            height: measuredDimensions.height,
+          }),
+        };
+
+        flowNodes.push(node);
       }
 
       // Process children regardless of parent match
@@ -250,13 +262,14 @@ export const useFlowElements = (
 
     return { nodes: flowNodes, edges: flowEdges };
   }, [
-    messages, 
-    selectedMessageId, 
-    selectedNodes, 
-    timelinePosition, 
-    searchTerm, 
+    messages,
+    selectedMessageId,
+    selectedNodes,
+    timelinePosition,
+    searchTerm,
     filterType,
     nodePositions,
+    nodeDimensions,
     positionsLoaded,
     conversationId,
     onNodeClick,
@@ -268,26 +281,52 @@ export const useFlowElements = (
     return result;
   }, [convertToFlowElements]);
 
-  // Handle node changes (including position updates)
+  // Handle node changes (including position updates and dimension changes)
   const handleNodesChange = useCallback((changes: NodeChange[]) => {
+    // Filter position and dimension changes
     const positionChanges = changes.filter(change => change.type === 'position');
-    
+    const dimensionChanges = changes.filter(change => change.type === 'dimensions');
+
+    // Handle position changes - persist to database
     if (positionChanges.length > 0) {
       setNodePositions(prev => {
         const newPositions = { ...prev };
-        
+
         positionChanges.forEach(change => {
           if (change.type === 'position' && change.position) {
             newPositions[change.id] = change.position;
           }
         });
-        
+
         // Debounce saving to database
         debouncedSavePositions(newPositions);
-        
+
         return newPositions;
       });
     }
+
+    // Handle dimension changes - critical for preventing nodes from disappearing
+    // We track dimensions in memory but don't persist them (they're recalculated on render)
+    if (dimensionChanges.length > 0) {
+      setNodeDimensions(prev => {
+        const newDimensions = { ...prev };
+
+        dimensionChanges.forEach(change => {
+          if (change.type === 'dimensions' && change.dimensions) {
+            newDimensions[change.id] = {
+              width: change.dimensions.width,
+              height: change.dimensions.height
+            };
+          }
+        });
+
+        return newDimensions;
+      });
+    }
+
+    // Note: We handle position and dimension changes explicitly above.
+    // Other change types (select, remove, etc.) don't need special handling
+    // because we're using a controlled flow where nodes are derived from messages state.
   }, [debouncedSavePositions]);
 
   // Handle edge changes
