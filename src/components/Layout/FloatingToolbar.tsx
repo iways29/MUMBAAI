@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ArrowLeft, Edit3, User, Plus } from 'lucide-react';
 
+// Updated interface to include profile button props
 interface FloatingToolbarProps {
   brandName: string;
   conversationName: string;
@@ -14,6 +15,8 @@ interface FloatingToolbarProps {
   viewMode?: 'combined' | 'flow';
   onViewModeChange?: (mode: 'combined' | 'flow') => void;
   isConversationsPage?: boolean;
+  showProfileButton?: boolean;
+  onProfileClick?: () => void;
 }
 
 export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
@@ -28,7 +31,9 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
   showViewToggle = false,
   viewMode = 'combined',
   onViewModeChange,
-  isConversationsPage = false
+  isConversationsPage = false,
+  showProfileButton = false,
+  onProfileClick
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingName, setEditingName] = useState(conversationName);
@@ -187,13 +192,16 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
               </>
             )}
             
-            {/* User Profile Button - Always visible */}
-            <button
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              title="User Profile"
-            >
-              <User size={20} />
-            </button>
+            {/* User Profile Button - Show when enabled */}
+            {showProfileButton && onProfileClick && (
+              <button
+                onClick={onProfileClick}
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                title="User Profile"
+              >
+                <User size={20} />
+              </button>
+            )}
           </div>
         </div>
       </div>
