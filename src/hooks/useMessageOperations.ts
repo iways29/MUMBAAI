@@ -130,23 +130,6 @@ export const useMessageOperations = ({
       // Add delay for better UX
       await ApiService.delay(800);
 
-      // Generate merged response with streaming
-      setStreamingContent(''); // Reset streaming content
-      const templateToUse = customTemplate || mergeTemplate;
-      const mergedContent = await ApiService.generateMergedResponse(
-        selectedMessages,
-        templateToUse,
-        userInput,
-        selectedModel, // Pass the selected model
-        (chunk: string) => {
-          // Update streaming content as chunks arrive
-          setStreamingContent(prev => prev + chunk);
-        }
-      );
-
-      // Clear streaming content after merge completes
-      setStreamingContent('');
-
       // Find a suitable parent for the merged message
       const parentMessage = effectiveMergeNodes
         .map(id => findMessage(id))
@@ -156,13 +139,37 @@ export const useMessageOperations = ({
         throw new Error('Could not find parent message for merge');
       }
 
-      const mergedMessage = MessageHelpers.createMessage('assistant', mergedContent, {
+      // Create the merged message node FIRST (before streaming starts)
+      const mergedMessage = MessageHelpers.createMessage('assistant', '', {
         mergedFrom: effectiveMergeNodes,
         isMergeRoot: true
       });
 
+      // Add empty merged message to tree and navigate to it BEFORE streaming
       addMessage(activeConversation, parentMessage.id, mergedMessage);
       onMessageSent?.(mergedMessage.id);
+
+      // Now generate merged response with streaming
+      // This will stream in the NEW thread context (the merged message node)
+      setStreamingContent(''); // Reset streaming content
+      const templateToUse = customTemplate || mergeTemplate;
+      const mergedContent = await ApiService.generateMergedResponse(
+        selectedMessages,
+        templateToUse,
+        userInput,
+        selectedModel,
+        (chunk: string) => {
+          // Update streaming content as chunks arrive
+          // This will now display in the merged message's thread
+          setStreamingContent(prev => prev + chunk);
+        }
+      );
+
+      // Clear streaming content after merge completes
+      setStreamingContent('');
+
+      // Update the merged message with the final content
+      mergedMessage.content = mergedContent;
 
       // Clear selections after successful merge
       onClearSelection?.();

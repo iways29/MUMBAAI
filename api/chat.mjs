@@ -94,6 +94,7 @@ export default async function handler(req, res) {
                   // Gemini streaming response structure
                   const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
                   if (content) {
+                    console.log(`[Gemini Stream] Chunk length: ${content.length}, content: "${content.substring(0, 50)}..."`);
                     res.write(`data: ${JSON.stringify({ content })}\n\n`);
                   }
                 } catch (e) {
