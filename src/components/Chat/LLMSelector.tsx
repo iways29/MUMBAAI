@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Sparkles, Brain, Zap } from 'lucide-react';
+import { ReactComponent as GoogleIcon } from '../../assets/google-gemini.svg';
+import { ReactComponent as AnthropicIcon } from '../../assets/anthropic.svg';
+import { ReactComponent as OpenAIIcon } from '../../assets/openai.svg';
 
 interface LLMModel {
   id: string;
@@ -18,7 +20,7 @@ interface LLMProvider {
 const llmProviders: LLMProvider[] = [
   {
     name: 'Google',
-    icon: <Sparkles size={16} className="text-blue-500" />,
+    icon: <GoogleIcon width={20} height={20} />,
     models: [
       {
         id: 'gemini-2.5-flash',
@@ -38,7 +40,7 @@ const llmProviders: LLMProvider[] = [
   },
   {
     name: 'Anthropic',
-    icon: <Zap size={16} className="text-purple-500" />,
+    icon: <AnthropicIcon width={20} height={20} />,
     models: [
       {
         id: 'claude-3-5-haiku-20241022',
@@ -79,7 +81,7 @@ const llmProviders: LLMProvider[] = [
   },
   {
     name: 'OpenAI',
-    icon: <Brain size={16} className="text-green-500" />,
+    icon: <OpenAIIcon width={20} height={20} />,
     models: [
       {
         id: 'gpt-5-mini',
@@ -173,7 +175,7 @@ export const LLMSelector: React.FC<LLMSelectorProps> = ({
       {/* Model Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
+        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200"
         title={`Current model: ${currentModel.name}`}
       >
         {llmProviders.find(p => p.models.some(m => m.id === selectedModel))?.icon}
@@ -192,7 +194,7 @@ export const LLMSelector: React.FC<LLMSelectorProps> = ({
               <button
                 key={provider.name}
                 onClick={() => setActiveTab(provider.name)}
-                className={`flex-shrink-0 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors min-w-fit ${
+                className={`flex-shrink-0 flex items-center justify-center gap-3 px-4 py-4 text-sm font-medium transition-colors min-w-fit ${
                   activeTab === provider.name
                     ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
                     : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
