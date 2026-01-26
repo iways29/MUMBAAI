@@ -29,12 +29,13 @@ export const useMessageOperations = ({
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [mergeTemplate, setMergeTemplate] = useState<MergeTemplate>('smart');
+  const [streamingContent, setStreamingContent] = useState<string>('');
 
   const sendMessage = useCallback(async () => {
     if (!inputText.trim() || !activeConversation) return;
 
     const userMessage = MessageHelpers.createMessage('user', inputText);
-    
+
     // Add user message - use null as parent for first message in conversation
     const parentId = selectedMessageId || null;
     addMessage(activeConversation, parentId, userMessage);
@@ -55,19 +56,31 @@ export const useMessageOperations = ({
       // Add small delay for better UX
       await ApiService.delay(500);
 
-      // Get AI response
-      const aiResponse = await ApiService.sendMessage(contextPrompt, selectedModel);
+      // Get AI response with streaming
+      setStreamingContent(''); // Reset streaming content
+      const aiResponse = await ApiService.sendMessageStreaming(
+        contextPrompt,
+        selectedModel,
+        (chunk: string) => {
+          // Update streaming content as chunks arrive
+          setStreamingContent(prev => prev + chunk);
+        }
+      );
 
+      // Clear streaming content before adding final message
+      setStreamingContent('');
+
+      // Now that stream is complete, create the final message and add to tree
       const assistantMessage = MessageHelpers.createMessage('assistant', aiResponse);
-      
-      // Add AI response
+
+      // Add AI response to tree ONLY after stream completes
       addMessage(activeConversation, userMessage.id, assistantMessage);
       onMessageSent?.(assistantMessage.id);
 
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage = MessageHelpers.createMessage(
-        'assistant', 
+        'assistant',
         'Sorry, I encountered an error. Please try again.'
       );
       addMessage(activeConversation, userMessage.id, errorMessage);
@@ -220,21 +233,24 @@ export const useMessageOperations = ({
     inputText,
     setInputText,
     isLoading,
-    
+
     // Merge template state
     mergeTemplate,
     setMergeTemplate,
-    
+
+    // Streaming state
+    streamingContent,
+
     // Operations
     sendMessage,
     performIntelligentMerge,
     performCustomMerge,
-    
+
     // Helpers
     getEffectiveMergeCount,
     canMerge,
     getCurrentMessage,
-    
+
     // State checkers
     canSendMessage: !isLoading && inputText.trim().length > 0,
     hasSelectedMessage: !!selectedMessageId,

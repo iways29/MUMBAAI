@@ -23,6 +23,8 @@ interface ChatPanelProps {
   isMultiSelectMode?: boolean;
   onPerformMerge?: (customPrompt?: string) => void;
   mergeCount?: number;
+  // Streaming prop
+  streamingContent?: string;
 }
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({
@@ -42,7 +44,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   onModelChange,
   isMultiSelectMode = false,
   onPerformMerge,
-  mergeCount = 0
+  mergeCount = 0,
+  streamingContent = ''
 }) => {
   if (collapsed) {
     return (
@@ -67,6 +70,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         isLoading={isLoading}
         bookmarkedNodes={bookmarkedNodes}
         onToggleBookmark={onToggleBookmark}
+        streamingContent={streamingContent}
       />
 
       {/* Chat Input */}

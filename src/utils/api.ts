@@ -27,9 +27,78 @@ export class ApiService {
       return data.response;
     } catch (error) {
       console.error('Error calling API:', error);
-      
+
       // Fallback to mock response for development
       return this.generateMockResponse(prompt);
+    }
+  }
+
+  static async sendMessageStreaming(
+    prompt: string,
+    model: string = 'gemini-1.5-flash',
+    onChunk: (chunk: string) => void
+  ): Promise<string> {
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt, model, stream: true })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('Response body is not readable');
+      }
+
+      const decoder = new TextDecoder();
+      let fullResponse = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n').filter(line => line.trim() !== '');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.content) {
+                fullResponse += parsed.content;
+                onChunk(parsed.content);
+              } else if (parsed.error) {
+                throw new Error(parsed.error);
+              }
+            } catch (e) {
+              // Skip malformed JSON
+            }
+          }
+        }
+      }
+
+      return fullResponse;
+    } catch (error) {
+      console.error('Error calling streaming API:', error);
+
+      // Fallback to mock response for development
+      const mockResponse = this.generateMockResponse(prompt);
+      // Simulate streaming for mock response
+      for (let i = 0; i < mockResponse.length; i += 10) {
+        const chunk = mockResponse.slice(i, i + 10);
+        onChunk(chunk);
+        await this.delay(50);
+      }
+      return mockResponse;
     }
   }
 

@@ -316,6 +316,7 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
               isMultiSelectMode={messageOps.getEffectiveMergeCount() > 1}
               onPerformMerge={messageOps.performCustomMerge}
               mergeCount={messageOps.getEffectiveMergeCount()}
+              streamingContent={messageOps.streamingContent}
             />
           </ErrorBoundary>
         )}

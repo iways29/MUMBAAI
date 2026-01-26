@@ -11,6 +11,7 @@ interface MessageThreadProps {
   isLoading: boolean;
   bookmarkedNodes: Set<string>;
   onToggleBookmark: (nodeId: string) => void;
+  streamingContent?: string;
 }
 
 export const MessageThread: React.FC<MessageThreadProps> = ({
@@ -18,7 +19,8 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
   selectedMessageId,
   isLoading,
   bookmarkedNodes,
-  onToggleBookmark
+  onToggleBookmark,
+  streamingContent = ''
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -38,7 +40,7 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
     if (!isLoading && messages.length > 0) {
       setTimeout(() => {
         if (messagesEndRef.current) {
-          messagesEndRef.current.scrollIntoView({ 
+          messagesEndRef.current.scrollIntoView({
             behavior: 'smooth',
             block: 'end'
           });
@@ -46,6 +48,16 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
       }, 100);
     }
   }, [isLoading, messages.length]);
+
+  // Auto-scroll when streaming content updates
+  useEffect(() => {
+    if (streamingContent && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'end'
+      });
+    }
+  }, [streamingContent]);
 
   const handleCopyMessage = (content: string) => {
     navigator.clipboard.writeText(content);
@@ -161,7 +173,42 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
           </div>
         ))}
 
-        {isLoading && (
+        {/* Show streaming content while it's being generated */}
+        {streamingContent && (
+          <div className="flex justify-start">
+            <div className="max-w-2xl px-4 py-3 rounded-2xl bg-transparent text-gray-900">
+              <div className="flex items-center gap-2 mb-2">
+                <Bot size={14} className="opacity-70 flex-shrink-0" />
+                <span className="text-xs font-medium opacity-70">Assistant</span>
+                <span className="text-xs opacity-60 flex-shrink-0">Streaming...</span>
+              </div>
+              <div className="text-sm leading-relaxed mb-2 break-words">
+                <div className="prose prose-sm max-w-none prose-gray">
+                  <ReactMarkdown
+                    components={{
+                      p: ({children}) => <p className="mb-2 last:mb-0">{children}</p>,
+                      strong: ({children}) => <strong className="font-semibold text-gray-900">{children}</strong>,
+                      em: ({children}) => <em className="italic">{children}</em>,
+                      code: ({children}) => <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono">{children}</code>,
+                      pre: ({children}) => <pre className="bg-gray-100 p-3 rounded-lg overflow-x-auto text-sm font-mono">{children}</pre>,
+                      ul: ({children}) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
+                      ol: ({children}) => <ol className="list-decimal pl-4 mb-2">{children}</ol>,
+                      li: ({children}) => <li className="mb-1">{children}</li>,
+                      h1: ({children}) => <h1 className="text-lg font-semibold mb-2 text-gray-900">{children}</h1>,
+                      h2: ({children}) => <h2 className="text-base font-semibold mb-2 text-gray-900">{children}</h2>,
+                      h3: ({children}) => <h3 className="text-sm font-semibold mb-1 text-gray-900">{children}</h3>,
+                      blockquote: ({children}) => <blockquote className="border-l-4 border-gray-300 pl-4 italic text-gray-700 mb-2">{children}</blockquote>
+                    }}
+                  >
+                    {streamingContent}
+                  </ReactMarkdown>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isLoading && !streamingContent && (
           <div className="flex justify-start">
             <ThinkingIndicator text="Assistant is thinking..." />
           </div>
