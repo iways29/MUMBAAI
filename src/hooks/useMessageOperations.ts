@@ -200,7 +200,8 @@ export const useMessageOperations = ({
     onMessageSent,
     onClearSelection,
     mergeTemplate,
-    getMessageThread
+    getMessageThread,
+    selectedModel
   ]);
 
   // New function specifically for custom prompt merges from chat input
