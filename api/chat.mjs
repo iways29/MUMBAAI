@@ -33,20 +33,25 @@ export default async function handler(req, res) {
         const provider = streamResult.provider;
         const reader = readableStream.getReader();
         const decoder = new TextDecoder();
+        let buffer = ''; // Buffer for incomplete chunks
 
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
           const chunk = decoder.decode(value, { stream: true });
+          buffer += chunk;
+
+          // Process complete lines from buffer
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || ''; // Keep incomplete line in buffer
 
           // Parse based on provider format
           if (provider === 'openai') {
             // OpenAI streams data as "data: {...}\n\n"
-            const lines = chunk.split('\n').filter(line => line.trim() !== '');
             for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                const data = line.slice(6);
+              if (line.trim().startsWith('data: ')) {
+                const data = line.trim().slice(6);
                 if (data === '[DONE]') continue;
 
                 try {
@@ -62,11 +67,10 @@ export default async function handler(req, res) {
             }
           } else if (provider === 'anthropic') {
             // Anthropic streams as SSE events with event names
-            const lines = chunk.split('\n');
             for (const line of lines) {
-              if (line.startsWith('data: ')) {
+              if (line.trim().startsWith('data: ')) {
                 try {
-                  const data = JSON.parse(line.slice(6));
+                  const data = JSON.parse(line.trim().slice(6));
                   if (data.type === 'content_block_delta') {
                     const content = data.delta?.text;
                     if (content) {
@@ -80,17 +84,20 @@ export default async function handler(req, res) {
             }
           } else if (provider === 'google') {
             // Gemini streams as SSE with "data:" prefix
-            const lines = chunk.split('\n').filter(line => line.trim() !== '');
             for (const line of lines) {
-              if (line.startsWith('data: ')) {
+              const trimmedLine = line.trim();
+              if (trimmedLine.startsWith('data: ')) {
                 try {
-                  const data = JSON.parse(line.slice(6));
+                  const jsonStr = trimmedLine.slice(6);
+                  const data = JSON.parse(jsonStr);
+
+                  // Gemini streaming response structure
                   const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
                   if (content) {
                     res.write(`data: ${JSON.stringify({ content })}\n\n`);
                   }
                 } catch (e) {
-                  // Skip malformed JSON
+                  // Skip malformed JSON or incomplete chunks
                 }
               }
             }

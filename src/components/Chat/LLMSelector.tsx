@@ -21,18 +21,18 @@ const llmProviders: LLMProvider[] = [
     icon: <Sparkles size={16} className="text-blue-500" />,
     models: [
       {
-        id: 'gemini-1.5-flash',
-        name: 'Gemini 1.5 Flash',
+        id: 'gemini-2.5-flash',
+        name: 'Gemini 2.5 Flash',
         provider: 'Google',
         description: 'Fast and efficient model for general tasks',
         enabled: true
       },
       {
-        id: 'gemini-1.5-pro',
-        name: 'Gemini 1.5 Pro',
+        id: 'gemini-1.5-flash',
+        name: 'Gemini 1.5 Flash (Legacy)',
         provider: 'Google',
-        description: 'Advanced model for complex reasoning',
-        enabled: false
+        description: 'Previous generation flash model',
+        enabled: true
       }
     ]
   },

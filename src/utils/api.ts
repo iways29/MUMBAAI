@@ -120,12 +120,14 @@ export class ApiService {
   }
 
   static async generateMergedResponse(
-    selectedMessages: string[], 
+    selectedMessages: string[],
     template: MergeTemplate = 'smart',
-    userInput?: string
+    userInput?: string,
+    model: string = 'gemini-2.5-flash',
+    onChunk?: (chunk: string) => void
   ): Promise<string> {
-    let finalPrompt: string; 
-   
+    let finalPrompt: string;
+
     if (userInput && userInput.trim()) {
       // User provided custom prompt - use it directly with context
       finalPrompt = `${userInput.trim()}
@@ -145,10 +147,15 @@ Create a comprehensive response that merges the best elements from these differe
     }
 
     try {
-      return await this.sendMessage(finalPrompt);
+      // Use streaming if onChunk callback is provided, otherwise use non-streaming
+      if (onChunk) {
+        return await this.sendMessageStreaming(finalPrompt, model, onChunk);
+      } else {
+        return await this.sendMessage(finalPrompt, model);
+      }
     } catch (error) {
       console.error('Merge generation failed:', error);
-      
+
       // Fallback merge response
       return this.generateMockMergeResponse(selectedMessages);
     }

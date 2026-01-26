@@ -130,9 +130,22 @@ export const useMessageOperations = ({
       // Add delay for better UX
       await ApiService.delay(800);
 
-      // Generate merged response with custom prompt or template
+      // Generate merged response with streaming
+      setStreamingContent(''); // Reset streaming content
       const templateToUse = customTemplate || mergeTemplate;
-      const mergedContent = await ApiService.generateMergedResponse(selectedMessages, templateToUse, userInput);
+      const mergedContent = await ApiService.generateMergedResponse(
+        selectedMessages,
+        templateToUse,
+        userInput,
+        selectedModel, // Pass the selected model
+        (chunk: string) => {
+          // Update streaming content as chunks arrive
+          setStreamingContent(prev => prev + chunk);
+        }
+      );
+
+      // Clear streaming content after merge completes
+      setStreamingContent('');
 
       // Find a suitable parent for the merged message
       const parentMessage = effectiveMergeNodes
