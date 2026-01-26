@@ -41,7 +41,7 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
   const [chatViewMode, setChatViewMode] = useState<'combined' | 'flow'>('combined');
 
   // Selected AI model state
-  const [selectedModel, setSelectedModel] = useState<string>('gemini-1.5-flash');
+  const [selectedModel, setSelectedModel] = useState<string>('gemini-2.5-flash');
 
   // Flow elements with proper change handling
   const flowElements = useFlowElements(
@@ -316,6 +316,7 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
               isMultiSelectMode={messageOps.getEffectiveMergeCount() > 1}
               onPerformMerge={messageOps.performCustomMerge}
               mergeCount={messageOps.getEffectiveMergeCount()}
+              streamingContent={messageOps.streamingContent}
             />
           </ErrorBoundary>
         )}

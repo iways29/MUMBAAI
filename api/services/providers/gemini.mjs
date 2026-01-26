@@ -51,4 +51,49 @@ export class GeminiProvider {
       throw new Error(`Gemini API failed: ${error.message}`);
     }
   }
+
+  static async generateStreamingResponse(model, prompt) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
+
+    // Normalize any old names to the model your key actually has
+    const MODEL_MAP = {
+      'gemini-1.5-flash': 'gemini-2.5-flash',
+      'gemini-1.5-flash-002': 'gemini-2.5-flash',
+      'gemini-1.5-flash-latest': 'gemini-2.5-flash',
+      'gemini-1.5-pro': 'gemini-2.5-flash',
+      'gemini-1.5-pro-002': 'gemini-2.5-flash',
+      'gemini-1.5-pro-latest': 'gemini-2.5-flash',
+    };
+    const resolvedModel = MODEL_MAP[model] || model; // e.g., "gemini-2.5-flash"
+
+    try {
+      const resp = await fetch(
+        `https://generativelanguage.googleapis.com/v1/models/${resolvedModel}:streamGenerateContent?alt=sse&key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+          }),
+        }
+      );
+
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        const msg = data?.error?.message || JSON.stringify(data);
+        throw new Error(msg);
+      }
+
+      // Return the readable stream
+      return {
+        stream: resp.body,
+        provider: 'google',
+        model: resolvedModel,
+      };
+    } catch (error) {
+      console.error('Gemini API Error:', error);
+      throw new Error(`Gemini API failed: ${error.message}`);
+    }
+  }
 }

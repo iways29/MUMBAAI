@@ -9,10 +9,24 @@ export class LLMService {
       if (!provider) {
         throw new Error(`No provider found for model: ${model}`);
       }
-      
+
       return await provider.generateResponse(model, prompt);
     } catch (error) {
       console.error(`LLM Service Error for model ${model}:`, error);
+      throw error;
+    }
+  }
+
+  static async generateStreamingResponse(model, prompt) {
+    try {
+      const provider = this.getProviderForModel(model);
+      if (!provider) {
+        throw new Error(`No provider found for model: ${model}`);
+      }
+
+      return await provider.generateStreamingResponse(model, prompt);
+    } catch (error) {
+      console.error(`LLM Service Streaming Error for model ${model}:`, error);
       throw error;
     }
   }
