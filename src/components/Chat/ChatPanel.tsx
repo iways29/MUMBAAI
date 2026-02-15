@@ -25,6 +25,8 @@ interface ChatPanelProps {
   mergeCount?: number;
   // Streaming prop
   streamingContent?: string;
+  // New tree prop
+  onStartNewTree?: () => void;
 }
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({
@@ -45,7 +47,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   isMultiSelectMode = false,
   onPerformMerge,
   mergeCount = 0,
-  streamingContent = ''
+  streamingContent = '',
+  onStartNewTree
 }) => {
   if (collapsed) {
     return (
@@ -87,6 +90,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         isMultiSelectMode={isMultiSelectMode}
         onPerformMerge={onPerformMerge}
         mergeCount={mergeCount}
+        onStartNewTree={onStartNewTree}
       />
     </div>
   );

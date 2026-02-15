@@ -19,26 +19,6 @@ interface LLMProvider {
 
 const llmProviders: LLMProvider[] = [
   {
-    name: 'Google',
-    icon: <GoogleIcon width={20} height={20} />,
-    models: [
-      {
-        id: 'gemini-2.5-flash',
-        name: 'Gemini 2.5 Flash',
-        provider: 'Google',
-        description: 'Fast and efficient model for general tasks',
-        enabled: true
-      },
-      {
-        id: 'gemini-1.5-flash',
-        name: 'Gemini 1.5 Flash (Legacy)',
-        provider: 'Google',
-        description: 'Previous generation flash model',
-        enabled: true
-      }
-    ]
-  },
-  {
     name: 'Anthropic',
     icon: <AnthropicIcon width={20} height={20} />,
     models: [
@@ -126,6 +106,26 @@ const llmProviders: LLMProvider[] = [
         enabled: false
       }
     ]
+  },
+  {
+    name: 'Google',
+    icon: <GoogleIcon width={20} height={20} />,
+    models: [
+      {
+        id: 'gemini-2.5-flash',
+        name: 'Gemini 2.5 Flash',
+        provider: 'Google',
+        description: 'Fast and efficient model for general tasks',
+        enabled: false
+      },
+      {
+        id: 'gemini-1.5-flash',
+        name: 'Gemini 1.5 Flash (Legacy)',
+        provider: 'Google',
+        description: 'Previous generation flash model',
+        enabled: false
+      }
+    ]
   }
 ];
 
@@ -139,7 +139,7 @@ export const LLMSelector: React.FC<LLMSelectorProps> = ({
   onModelChange
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('Google');
+  const [activeTab, setActiveTab] = useState('Anthropic');
   const popupRef = useRef<HTMLDivElement>(null);
 
   // Get current model info

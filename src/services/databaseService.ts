@@ -23,6 +23,7 @@ export interface DatabaseMessage {
   position_x: number | null;
   position_y: number | null;
   created_at: string;
+  model: string | null;
 }
 
 export interface NodePosition {
@@ -151,7 +152,8 @@ export class DatabaseService {
           timestamp: message.timestamp,
           collapsed: message.collapsed,
           merged_from: message.mergedFrom || null,
-          is_merge_root: message.isMergeRoot || false
+          is_merge_root: message.isMergeRoot || false,
+          model: message.model || null
         });
 
       if (error) throw error;
@@ -268,7 +270,8 @@ export class DatabaseService {
         collapsed: dbMsg.collapsed,
         children: [],
         mergedFrom: dbMsg.merged_from || undefined,
-        isMergeRoot: dbMsg.is_merge_root
+        isMergeRoot: dbMsg.is_merge_root,
+        model: dbMsg.model || undefined
       };
       messageMap.set(dbMsg.id, message);
     });

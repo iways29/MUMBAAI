@@ -4,14 +4,75 @@ import { User, Bot, GitBranch, Sparkles, Star } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { MessageNodeData } from '../../types/flow.ts';
 import { MessageHelpers } from '../../utils/messageHelpers.ts';
+import { ReactComponent as AnthropicIcon } from '../../assets/anthropic.svg';
+import { ReactComponent as OpenAIIcon } from '../../assets/openai.svg';
+import { ReactComponent as GoogleIcon } from '../../assets/google-gemini.svg';
 
 interface MessageNodeProps {
   data: MessageNodeData;
   selected?: boolean;
 }
 
+// Helper to get model display info
+const getModelInfo = (model: string | undefined) => {
+  if (!model) return null;
+
+  if (model.includes('claude')) {
+    const variant = model.includes('haiku') ? 'Haiku' :
+                    model.includes('sonnet') ? 'Sonnet' :
+                    model.includes('opus') ? 'Opus' : '';
+    return {
+      provider: 'Claude',
+      variant,
+      icon: AnthropicIcon,
+      bgColor: 'bg-[#D4A574]',
+      textColor: 'text-[#1a1a1a]',
+      badgeBg: 'bg-[#FDF4ED]',
+      badgeText: 'text-[#8B5A2B]',
+      badgeBorder: 'border-[#E8D5C4]'
+    };
+  }
+
+  if (model.includes('gpt')) {
+    const variant = model.includes('5-mini') ? '5 Mini' :
+                    model.includes('4.1-mini') ? '4.1 Mini' :
+                    model.includes('4o-mini') ? '4o Mini' :
+                    model.includes('gpt-5') ? '5' :
+                    model.includes('gpt-4.1') ? '4.1' :
+                    model.includes('gpt-4o') ? '4o' : '';
+    return {
+      provider: 'GPT',
+      variant,
+      icon: OpenAIIcon,
+      bgColor: 'bg-[#10A37F]',
+      textColor: 'text-white',
+      badgeBg: 'bg-[#E6F7F2]',
+      badgeText: 'text-[#0D8A6A]',
+      badgeBorder: 'border-[#B8E6D9]'
+    };
+  }
+
+  if (model.includes('gemini')) {
+    const variant = model.includes('2.5-flash') ? '2.5 Flash' :
+                    model.includes('1.5-flash') ? '1.5 Flash' : '';
+    return {
+      provider: 'Gemini',
+      variant,
+      icon: GoogleIcon,
+      bgColor: 'bg-[#4285F4]',
+      textColor: 'text-white',
+      badgeBg: 'bg-[#E8F0FE]',
+      badgeText: 'text-[#1967D2]',
+      badgeBorder: 'border-[#C2D7F9]'
+    };
+  }
+
+  return null;
+};
+
 export const MessageNode: React.FC<MessageNodeProps> = ({ data, selected }) => {
   const { message, onNodeClick, onNodeDoubleClick, isMultiSelected, selectedMessageId, hasMultiSelections } = data;
+  const modelInfo = getModelInfo(message.model);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -60,18 +121,36 @@ export const MessageNode: React.FC<MessageNodeProps> = ({ data, selected }) => {
       }`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-full ${
-              message.type === 'user' ? 'bg-blue-500' : 'bg-green-500'
-            }`}>
-              {message.type === 'user' ? (
+            {message.type === 'user' ? (
+              <div className="p-2 rounded-full bg-blue-500">
                 <User size={14} className="text-white" />
-              ) : (
+              </div>
+            ) : modelInfo ? (
+              <div className={`p-2 rounded-full ${modelInfo.bgColor} shadow-sm`}>
+                <modelInfo.icon width={14} height={14} className={modelInfo.textColor} />
+              </div>
+            ) : (
+              <div className="p-2 rounded-full bg-green-500">
                 <Bot size={14} className="text-white" />
+              </div>
+            )}
+            <div className="flex flex-col gap-0.5">
+              <span className="text-base font-semibold text-gray-900">
+                {message.type === 'user' ? 'You' : 'Assistant'}
+              </span>
+              {message.type === 'assistant' && modelInfo && (
+                <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium border ${modelInfo.badgeBg} ${modelInfo.badgeText} ${modelInfo.badgeBorder}`}>
+                  <modelInfo.icon width={10} height={10} />
+                  <span>{modelInfo.provider}</span>
+                  {modelInfo.variant && (
+                    <>
+                      <span className="opacity-40">·</span>
+                      <span>{modelInfo.variant}</span>
+                    </>
+                  )}
+                </div>
               )}
             </div>
-            <span className="text-base font-semibold text-gray-900">
-              {message.type === 'user' ? 'You' : 'Assistant'}
-            </span>
           </div>
           <span className="text-xs text-gray-800 flex-shrink-0">
             {MessageHelpers.formatTimestamp(message.timestamp)}
@@ -83,7 +162,7 @@ export const MessageNode: React.FC<MessageNodeProps> = ({ data, selected }) => {
       <div className="p-4">
         <div className="text-sm text-gray-900 leading-relaxed mb-3 break-words">
           {message.type === 'assistant' ? (
-            <div className="prose prose-sm max-w-none prose-gray">
+            <div className="prose prose-sm max-w-none prose-gray pointer-events-none">
               <ReactMarkdown 
                 components={{
                   p: ({children}) => <p className="mb-1 last:mb-0">{children}</p>,
