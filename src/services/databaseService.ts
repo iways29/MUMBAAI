@@ -356,4 +356,35 @@ export class DatabaseService {
       )
       .subscribe();
   }
+
+  // PRO INTEREST TRACKING
+
+  static async trackProInterestEvent(
+    eventType: 'button_click' | 'modal_open' | 'confirmed_interest' | 'dismissed',
+    metadata?: Record<string, unknown>
+  ): Promise<boolean> {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+
+      const { error } = await supabase
+        .from('pro_interest_events')
+        .insert({
+          user_id: user.user?.id || null,
+          event_type: eventType,
+          metadata: metadata || {},
+          user_agent: navigator.userAgent,
+          timestamp: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Error tracking pro interest event:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error tracking pro interest event:', error);
+      return false;
+    }
+  }
 }
