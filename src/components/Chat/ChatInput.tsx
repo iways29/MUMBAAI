@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowUp, History, Sparkles } from 'lucide-react';
+import { ArrowUp, History, Sparkles, Plus } from 'lucide-react';
 import { Message } from '../../types/conversation.ts';
 import { MessageHelpers } from '../../utils/messageHelpers.ts';
 import { LLMSelector } from './LLMSelector.tsx';
@@ -18,6 +18,8 @@ interface ChatInputProps {
   isMultiSelectMode?: boolean;
   onPerformMerge?: (customPrompt?: string) => void;
   mergeCount?: number;
+  // New tree prop
+  onStartNewTree?: () => void;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
@@ -32,7 +34,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   onModelChange,
   isMultiSelectMode = false,
   onPerformMerge,
-  mergeCount = 0
+  mergeCount = 0,
+  onStartNewTree
 }) => {
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const isInMergeMode = isMultiSelectMode;
@@ -158,13 +161,29 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             {mergeCount} nodes selected • Enter prompt above or use template buttons in flow panel
           </span>
         </div>
-      ) : selectedMessageId && currentMessage && (
-        <div className="mt-3 text-xs text-gray-500 flex items-center gap-2 px-2">
-          <History size={12} />
-          <span>Replying to:</span>
-          <span className="text-gray-700 font-medium">
-            {MessageHelpers.truncateText(currentMessage.content, 60)}
-          </span>
+      ) : selectedMessageId && currentMessage ? (
+        <div className="mt-3 text-xs text-gray-500 flex items-center justify-between px-2">
+          <div className="flex items-center gap-2">
+            <History size={12} />
+            <span>Replying to:</span>
+            <span className="text-gray-700 font-medium">
+              {MessageHelpers.truncateText(currentMessage.content, 50)}
+            </span>
+          </div>
+          {onStartNewTree && (
+            <button
+              onClick={onStartNewTree}
+              className="flex items-center gap-1 px-2 py-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+              title="Start a new conversation tree"
+            >
+              <Plus size={12} />
+              <span>New Tree</span>
+            </button>
+          )}
+        </div>
+      ) : onStartNewTree && (
+        <div className="mt-3 text-xs text-gray-500 flex items-center justify-between px-2">
+          <span className="text-gray-400">Starting a new conversation tree</span>
         </div>
       )}
     </div>

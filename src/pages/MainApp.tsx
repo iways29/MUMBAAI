@@ -317,6 +317,10 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
               onPerformMerge={messageOps.performCustomMerge}
               mergeCount={messageOps.getEffectiveMergeCount()}
               streamingContent={messageOps.streamingContent}
+              onStartNewTree={() => {
+                setSelectedMessageId('');
+                setSelectedNodes(new Set());
+              }}
             />
           </ErrorBoundary>
         )}
