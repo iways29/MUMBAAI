@@ -69,9 +69,31 @@ export const MessageNode: React.FC<MessageNodeProps> = ({ data, selected }) => {
                 <Bot size={14} className="text-white" />
               )}
             </div>
-            <span className="text-base font-semibold text-gray-900">
-              {message.type === 'user' ? 'You' : 'Assistant'}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-base font-semibold text-gray-900">
+                {message.type === 'user' ? 'You' : 'Assistant'}
+              </span>
+              {message.type === 'assistant' && message.model && (
+                <span className="text-xs text-gray-500">
+                  {message.model.includes('claude') ? 'Claude' :
+                   message.model.includes('gpt') ? 'GPT' :
+                   message.model.includes('gemini') ? 'Gemini' : message.model}
+                  {' · '}
+                  {message.model.includes('haiku') ? 'Haiku' :
+                   message.model.includes('sonnet') ? 'Sonnet' :
+                   message.model.includes('opus') ? 'Opus' :
+                   message.model.includes('5-mini') ? '5 Mini' :
+                   message.model.includes('4.1-mini') ? '4.1 Mini' :
+                   message.model.includes('4o-mini') ? '4o Mini' :
+                   message.model.includes('gpt-5') ? '5' :
+                   message.model.includes('gpt-4.1') ? '4.1' :
+                   message.model.includes('gpt-4o') ? '4o' :
+                   message.model.includes('2.5-flash') ? '2.5 Flash' :
+                   message.model.includes('1.5-flash') ? '1.5 Flash' :
+                   message.model}
+                </span>
+              )}
+            </div>
           </div>
           <span className="text-xs text-gray-800 flex-shrink-0">
             {MessageHelpers.formatTimestamp(message.timestamp)}

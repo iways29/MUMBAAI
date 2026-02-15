@@ -96,6 +96,25 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
                 <span className={`text-xs font-medium ${message.type === 'user' ? 'opacity-90' : 'opacity-70'}`}>
                   {message.type === 'user' ? 'You' : 'Assistant'}
                 </span>
+                {message.type === 'assistant' && message.model && (
+                  <span className="text-xs opacity-50">
+                    · {message.model.includes('claude') ? 'Claude' :
+                       message.model.includes('gpt') ? 'GPT' :
+                       message.model.includes('gemini') ? 'Gemini' : ''}
+                    {' '}
+                    {message.model.includes('haiku') ? 'Haiku' :
+                     message.model.includes('sonnet') ? 'Sonnet' :
+                     message.model.includes('opus') ? 'Opus' :
+                     message.model.includes('5-mini') ? '5 Mini' :
+                     message.model.includes('4.1-mini') ? '4.1 Mini' :
+                     message.model.includes('4o-mini') ? '4o Mini' :
+                     message.model.includes('gpt-5') ? '5' :
+                     message.model.includes('gpt-4.1') ? '4.1' :
+                     message.model.includes('gpt-4o') ? '4o' :
+                     message.model.includes('2.5-flash') ? '2.5 Flash' :
+                     message.model.includes('1.5-flash') ? '1.5 Flash' : ''}
+                  </span>
+                )}
                 <span className={`text-xs opacity-60 flex-shrink-0 ${message.type === 'user' ? 'ml-auto' : ''}`}>
                   {MessageHelpers.formatTimestamp(message.timestamp)}
                 </span>

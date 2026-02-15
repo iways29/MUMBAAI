@@ -71,7 +71,7 @@ export const useMessageOperations = ({
       setStreamingContent('');
 
       // Now that stream is complete, create the final message and add to tree
-      const assistantMessage = MessageHelpers.createMessage('assistant', aiResponse);
+      const assistantMessage = MessageHelpers.createMessage('assistant', aiResponse, { model: selectedModel });
 
       // Add AI response to tree ONLY after stream completes
       addMessage(activeConversation, userMessage.id, assistantMessage);
@@ -142,7 +142,8 @@ export const useMessageOperations = ({
       // Create the merged message node FIRST (before streaming starts)
       const mergedMessage = MessageHelpers.createMessage('assistant', '', {
         mergedFrom: effectiveMergeNodes,
-        isMergeRoot: true
+        isMergeRoot: true,
+        model: selectedModel
       });
 
       // Add empty merged message to tree and navigate to it BEFORE streaming
@@ -187,7 +188,8 @@ export const useMessageOperations = ({
       if (parentMessage) {
         const fallbackMessage = MessageHelpers.createMessage('assistant', fallbackContent, {
           mergedFrom: effectiveMergeNodes,
-          isMergeRoot: true
+          isMergeRoot: true,
+          model: selectedModel
         });
         addMessage(activeConversation, parentMessage.id, fallbackMessage);
         onMessageSent?.(fallbackMessage.id);

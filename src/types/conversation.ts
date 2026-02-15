@@ -7,6 +7,7 @@ export interface Message {
     children: Message[];
     mergedFrom?: string[];
     isMergeRoot?: boolean;
+    model?: string;
   }
   
   export interface Conversation {

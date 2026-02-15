@@ -99,6 +99,7 @@ export const MessageHelpers = {
     options: {
       mergedFrom?: string[];
       isMergeRoot?: boolean;
+      model?: string;
     } = {}
   ): Message {
     return {
