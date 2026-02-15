@@ -41,7 +41,7 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
   const [chatViewMode, setChatViewMode] = useState<'combined' | 'flow'>('combined');
 
   // Selected AI model state
-  const [selectedModel, setSelectedModel] = useState<string>('gemini-2.5-flash');
+  const [selectedModel, setSelectedModel] = useState<string>('claude-3-5-haiku-20241022');
 
   // Flow elements with proper change handling
   const flowElements = useFlowElements(
