@@ -83,7 +83,7 @@ export const MessageNode: React.FC<MessageNodeProps> = ({ data, selected }) => {
       <div className="p-4">
         <div className="text-sm text-gray-900 leading-relaxed mb-3 break-words">
           {message.type === 'assistant' ? (
-            <div className="prose prose-sm max-w-none prose-gray">
+            <div className="prose prose-sm max-w-none prose-gray pointer-events-none">
               <ReactMarkdown 
                 components={{
                   p: ({children}) => <p className="mb-1 last:mb-0">{children}</p>,
