@@ -4,6 +4,39 @@ import ReactMarkdown from 'react-markdown';
 import { Message } from '../../types/conversation.ts';
 import { MessageHelpers } from '../../utils/messageHelpers.ts';
 import { ThinkingIndicator } from '../UI/LoadingSpinner.tsx';
+import { ReactComponent as AnthropicIcon } from '../../assets/anthropic.svg';
+import { ReactComponent as OpenAIIcon } from '../../assets/openai.svg';
+import { ReactComponent as GoogleIcon } from '../../assets/google-gemini.svg';
+
+// Helper to get model display info
+const getModelInfo = (model: string | undefined) => {
+  if (!model) return null;
+
+  if (model.includes('claude')) {
+    const variant = model.includes('haiku') ? 'Haiku' :
+                    model.includes('sonnet') ? 'Sonnet' :
+                    model.includes('opus') ? 'Opus' : '';
+    return { provider: 'Claude', variant, icon: AnthropicIcon, color: 'text-[#8B5A2B]' };
+  }
+
+  if (model.includes('gpt')) {
+    const variant = model.includes('5-mini') ? '5 Mini' :
+                    model.includes('4.1-mini') ? '4.1 Mini' :
+                    model.includes('4o-mini') ? '4o Mini' :
+                    model.includes('gpt-5') ? '5' :
+                    model.includes('gpt-4.1') ? '4.1' :
+                    model.includes('gpt-4o') ? '4o' : '';
+    return { provider: 'GPT', variant, icon: OpenAIIcon, color: 'text-[#10A37F]' };
+  }
+
+  if (model.includes('gemini')) {
+    const variant = model.includes('2.5-flash') ? '2.5 Flash' :
+                    model.includes('1.5-flash') ? '1.5 Flash' : '';
+    return { provider: 'Gemini', variant, icon: GoogleIcon, color: 'text-[#4285F4]' };
+  }
+
+  return null;
+};
 
 interface MessageThreadProps {
   messages: Message[];
@@ -90,31 +123,25 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
               <div className="flex items-center gap-2 mb-2">
                 {message.type === 'user' ? (
                   <User size={14} className="opacity-80 flex-shrink-0" />
-                ) : (
-                  <Bot size={14} className="opacity-70 flex-shrink-0" />
-                )}
+                ) : (() => {
+                  const modelInfo = getModelInfo(message.model);
+                  return modelInfo ? (
+                    <modelInfo.icon width={14} height={14} className={`flex-shrink-0 ${modelInfo.color}`} />
+                  ) : (
+                    <Bot size={14} className="opacity-70 flex-shrink-0" />
+                  );
+                })()}
                 <span className={`text-xs font-medium ${message.type === 'user' ? 'opacity-90' : 'opacity-70'}`}>
                   {message.type === 'user' ? 'You' : 'Assistant'}
                 </span>
-                {message.type === 'assistant' && message.model && (
-                  <span className="text-xs opacity-50">
-                    · {message.model.includes('claude') ? 'Claude' :
-                       message.model.includes('gpt') ? 'GPT' :
-                       message.model.includes('gemini') ? 'Gemini' : ''}
-                    {' '}
-                    {message.model.includes('haiku') ? 'Haiku' :
-                     message.model.includes('sonnet') ? 'Sonnet' :
-                     message.model.includes('opus') ? 'Opus' :
-                     message.model.includes('5-mini') ? '5 Mini' :
-                     message.model.includes('4.1-mini') ? '4.1 Mini' :
-                     message.model.includes('4o-mini') ? '4o Mini' :
-                     message.model.includes('gpt-5') ? '5' :
-                     message.model.includes('gpt-4.1') ? '4.1' :
-                     message.model.includes('gpt-4o') ? '4o' :
-                     message.model.includes('2.5-flash') ? '2.5 Flash' :
-                     message.model.includes('1.5-flash') ? '1.5 Flash' : ''}
-                  </span>
-                )}
+                {message.type === 'assistant' && (() => {
+                  const modelInfo = getModelInfo(message.model);
+                  return modelInfo ? (
+                    <span className={`text-xs font-medium ${modelInfo.color}`}>
+                      · {modelInfo.provider} {modelInfo.variant}
+                    </span>
+                  ) : null;
+                })()}
                 <span className={`text-xs opacity-60 flex-shrink-0 ${message.type === 'user' ? 'ml-auto' : ''}`}>
                   {MessageHelpers.formatTimestamp(message.timestamp)}
                 </span>
