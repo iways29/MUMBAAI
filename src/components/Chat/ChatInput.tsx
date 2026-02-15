@@ -34,6 +34,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   onPerformMerge,
   mergeCount = 0
 }) => {
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const isInMergeMode = isMultiSelectMode;
   const canPerformAction = isInMergeMode ? 
     (!isLoading && inputText.trim().length > 0) : 
@@ -58,6 +59,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         } else {
           onSendMessage();
         }
+        // Keep focus on textarea after sending
+        setTimeout(() => textareaRef.current?.focus(), 0);
       }
     }
   };
@@ -68,6 +71,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     } else {
       onSendMessage();
     }
+    // Keep focus on textarea after clicking send button
+    setTimeout(() => textareaRef.current?.focus(), 0);
   };
 
   const getPlaceholderText = () => {
@@ -98,6 +103,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       }`}>
         <div className="flex items-end gap-3">
           <textarea
+            ref={textareaRef}
             value={inputText}
             onChange={(e) => onInputChange(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -105,6 +111,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             className="flex-1 bg-transparent text-gray-900 placeholder-gray-500 text-sm resize-none min-h-[24px] max-h-32 overflow-y-auto outline-none border-none p-0"
             disabled={isLoading}
             rows={1}
+            autoFocus
             style={{
               height: 'auto',
               minHeight: '24px'
