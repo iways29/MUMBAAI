@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ArrowLeft, Edit3, User, Plus } from 'lucide-react';
+import { ProInterestButton } from '../UI/ProInterestButton.tsx';
 
 // Updated interface to include profile button props
 interface FloatingToolbarProps {
@@ -192,6 +193,9 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
               </>
             )}
             
+            {/* Pro Interest Button */}
+            <ProInterestButton large={isConversationsPage} />
+
             {/* User Profile Button - Show when enabled */}
             {showProfileButton && onProfileClick && (
               <button
