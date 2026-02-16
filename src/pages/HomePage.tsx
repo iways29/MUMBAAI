@@ -25,10 +25,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
         <nav className="relative z-20 px-8 py-6">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/25">
-                <Layers size={22} className="text-white" />
-              </div>
-              <span className="text-xl font-bold text-stone-800">MUMBAAI</span>
+              <span className="text-2xl sm:text-3xl font-bold text-stone-800 tracking-tight">MUMBAAI</span>
             </div>
             <button
               onClick={onGetStarted}
@@ -54,11 +51,16 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
             </div>
 
             {/* Main Headline */}
-            <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold text-stone-800 mb-6 leading-[1.1] tracking-tight">
-              AI Conversations
-              <br />
+            <div className="flex justify-center mb-6">
+              <div className="inline-flex items-center px-6 py-3 bg-white/70 backdrop-blur-md border border-white/50 rounded-2xl shadow-lg shadow-teal-100/50">
+                <p className="text-xl sm:text-2xl md:text-3xl text-stone-600 font-semibold tracking-tight">
+                  The future of AI conversation is here
+                </p>
+              </div>
+            </div>
+            <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-6 leading-[1.1] tracking-tight">
               <span className="bg-gradient-to-r from-teal-500 via-teal-600 to-emerald-500 bg-clip-text text-transparent">
-                That Actually Branch
+                Never Lose a Thought Again
               </span>
             </h1>
 
@@ -254,95 +256,191 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
         </div>
       </section>
 
-      {/* Roadmap Section */}
-      <section className="py-20 px-8 bg-stone-50">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="text-sm font-medium text-teal-600 mb-2">Our Development Journey</div>
-            <h2 className="text-3xl font-bold text-stone-800">Product Roadmap</h2>
+      {/* Roadmap Section - Editorial Journey Map */}
+      <section className="py-24 px-8 bg-gradient-to-b from-stone-50 via-white to-stone-50 overflow-hidden">
+        <style>{`
+          @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+          }
+          .roadmap-active-border {
+            background: linear-gradient(135deg, #14b8a6, #10b981, #0d9488, #14b8a6);
+            background-size: 300% 300%;
+            animation: gradient-shift 4s ease infinite;
+          }
+          @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 0.4; }
+            100% { transform: scale(1); opacity: 0.8; }
+          }
+          .roadmap-pulse {
+            animation: pulse-ring 2s ease-in-out infinite;
+          }
+        `}</style>
+
+        <div className="max-w-6xl mx-auto">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-teal-50 border border-teal-100 rounded-full mb-4">
+              <div className="w-1.5 h-1.5 bg-teal-500 rounded-full" />
+              <span className="text-sm font-medium text-teal-700 tracking-wide">Building in Public</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-stone-800 tracking-tight mb-4">
+              Our Journey
+            </h2>
+            <p className="text-lg text-stone-500 max-w-xl mx-auto">
+              From concept to enterprise — here's where we are and where we're headed
+            </p>
           </div>
 
-          {/* Simplified Timeline */}
-          <div className="space-y-6">
-            {/* Phase 1 */}
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-teal-500/25">
-                <CheckCircle size={24} className="text-white" />
+          {/* Progress Bar */}
+          <div className="relative max-w-4xl mx-auto mb-16">
+            <div className="h-1 bg-stone-200 rounded-full overflow-hidden">
+              <div className="h-full w-[30%] bg-gradient-to-r from-teal-500 via-emerald-500 to-teal-400 rounded-full relative">
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white border-2 border-teal-500 rounded-full shadow-lg shadow-teal-500/30" />
               </div>
-              <div className="flex-1 bg-white rounded-xl p-4 border border-stone-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-bold text-stone-800">Phase 1: POC</h4>
-                    <p className="text-sm text-stone-500">Concept validation & internal demo</p>
+            </div>
+            <div className="flex justify-between mt-3 px-1">
+              <span className="text-xs font-medium text-teal-600">POC</span>
+              <span className="text-xs font-bold text-teal-600">MVP</span>
+              <span className="text-xs text-stone-400">Growth</span>
+              <span className="text-xs text-stone-400">Advanced</span>
+              <span className="text-xs text-stone-400">Enterprise</span>
+            </div>
+          </div>
+
+          {/* Roadmap Cards - Staggered Grid */}
+          <div className="grid md:grid-cols-5 gap-4 md:gap-3">
+
+            {/* Phase 1: POC - Completed */}
+            <div className="group relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-teal-100 to-emerald-100 rounded-2xl transform rotate-1 group-hover:rotate-2 transition-transform" />
+              <div className="relative bg-white rounded-2xl p-5 border border-teal-100 shadow-sm hover:shadow-md transition-all">
+                {/* Status indicator */}
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs font-bold text-teal-600 tracking-wider uppercase">Phase 1</span>
+                  <div className="flex items-center gap-1.5 text-teal-600">
+                    <CheckCircle size={14} />
+                    <span className="text-xs font-medium">Done</span>
                   </div>
-                  <span className="text-xs font-medium text-teal-600 bg-teal-50 px-2 py-1 rounded-full">Completed</span>
+                </div>
+                {/* Content */}
+                <h4 className="text-lg font-bold text-stone-800 mb-2">POC</h4>
+                <p className="text-sm text-stone-500 leading-relaxed mb-4">
+                  Concept validation & internal demo
+                </p>
+                {/* Decorative dots */}
+                <div className="flex gap-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-teal-300" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-teal-400" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-teal-500" />
                 </div>
               </div>
             </div>
 
-            {/* Phase 2 */}
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl flex items-center justify-center flex-shrink-0 ring-4 ring-teal-100 shadow-lg shadow-teal-500/25">
-                <Layers size={24} className="text-white" />
-              </div>
-              <div className="flex-1 bg-gradient-to-r from-teal-500 to-teal-600 rounded-xl p-4 text-white shadow-lg shadow-teal-500/25">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-bold">Phase 2: MVP</h4>
-                    <p className="text-sm text-teal-100">Real users, personal storage, smart merge</p>
+            {/* Phase 2: MVP - Current */}
+            <div className="group relative md:col-span-1 md:-mt-2">
+              {/* Animated gradient border */}
+              <div className="absolute -inset-[2px] roadmap-active-border rounded-2xl roadmap-pulse" />
+              <div className="relative bg-gradient-to-br from-teal-500 via-teal-600 to-emerald-600 rounded-2xl p-5 shadow-xl shadow-teal-500/25">
+                {/* Status indicator */}
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs font-bold text-teal-100 tracking-wider uppercase">Phase 2</span>
+                  <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                    </span>
+                    <span className="text-xs font-bold text-white">Now</span>
                   </div>
-                  <span className="text-xs font-medium bg-white text-teal-600 px-2 py-1 rounded-full">You are here</span>
+                </div>
+                {/* Content */}
+                <h4 className="text-xl font-bold text-white mb-2">MVP</h4>
+                <p className="text-sm text-teal-100 leading-relaxed mb-4">
+                  Real users, personal storage, smart merge
+                </p>
+                {/* Progress mini-bar */}
+                <div className="h-1 bg-white/20 rounded-full overflow-hidden">
+                  <div className="h-full w-2/3 bg-white rounded-full" />
                 </div>
               </div>
             </div>
 
-            {/* Phase 3 */}
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-stone-100 rounded-xl flex items-center justify-center flex-shrink-0 border border-stone-200">
-                <Clock size={24} className="text-stone-400" />
-              </div>
-              <div className="flex-1 bg-white rounded-xl p-4 border border-stone-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-bold text-stone-800">Phase 3: Post-Funding</h4>
-                    <p className="text-sm text-stone-500">Subscriptions, improved UI, custom models</p>
+            {/* Phase 3: Post-Funding - Planned */}
+            <div className="group relative">
+              <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-stone-200 hover:border-amber-200 hover:bg-amber-50/30 transition-all">
+                {/* Status indicator */}
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs font-bold text-stone-400 tracking-wider uppercase">Phase 3</span>
+                  <div className="flex items-center gap-1.5 text-amber-500">
+                    <Clock size={14} />
+                    <span className="text-xs font-medium">Next</span>
                   </div>
-                  <span className="text-xs font-medium text-stone-500 bg-stone-100 px-2 py-1 rounded-full">Planned</span>
+                </div>
+                {/* Content */}
+                <h4 className="text-lg font-bold text-stone-700 mb-2">Growth</h4>
+                <p className="text-sm text-stone-400 leading-relaxed mb-4">
+                  Subscriptions, improved UI, custom models
+                </p>
+                {/* Locked indicator */}
+                <div className="flex items-center gap-2 text-stone-300">
+                  <div className="h-px flex-1 bg-stone-200" />
+                  <span className="text-xs">Q3 2025</span>
+                  <div className="h-px flex-1 bg-stone-200" />
                 </div>
               </div>
             </div>
 
-            {/* Phase 4 */}
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-stone-100 rounded-xl flex items-center justify-center flex-shrink-0 border border-stone-200">
-                <GitBranch size={24} className="text-stone-400" />
-              </div>
-              <div className="flex-1 bg-white rounded-xl p-4 border border-stone-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-bold text-stone-800">Phase 4: Advanced</h4>
-                    <p className="text-sm text-stone-500">Deep research, artifacts, MCP connectors</p>
-                  </div>
-                  <span className="text-xs font-medium text-stone-500 bg-stone-100 px-2 py-1 rounded-full">Future</span>
+            {/* Phase 4: Advanced - Future */}
+            <div className="group relative">
+              <div className="relative bg-stone-50/80 backdrop-blur-sm rounded-2xl p-5 border border-stone-150 hover:border-stone-300 transition-all opacity-80 hover:opacity-100">
+                {/* Status indicator */}
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs font-bold text-stone-300 tracking-wider uppercase">Phase 4</span>
+                  <GitBranch size={14} className="text-stone-300" />
+                </div>
+                {/* Content */}
+                <h4 className="text-lg font-bold text-stone-500 mb-2">Advanced</h4>
+                <p className="text-sm text-stone-400 leading-relaxed mb-4">
+                  Deep research, artifacts, MCP connectors
+                </p>
+                {/* Locked indicator */}
+                <div className="flex items-center gap-2 text-stone-300">
+                  <div className="h-px flex-1 bg-stone-200" />
+                  <span className="text-xs">2026</span>
+                  <div className="h-px flex-1 bg-stone-200" />
                 </div>
               </div>
             </div>
 
-            {/* Phase 5 */}
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-stone-100 rounded-xl flex items-center justify-center flex-shrink-0 border border-stone-200">
-                <Building size={24} className="text-stone-400" />
-              </div>
-              <div className="flex-1 bg-white rounded-xl p-4 border border-stone-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-bold text-stone-800">Phase 5: Enterprise</h4>
-                    <p className="text-sm text-stone-500">Integrations, priority support, security</p>
-                  </div>
-                  <span className="text-xs font-medium text-stone-500 bg-stone-100 px-2 py-1 rounded-full">Future</span>
+            {/* Phase 5: Enterprise - Future */}
+            <div className="group relative">
+              <div className="relative bg-stone-50/60 backdrop-blur-sm rounded-2xl p-5 border border-stone-100 hover:border-stone-200 transition-all opacity-60 hover:opacity-90">
+                {/* Status indicator */}
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs font-bold text-stone-300 tracking-wider uppercase">Phase 5</span>
+                  <Building size={14} className="text-stone-300" />
+                </div>
+                {/* Content */}
+                <h4 className="text-lg font-bold text-stone-400 mb-2">Enterprise</h4>
+                <p className="text-sm text-stone-300 leading-relaxed mb-4">
+                  Integrations, priority support, security
+                </p>
+                {/* Locked indicator */}
+                <div className="flex items-center gap-2 text-stone-200">
+                  <div className="h-px flex-1 bg-stone-150" />
+                  <span className="text-xs">2026+</span>
+                  <div className="h-px flex-1 bg-stone-150" />
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Bottom CTA */}
+          <div className="text-center mt-12">
+            <p className="text-sm text-stone-500">
+              Want to influence our roadmap? <button className="text-teal-600 font-medium hover:text-teal-700 underline underline-offset-2">Share your feedback</button>
+            </p>
           </div>
         </div>
       </section>
