@@ -22,10 +22,11 @@ export const ProInterestButton: React.FC<ProInterestButtonProps> = ({ className 
     }
   }, []);
 
-  const handleButtonClick = async () => {
-    await DatabaseService.trackProInterestEvent('button_click');
+  const handleButtonClick = () => {
+    // Fire tracking events without blocking UI
+    DatabaseService.trackProInterestEvent('button_click');
     setIsModalOpen(true);
-    await DatabaseService.trackProInterestEvent('modal_open');
+    DatabaseService.trackProInterestEvent('modal_open');
   };
 
   const handleConfirmInterest = async () => {
@@ -40,8 +41,9 @@ export const ProInterestButton: React.FC<ProInterestButtonProps> = ({ className 
     setIsConfirmed(true);
   };
 
-  const handleDismiss = async () => {
-    await DatabaseService.trackProInterestEvent('dismissed');
+  const handleDismiss = () => {
+    // Fire tracking without blocking UI
+    DatabaseService.trackProInterestEvent('dismissed');
     setIsClosing(true);
     setTimeout(() => {
       setIsModalOpen(false);
@@ -86,19 +88,19 @@ export const ProInterestButton: React.FC<ProInterestButtonProps> = ({ className 
           font-size: 13px;
           font-weight: 500;
           letter-spacing: 0.01em;
-          color: #1a1a1a;
-          background: linear-gradient(135deg, #faf9f7 0%, #f5f3ef 100%);
-          border: 1px solid #e8e4dc;
+          color: #1e40af;
+          background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+          border: 1px solid #bfdbfe;
           border-radius: 6px;
           cursor: pointer;
           transition: all 0.2s ease;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+          box-shadow: 0 1px 4px rgba(59, 130, 246, 0.1);
         }
 
         .pro-btn:hover {
-          background: linear-gradient(135deg, #f5f3ef 0%, #ebe7df 100%);
-          border-color: #d4cfc3;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+          background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+          border-color: #93c5fd;
+          box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
           transform: translateY(-1px);
         }
 
@@ -111,16 +113,23 @@ export const ProInterestButton: React.FC<ProInterestButtonProps> = ({ className 
           font-size: 15px;
           gap: 10px;
           border-radius: 10px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          color: #1e40af;
+          background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+          border: 1px solid #bfdbfe;
+          box-shadow: 0 2px 12px rgba(59, 130, 246, 0.15);
         }
 
         .pro-btn.pro-btn-large .pro-badge {
           padding: 4px 10px;
           font-size: 10px;
+          color: #ffffff;
+          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
         }
 
         .pro-btn.pro-btn-large:hover {
-          box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+          background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+          border-color: #93c5fd;
+          box-shadow: 0 6px 20px rgba(59, 130, 246, 0.25);
           transform: translateY(-2px);
         }
 
@@ -133,8 +142,8 @@ export const ProInterestButton: React.FC<ProInterestButtonProps> = ({ className 
           font-weight: 600;
           letter-spacing: 0.05em;
           text-transform: uppercase;
-          color: #8b7355;
-          background: linear-gradient(135deg, #f0ebe3 0%, #e8e0d4 100%);
+          color: #ffffff;
+          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
           border-radius: 3px;
         }
 
