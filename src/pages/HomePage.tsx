@@ -1,5 +1,8 @@
 import React from 'react';
-import { CheckCircle, Clock, Building, Play, Star, Lock, Layers, GitBranch, Combine } from 'lucide-react';
+import { CheckCircle, Clock, Building, Play, Lock, Layers, GitBranch, Combine } from 'lucide-react';
+import { ReactComponent as AnthropicIcon } from '../assets/anthropic.svg';
+import { ReactComponent as OpenAIIcon } from '../assets/openai.svg';
+import { ReactComponent as GoogleIcon } from '../assets/google-gemini.svg';
 
 interface HomePageProps {
   onGetStarted: () => void;
@@ -129,27 +132,42 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
               </div>
             </div>
 
-            {/* Trust Indicators */}
-            <div className="mt-12 flex flex-wrap justify-center items-center gap-6 sm:gap-10 text-sm text-stone-500">
-              <div className="flex items-center gap-2">
-                <div className="flex -space-x-2">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <div
-                      key={i}
-                      className="w-8 h-8 rounded-full border-2 border-white shadow-sm"
-                      style={{ backgroundColor: ['#99f6e4', '#fcd34d', '#fda4af', '#a5f3fc', '#d8b4fe'][i-1] }}
-                    />
-                  ))}
+            {/* Value Props - Authentic MVP Benefits */}
+            <div className="mt-12 flex flex-wrap justify-center items-center gap-3">
+              {/* Free Beta Badge */}
+              <div className="group flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/60 rounded-full hover:border-emerald-300 transition-all cursor-default">
+                <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
+                  <span className="text-emerald-600 text-xs">✓</span>
                 </div>
-                <span className="font-medium text-stone-700">Early adopters</span>
+                <span className="text-sm font-medium text-emerald-700">Free during beta</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <Star className="text-amber-400 fill-amber-400" size={18} />
-                <span className="font-medium text-stone-700">4.9/5 rating</span>
+
+              {/* Multi-Model Support */}
+              <div className="group flex items-center gap-2.5 px-4 py-2 bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-200/60 rounded-full hover:border-teal-300 transition-all cursor-default">
+                <div className="flex items-center -space-x-1.5">
+                  <div className="w-5 h-5 rounded-full bg-white border border-stone-200 flex items-center justify-center shadow-sm">
+                    <AnthropicIcon width={12} height={12} />
+                  </div>
+                  <div className="w-5 h-5 rounded-full bg-white border border-stone-200 flex items-center justify-center shadow-sm">
+                    <OpenAIIcon width={12} height={12} />
+                  </div>
+                  <div className="w-5 h-5 rounded-full bg-white border border-stone-200 flex items-center justify-center shadow-sm">
+                    <GoogleIcon width={12} height={12} />
+                  </div>
+                </div>
+                <span className="text-sm font-medium text-teal-700">Use Any Model</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <GitBranch size={18} className="text-teal-600" />
-                <span className="font-medium text-stone-700">10K+ branches created</span>
+
+              {/* Unlimited Branches */}
+              <div className="group flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60 rounded-full hover:border-amber-300 transition-all cursor-default">
+                <GitBranch size={14} className="text-amber-600" />
+                <span className="text-sm font-medium text-amber-700">Unlimited branches</span>
+              </div>
+
+              {/* No Credit Card */}
+              <div className="group flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-stone-50 to-stone-100 border border-stone-200/60 rounded-full hover:border-stone-300 transition-all cursor-default">
+                <Lock size={12} className="text-stone-500" />
+                <span className="text-sm font-medium text-stone-600">No credit card</span>
               </div>
             </div>
           </div>
@@ -575,7 +593,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
                 {/* Locked indicator */}
                 <div className="flex items-center gap-2 text-stone-300">
                   <div className="h-px flex-1 bg-stone-200" />
-                  <span className="text-xs">Q3 2025</span>
+                  <span className="text-xs">Q3 2026</span>
                   <div className="h-px flex-1 bg-stone-200" />
                 </div>
               </div>
@@ -597,7 +615,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
                 {/* Locked indicator */}
                 <div className="flex items-center gap-2 text-stone-300">
                   <div className="h-px flex-1 bg-stone-200" />
-                  <span className="text-xs">2026</span>
+                  <span className="text-xs">2026+</span>
                   <div className="h-px flex-1 bg-stone-200" />
                 </div>
               </div>
@@ -656,10 +674,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
       {/* Footer */}
       <footer className="py-8 px-8 border-t border-stone-100 bg-stone-50">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-stone-500">
-          <div className="flex items-center gap-2">
-            <Layers size={16} className="text-teal-500" />
-            <span className="font-medium text-stone-700">MUMBAAI</span>
-          </div>
+          <span className="font-medium text-stone-700">MUMBAAI</span>
           <p>Building the future of conversational AI</p>
         </div>
       </footer>
