@@ -3,6 +3,7 @@ import { CheckCircle, Clock, Building, Play, Lock, Layers, GitBranch, Combine } 
 import { ReactComponent as AnthropicIcon } from '../assets/anthropic.svg';
 import { ReactComponent as OpenAIIcon } from '../assets/openai.svg';
 import { ReactComponent as GoogleIcon } from '../assets/google-gemini.svg';
+import { FeedbackForm } from '../components/FeedbackForm.tsx';
 
 interface HomePageProps {
   onGetStarted: () => void;
@@ -647,11 +648,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
           {/* Bottom CTA */}
           <div className="text-center mt-12">
             <p className="text-sm text-stone-500">
-              Want to influence our roadmap? <button className="text-[#FF8811] font-medium hover:text-[#c96d0e] underline underline-offset-2">Share your feedback</button>
+              Want to influence our roadmap? <a href="#feedback" className="text-[#FF8811] font-medium hover:text-[#c96d0e] underline underline-offset-2">Share your feedback</a>
             </p>
           </div>
         </div>
       </section>
+
+      {/* Feedback Form Section */}
+      <FeedbackForm id="feedback" />
 
       {/* CTA Section */}
       <section className="py-20 px-8 bg-white">
