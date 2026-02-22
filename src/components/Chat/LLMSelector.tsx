@@ -23,18 +23,11 @@ const llmProviders: LLMProvider[] = [
     icon: <AnthropicIcon width={20} height={20} />,
     models: [
       {
-        id: 'claude-3-5-haiku-20241022',
-        name: 'Claude 3.5 Haiku',
-        provider: 'Anthropic',
-        description: 'Fast and efficient Claude model',
-        enabled: true
-      },
-      {
         id: 'claude-3-7-sonnet-20250219',
         name: 'Claude 3.7 Sonnet',
         provider: 'Anthropic',
         description: 'Enhanced reasoning and analysis',
-        enabled: false
+        enabled: true
       },
       {
         id: 'claude-sonnet-4-20250514',
