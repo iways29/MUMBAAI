@@ -4,6 +4,7 @@ import { Conversation, Message } from '../types/conversation';
 import { MessageHelpers } from '../utils/messageHelpers.ts';
 import { DatabaseService } from '../services/databaseService.ts';
 import { useAuth } from './useAuth.ts';
+import GA4 from '../services/ga4Service.ts';
 
 export const useConversations = (initialConversations: Conversation[] = []) => {
   const { user } = useAuth();
@@ -44,8 +45,11 @@ export const useConversations = (initialConversations: Conversation[] = []) => {
   }, [conversations, activeConversation]);
 
   const createNewConversation = useCallback(async () => {
+    // Track conversation creation
+    GA4.createConversation();
+
     const tempName = `New Chat ${conversations.length + 1}`;
-    
+
     if (user) {
       // Create in database
       setSyncing(true);
@@ -103,6 +107,9 @@ export const useConversations = (initialConversations: Conversation[] = []) => {
   }, [user]);
 
   const deleteConversation = useCallback(async (id: string) => {
+    // Track conversation deletion
+    GA4.deleteConversation();
+
     // Update locally first
     setConversations(prev => {
       const filtered = prev.filter(conv => conv.id !== id);

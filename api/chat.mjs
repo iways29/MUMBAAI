@@ -115,7 +115,11 @@ export default async function handler(req, res) {
     } else {
       // Handle non-streaming requests (original behavior)
       const result = await LLMService.generateResponse(model, prompt);
-      res.status(200).json(result);
+      // Include usage info in response for client-side tracking
+      res.status(200).json({
+        ...result,
+        usage: result.usage || { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
+      });
     }
   } catch (error) {
     console.error('Error calling LLM API:', error);

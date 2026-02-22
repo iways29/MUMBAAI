@@ -34,7 +34,12 @@ export class AnthropicProvider {
       return {
         response: data.content[0].text,
         provider: 'anthropic',
-        model: model
+        model: model,
+        usage: {
+          promptTokens: data.usage?.input_tokens || 0,
+          completionTokens: data.usage?.output_tokens || 0,
+          totalTokens: (data.usage?.input_tokens || 0) + (data.usage?.output_tokens || 0)
+        }
       };
     } catch (error) {
       console.error('Anthropic API Error:', error);

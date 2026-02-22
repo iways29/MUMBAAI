@@ -41,10 +41,19 @@ export class GeminiProvider {
           .filter(Boolean)
           .join('\n') || 'No response';
 
+      // Gemini token counts are in usageMetadata
+      const promptTokens = data?.usageMetadata?.promptTokenCount || 0;
+      const completionTokens = data?.usageMetadata?.candidatesTokenCount || 0;
+
       return {
         response: text,
         provider: 'google',
         model: resolvedModel,
+        usage: {
+          promptTokens,
+          completionTokens,
+          totalTokens: promptTokens + completionTokens
+        }
       };
     } catch (error) {
       console.error('Gemini API Error:', error);

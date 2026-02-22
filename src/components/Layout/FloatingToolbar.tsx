@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ArrowLeft, Edit3, User, Plus } from 'lucide-react';
+import { ArrowLeft, Edit3, User, Plus, Shield } from 'lucide-react';
 import { ProInterestButton } from '../UI/ProInterestButton.tsx';
+import GA4 from '../../services/ga4Service.ts';
 
 // Updated interface to include profile button props
 interface FloatingToolbarProps {
@@ -18,6 +19,8 @@ interface FloatingToolbarProps {
   isConversationsPage?: boolean;
   showProfileButton?: boolean;
   onProfileClick?: () => void;
+  showAdminButton?: boolean;
+  onAdminClick?: () => void;
 }
 
 export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
@@ -34,7 +37,9 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
   onViewModeChange,
   isConversationsPage = false,
   showProfileButton = false,
-  onProfileClick
+  onProfileClick,
+  showAdminButton = false,
+  onAdminClick
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingName, setEditingName] = useState(conversationName);
@@ -169,7 +174,10 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
                 {showViewToggle && onViewModeChange && (
                   <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
                     <button
-                      onClick={() => onViewModeChange('combined')}
+                      onClick={() => {
+                        GA4.toggleViewMode('combined');
+                        onViewModeChange('combined');
+                      }}
                       className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
                         viewMode === 'combined'
                           ? 'bg-white text-gray-900 shadow-sm'
@@ -179,7 +187,10 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
                       Combined
                     </button>
                     <button
-                      onClick={() => onViewModeChange('flow')}
+                      onClick={() => {
+                        GA4.toggleViewMode('flow');
+                        onViewModeChange('flow');
+                      }}
                       className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
                         viewMode === 'flow'
                           ? 'bg-white text-gray-900 shadow-sm'
@@ -196,10 +207,28 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
             {/* Pro Interest Button */}
             <ProInterestButton large={isConversationsPage} />
 
+            {/* Admin Console Button - Show only for admins */}
+            {showAdminButton && onAdminClick && (
+              <button
+                onClick={() => {
+                  GA4.navigateAdmin();
+                  onAdminClick();
+                }}
+                className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                title="Admin Console"
+              >
+                <Shield size={16} />
+                Admin
+              </button>
+            )}
+
             {/* User Profile Button - Show when enabled */}
             {showProfileButton && onProfileClick && (
               <button
-                onClick={onProfileClick}
+                onClick={() => {
+                  GA4.navigateProfile();
+                  onProfileClick();
+                }}
                 className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                 title="User Profile"
               >

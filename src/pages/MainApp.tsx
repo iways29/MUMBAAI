@@ -18,9 +18,11 @@ import { usePanelManager } from '../components/Layout/PanelManager.tsx';
 
 interface MainAppProps {
   user: any;
+  isAdmin?: boolean;
+  onNavigateAdmin?: () => void;
 }
 
-export const MainApp: React.FC<MainAppProps> = ({ user }) => {
+export const MainApp: React.FC<MainAppProps> = ({ user, isAdmin = false, onNavigateAdmin }) => {
   // Core state management
   const conversationHook = useConversations([]);
   const panelManager = usePanelManager();
@@ -222,6 +224,8 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
           isConversationsPage={true}
           showProfileButton={true}
           onProfileClick={handleNavigateToProfile}
+          showAdminButton={isAdmin}
+          onAdminClick={onNavigateAdmin}
         />
         <div style={{ marginTop: '72px', height: 'calc(100vh - 72px)', overflowY: 'auto' }}>
           <ErrorBoundary
@@ -275,6 +279,8 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
         showViewToggle={true}
         viewMode={chatViewMode}
         onViewModeChange={setChatViewMode}
+        showAdminButton={isAdmin}
+        onAdminClick={onNavigateAdmin}
       />
       <div className="flex bg-gray-50" style={{ marginTop: '72px', height: 'calc(100vh - 72px)', overflow: 'hidden' }}>
         {/* Chat Panel - Only visible in Combined view */}

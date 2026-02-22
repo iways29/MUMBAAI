@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { Message } from '../types/conversation.ts';
 import { MessageHelpers } from '../utils/messageHelpers.ts';
 import { ApiService, MergeTemplate } from '../utils/api.ts';
+import GA4 from '../services/ga4Service.ts';
 
 interface UseMessageOperationsProps {
   activeConversation: string;
@@ -33,6 +34,9 @@ export const useMessageOperations = ({
 
   const sendMessage = useCallback(async () => {
     if (!inputText.trim() || !activeConversation) return;
+
+    // Track send message event
+    GA4.sendMessage(selectedModel);
 
     const userMessage = MessageHelpers.createMessage('user', inputText);
 
@@ -104,6 +108,9 @@ export const useMessageOperations = ({
     }
 
     if (effectiveMergeNodes.length < 2 || !activeConversation) return;
+
+    // Track merge event
+    GA4.mergeBranches(effectiveMergeNodes.length);
 
     setIsLoading(true);
     try {
