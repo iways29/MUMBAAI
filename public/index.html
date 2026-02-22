@@ -4,6 +4,36 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MUMBAAI</title>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DXXDP45Y8H"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-DXXDP45Y8H');
+
+      // Track all actionable element clicks
+      document.addEventListener('click', function(e) {
+        var target = e.target.closest('button, a, [role="button"], input[type="submit"], input[type="button"], [onclick], .clickable');
+        if (target) {
+          var actionName = target.innerText || target.getAttribute('aria-label') || target.getAttribute('title') || target.tagName;
+          var elementType = target.tagName.toLowerCase();
+          var elementId = target.id || 'no-id';
+          var elementClass = target.className || 'no-class';
+
+          gtag('event', 'click', {
+            'event_category': 'User Action',
+            'event_label': actionName.substring(0, 100),
+            'element_type': elementType,
+            'element_id': elementId,
+            'element_class': typeof elementClass === 'string' ? elementClass.substring(0, 100) : 'complex-class',
+            'page_location': window.location.href,
+            'page_path': window.location.pathname
+          });
+        }
+      });
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
