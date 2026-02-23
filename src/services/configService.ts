@@ -37,8 +37,14 @@ export const clearConfigCache = () => {
   promptsCacheTime = 0
 }
 
-// Fetch all enabled models
+// Fetch all enabled models (for general use)
 export const getModels = async (): Promise<AppModel[]> => {
+  const allModels = await getAllModels()
+  return allModels.filter(m => m.is_enabled)
+}
+
+// Fetch ALL models including disabled (for LLMSelector to show all providers)
+export const getAllModels = async (): Promise<AppModel[]> => {
   const now = Date.now()
 
   // Return cached if valid
@@ -50,7 +56,6 @@ export const getModels = async (): Promise<AppModel[]> => {
     const { data, error } = await supabase
       .from('app_models')
       .select('*')
-      .eq('is_enabled', true)
       .order('sort_order', { ascending: true })
 
     if (error) {
