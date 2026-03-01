@@ -48,7 +48,7 @@ export const useMessageOperations = ({
     try {
       // Get conversation thread for context
       const thread = getMessageThread(selectedMessageId || userMessage.id);
-      const contextPrompt = ApiService.createContextPrompt(
+      const contextPrompt = await ApiService.createContextPrompt(
         thread.map(msg => ({ type: msg.type, content: msg.content })),
         userInput
       );

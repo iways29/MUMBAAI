@@ -1,3 +1,5 @@
+import { getPrompt } from '../services/configService.ts';
+
 export interface ApiResponse {
   response: string;
 }
@@ -7,6 +9,14 @@ export interface ApiError {
 }
 
 export type MergeTemplate = 'smart' | 'compare' | 'extract' | 'resolve';
+
+// Map template names to database keys
+const templateKeyMap: Record<MergeTemplate, string> = {
+  smart: 'merge_smart',
+  compare: 'merge_compare',
+  extract: 'merge_extract',
+  resolve: 'merge_resolve',
+};
 
 export class ApiService {
   static async sendMessage(prompt: string, model: string = 'gemini-1.5-flash'): Promise<string> {
@@ -27,8 +37,6 @@ export class ApiService {
       return data.response;
     } catch (error) {
       console.error('Error calling API:', error);
-
-      // Fallback to mock response for development
       return this.generateMockResponse(prompt);
     }
   }
@@ -89,10 +97,7 @@ export class ApiService {
       return fullResponse;
     } catch (error) {
       console.error('Error calling streaming API:', error);
-
-      // Fallback to mock response for development
       const mockResponse = this.generateMockResponse(prompt);
-      // Simulate streaming for mock response
       for (let i = 0; i < mockResponse.length; i += 10) {
         const chunk = mockResponse.slice(i, i + 10);
         onChunk(chunk);
@@ -102,20 +107,14 @@ export class ApiService {
     }
   }
 
-  static getMergeTemplatePrompt(template: MergeTemplate, userInput?: string): string {
-    const templates = {
-      smart: "Please analyze and synthesize these different conversation branches into a unified response that captures the key insights from each path:",
-      compare: "Compare and contrast these different approaches, highlighting key similarities and differences while providing a balanced analysis:",
-      extract: "Extract the key insights and main points from these conversations in a clear, organized format with bullet points or numbered lists:",
-      resolve: "These conversations show different viewpoints. Find common ground and resolve any conflicts while addressing the core concerns from each perspective:"
-    };
+  static async getMergeTemplatePrompt(template: MergeTemplate, userInput?: string): Promise<string> {
+    const key = templateKeyMap[template];
+    let prompt = await getPrompt(key);
 
-    let prompt = templates[template];
-    
     if (userInput && userInput.trim()) {
-      prompt += `\n\nUser specific instructions: ${userInput.trim()}`;
+      prompt += '\n\nUser specific instructions: ' + userInput.trim();
     }
-    
+
     return prompt;
   }
 
@@ -129,25 +128,14 @@ export class ApiService {
     let finalPrompt: string;
 
     if (userInput && userInput.trim()) {
-      // User provided custom prompt - use it directly with context
-      finalPrompt = `${userInput.trim()}
-
-Context from conversation branches:
-${selectedMessages.join('\n\n')}
-
-Please provide a comprehensive response based on the above prompt and context.`;
+      finalPrompt = userInput.trim() + '\n\nContext from conversation branches:\n' + selectedMessages.join('\n\n') + '\n\nPlease provide a comprehensive response based on the above prompt and context.';
     } else {
-      // Use template-based approach
-      const templatePrompt = this.getMergeTemplatePrompt(template);
-      finalPrompt = `${templatePrompt}
-
-${selectedMessages.join('\n\n')}
-
-Create a comprehensive response that merges the best elements from these different directions while maintaining coherence and adding new insights where appropriate.`;
+      const templatePrompt = await this.getMergeTemplatePrompt(template);
+      const synthesisSuffix = await getPrompt('merge_synthesis_suffix');
+      finalPrompt = templatePrompt + '\n\n' + selectedMessages.join('\n\n') + '\n\n' + synthesisSuffix;
     }
 
     try {
-      // Use streaming if onChunk callback is provided, otherwise use non-streaming
       if (onChunk) {
         return await this.sendMessageStreaming(finalPrompt, model, onChunk);
       } else {
@@ -155,46 +143,33 @@ Create a comprehensive response that merges the best elements from these differe
       }
     } catch (error) {
       console.error('Merge generation failed:', error);
-
-      // Fallback merge response
       return this.generateMockMergeResponse(selectedMessages);
     }
   }
 
-  static createContextPrompt(thread: Array<{type: string, content: string}>, userInput: string): string {
-    // Limit to last 10 messages for normal conversation
+  static async createContextPrompt(
+    thread: Array<{type: string, content: string}>,
+    userInput: string
+  ): Promise<string> {
     const recentThread = thread.slice(-10);
-    
+
     if (recentThread.length === 0) {
-      // First message - provide MUMBAAI context while preserving model identity
-      return `Context: You are responding within MUMBAAI, a branching conversation platform that allows users to explore multiple conversation paths and compare responses from different AI models. Users can branch conversations at any point to explore different directions, then merge insights from multiple branches. This enables more thorough exploration of topics and better decision-making.
-
-Your role: Maintain your authentic identity and capabilities while being helpful in this branching conversation context. Users may compare your responses with other AI models, so showcase your unique strengths and perspective.Human: ${
-userInput}
-
-Please respond authentically as yourself while being helpful in this context.`;
+      const contextPrompt = await getPrompt('context_first_message');
+      return contextPrompt + '\n\nHuman: ' + userInput + '\n\nPlease respond authentically as yourself while being helpful in this context.';
     }
-    
-    // Ongoing conversation - include context
+
     const contextMessages = recentThread.map(msg =>
-      `${msg.type === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`
+      (msg.type === 'user' ? 'Human' : 'Assistant') + ': ' + msg.content
     ).join('\n');
 
-    return `Context: You are in MUMBAAI, a branching conversation platform where users explore multiple conversation paths and compare different AI models. This conversation may be branched or merged with others.
-
-Conversation history:
-${contextMessages}Human
-: ${userInput}
-
-Please respond as yourself, maintaining your authentic identity while being helpful in this branching conversation context.`;
+    const ongoingContext = await getPrompt('context_ongoing');
+    return ongoingContext + '\n\nConversation history:\n' + contextMessages + '\n\nHuman: ' + userInput + '\n\nPlease respond as yourself, maintaining your authentic identity while being helpful in this branching conversation context.';
   }
 
-  // Mock delay for better UX
   static async delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  // Fallback mock responses for development/offline use
   private static generateMockResponse(prompt: string): string {
     const responses = [
       "That's an interesting question! Let me think about this from a few different angles...",
@@ -205,8 +180,7 @@ Please respond as yourself, maintaining your authentic identity while being help
     ];
 
     const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-    
-    // Add topic-specific content based on keywords
+
     if (prompt.toLowerCase().includes('project')) {
       return randomResponse + '\n\nFor project planning, consider these key elements:\n• Scope and objectives\n• Timeline and milestones\n• Required resources\n• Potential challenges\n• Success metrics';
     } else if (prompt.toLowerCase().includes('creative')) {
@@ -220,23 +194,7 @@ Please respond as yourself, maintaining your authentic identity while being help
 
   private static generateMockMergeResponse(selectedMessages: string[]): string {
     const messageCount = selectedMessages.length;
-    
-    return `I've synthesized insights from ${messageCount} different conversation paths to provide a comprehensive perspective:
 
-**Key Themes Identified:**
-• Multiple approaches to the same core challenge
-• Complementary perspectives that build on each other
-• Common goals with different implementation strategies
-
-**Integrated Recommendations:**
-Based on combining these viewpoints, I suggest an approach that:
-1. Takes the strongest elements from each path
-2. Addresses the trade-offs between different options
-3. Provides a balanced solution that considers multiple factors
-
-**Next Steps:**
-The merged perspective suggests focusing on the overlapping areas where these different approaches align, while also considering the unique benefits each individual path offers.
-
-*Note: This is a fallback response generated when the AI service is unavailable. In production, this would be a more sophisticated synthesis of the actual conversation content.*`;
+    return 'I have synthesized insights from ' + messageCount + ' different conversation paths to provide a comprehensive perspective:\n\n**Key Themes Identified:**\n• Multiple approaches to the same core challenge\n• Complementary perspectives that build on each other\n• Common goals with different implementation strategies\n\n**Integrated Recommendations:**\nBased on combining these viewpoints, I suggest an approach that:\n1. Takes the strongest elements from each path\n2. Addresses the trade-offs between different options\n3. Provides a balanced solution that considers multiple factors\n\n**Next Steps:**\nThe merged perspective suggests focusing on the overlapping areas where these different approaches align, while also considering the unique benefits each individual path offers.\n\n*Note: This is a fallback response generated when the AI service is unavailable. In production, this would be a more sophisticated synthesis of the actual conversation content.*';
   }
 }

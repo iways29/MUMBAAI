@@ -675,11 +675,39 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
         </div>
       </section>
 
+      {/* Parent Company */}
+      <section className="py-12 px-8 bg-white border-t border-stone-100">
+        <div className="max-w-6xl mx-auto text-center">
+          <p className="text-sm text-stone-500 leading-relaxed">
+            Mumba.ai is a product of{' '}
+            <a
+              href="https://theunreallab.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-stone-700 font-medium hover:text-[#FF8811] transition-colors"
+            >
+              The Unreal Lab
+            </a>
+            , an AI venture studio focused on building scalable, applied intelligence systems.
+          </p>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="py-8 px-8 border-t border-[#F4D06F]/20 bg-[#FFF8F0]">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-stone-500">
           <span className="font-medium text-stone-700">MUMBAAI</span>
-          <p>Building the future of conversational AI</p>
+          <p>
+            Built by{' '}
+            <a
+              href="https://theunreallab.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-stone-600 hover:text-[#FF8811] transition-colors"
+            >
+              The Unreal Lab
+            </a>
+          </p>
         </div>
       </footer>
     </div>
