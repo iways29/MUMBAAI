@@ -8,5 +8,6 @@ export {
   AdminDashboard,
   AdminPrompts,
   AdminModels,
+  AdminTiers,
   AdminUsers
 } from './Admin/index.ts';

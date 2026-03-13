@@ -1,4 +1,30 @@
 import { getPrompt } from '../services/configService.ts';
+import { supabase } from '../lib/supabase.ts';
+
+// Helper to get auth token
+async function getAuthToken(): Promise<string | null> {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export interface LimitExceededError {
+  type: 'limit_exceeded';
+  reason: string;
+  limits?: {
+    daily_token_limit: number | null;
+    monthly_token_limit: number | null;
+    daily_merge_limit: number | null;
+  };
+  usage?: {
+    tokens_today: number;
+    tokens_this_month: number;
+    merges_today: number;
+  };
+}
 
 export interface TokenUsage {
   prompt_tokens: number;
@@ -65,16 +91,36 @@ export class ApiService {
   static async sendMessageStreaming(
     prompt: string,
     model: string = 'gemini-1.5-flash',
-    onChunk: (chunk: string) => void
+    onChunk: (chunk: string) => void,
+    isMerge: boolean = false
   ): Promise<StreamingResponse> {
     try {
+      const token = await getAuthToken();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt, model, stream: true })
+        headers,
+        body: JSON.stringify({ prompt, model, stream: true, isMerge })
       });
+
+      // Handle limit exceeded error
+      if (response.status === 429) {
+        const errorData = await response.json();
+        const limitError: LimitExceededError = {
+          type: 'limit_exceeded',
+          reason: errorData.reason || 'Usage limit exceeded',
+          limits: errorData.limits,
+          usage: errorData.usage
+        };
+        throw limitError;
+      }
 
       if (!response.ok) {
         throw new Error(`API request failed: ${response.status}`);
@@ -172,11 +218,15 @@ export class ApiService {
 
     try {
       if (onChunk) {
-        return await this.sendMessageStreaming(finalPrompt, model, onChunk);
+        return await this.sendMessageStreaming(finalPrompt, model, onChunk, true); // isMerge = true
       } else {
         return await this.sendMessage(finalPrompt, model);
       }
     } catch (error) {
+      // Re-throw limit errors so they can be handled by the caller
+      if ((error as LimitExceededError).type === 'limit_exceeded') {
+        throw error;
+      }
       console.error('Merge generation failed:', error);
       return { response: this.generateMockMergeResponse(selectedMessages) };
     }

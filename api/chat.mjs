@@ -1,4 +1,74 @@
 import { LLMService } from './services/llm-service.mjs';
+import { createClient } from '@supabase/supabase-js';
+
+// Create Supabase client for server-side operations
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+// Helper to create authenticated Supabase client
+function createAuthenticatedClient(authHeader) {
+  if (!supabaseUrl) {
+    console.warn('VITE_SUPABASE_URL not set');
+    return null;
+  }
+
+  // If we have service key and auth header, use the user's token
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.replace('Bearer ', '');
+    return createClient(supabaseUrl, process.env.VITE_SUPABASE_ANON_KEY, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    });
+  }
+
+  return null;
+}
+
+// Check user limits before processing
+async function checkUserLimits(supabase, actionType = 'chat') {
+  if (!supabase) {
+    // No auth, skip limit check
+    return { allowed: true };
+  }
+
+  try {
+    const { data, error } = await supabase.rpc('check_user_can_proceed', {
+      p_action_type: actionType
+    });
+
+    if (error) {
+      console.error('Error checking user limits:', error);
+      // Fail open for better UX, but log the error
+      return { allowed: true };
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error checking user limits:', error);
+    return { allowed: true };
+  }
+}
+
+// Increment user usage after successful response
+async function incrementUsage(supabase, tokensUsed, isMerge = false) {
+  if (!supabase) return;
+
+  try {
+    const { error } = await supabase.rpc('increment_user_usage', {
+      p_tokens_used: tokensUsed,
+      p_is_merge: isMerge
+    });
+
+    if (error) {
+      console.error('Error incrementing usage:', error);
+    }
+  } catch (error) {
+    console.error('Error incrementing usage:', error);
+  }
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -6,7 +76,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { prompt, model = 'gemini-2.5-flash', stream = false } = req.body;
+    const { prompt, model = 'gemini-2.5-flash', stream = false, isMerge = false } = req.body;
 
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
@@ -14,6 +84,22 @@ export default async function handler(req, res) {
 
     if (!model) {
       return res.status(400).json({ error: 'Model is required' });
+    }
+
+    // Get auth header and create Supabase client
+    const authHeader = req.headers.authorization;
+    const supabase = createAuthenticatedClient(authHeader);
+
+    // Check user limits before processing
+    const limitCheck = await checkUserLimits(supabase, isMerge ? 'merge' : 'chat');
+
+    if (!limitCheck.allowed) {
+      return res.status(429).json({
+        error: 'Limit exceeded',
+        reason: limitCheck.reason,
+        limits: limitCheck.limits,
+        usage: limitCheck.usage
+      });
     }
 
     console.log(`Processing request with model: ${model}, streaming: ${stream}`);
@@ -139,8 +225,9 @@ export default async function handler(req, res) {
           }
         }
 
-        // Send usage data before ending if available
+        // Increment usage after streaming completes
         if (streamUsage) {
+          await incrementUsage(supabase, streamUsage.total_tokens, isMerge);
           res.write(`data: ${JSON.stringify({ usage: streamUsage, provider, model })}\n\n`);
         }
         res.write('data: [DONE]\n\n');
@@ -153,6 +240,12 @@ export default async function handler(req, res) {
     } else {
       // Handle non-streaming requests (original behavior)
       const result = await LLMService.generateResponse(model, prompt);
+
+      // Increment usage for non-streaming
+      if (result.usage) {
+        await incrementUsage(supabase, result.usage.total_tokens, isMerge);
+      }
+
       res.status(200).json(result);
     }
   } catch (error) {
