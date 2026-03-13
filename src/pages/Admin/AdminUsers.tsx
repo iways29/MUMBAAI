@@ -4,7 +4,6 @@ import {
   Shield,
   ShieldOff,
   Mail,
-  Calendar,
   Settings,
   Zap,
   GitMerge,
@@ -121,14 +120,6 @@ const AdminUsers: React.FC = () => {
     } catch (error) {
       console.error('Error toggling admin:', error)
     }
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
   }
 
   const getTierForUser = (user: UserProfile): Tier | null => {

@@ -6,7 +6,6 @@ import {
   Trash2,
   Save,
   RotateCcw,
-  Check,
   Star,
   Infinity,
   Zap,
