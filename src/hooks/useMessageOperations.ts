@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { Message } from '../types/conversation.ts';
 import { MessageHelpers } from '../utils/messageHelpers.ts';
 import { ApiService, MergeTemplate } from '../utils/api.ts';
+import { DatabaseService } from '../services/databaseService.ts';
 
 interface UseMessageOperationsProps {
   activeConversation: string;
@@ -58,7 +59,7 @@ export const useMessageOperations = ({
 
       // Get AI response with streaming
       setStreamingContent(''); // Reset streaming content
-      const aiResponse = await ApiService.sendMessageStreaming(
+      const result = await ApiService.sendMessageStreaming(
         contextPrompt,
         selectedModel,
         (chunk: string) => {
@@ -71,11 +72,22 @@ export const useMessageOperations = ({
       setStreamingContent('');
 
       // Now that stream is complete, create the final message and add to tree
-      const assistantMessage = MessageHelpers.createMessage('assistant', aiResponse, { model: selectedModel });
+      const assistantMessage = MessageHelpers.createMessage('assistant', result.response, { model: selectedModel });
 
       // Add AI response to tree ONLY after stream completes
       addMessage(activeConversation, userMessage.id, assistantMessage);
       onMessageSent?.(assistantMessage.id);
+
+      // Save token usage to database if available
+      if (result.usage && result.provider) {
+        DatabaseService.saveTokenUsage(
+          activeConversation,
+          assistantMessage.id,
+          result.usage,
+          result.model || selectedModel,
+          result.provider
+        ).catch(err => console.error('Failed to save token usage:', err));
+      }
 
     } catch (error) {
       console.error('Error sending message:', error);
@@ -154,7 +166,7 @@ export const useMessageOperations = ({
       // This will stream in the NEW thread context (the merged message node)
       setStreamingContent(''); // Reset streaming content
       const templateToUse = customTemplate || mergeTemplate;
-      const mergedContent = await ApiService.generateMergedResponse(
+      const result = await ApiService.generateMergedResponse(
         selectedMessages,
         templateToUse,
         userInput,
@@ -170,7 +182,22 @@ export const useMessageOperations = ({
       setStreamingContent('');
 
       // Update the merged message with the final content
-      mergedMessage.content = mergedContent;
+      mergedMessage.content = result.response;
+
+      // Persist the updated content to the database
+      DatabaseService.updateMessageContent(mergedMessage.id, result.response)
+        .catch(err => console.error('Failed to update message content:', err));
+
+      // Save token usage to database if available
+      if (result.usage && result.provider) {
+        DatabaseService.saveTokenUsage(
+          activeConversation,
+          mergedMessage.id,
+          result.usage,
+          result.model || selectedModel,
+          result.provider
+        ).catch(err => console.error('Failed to save token usage:', err));
+      }
 
       // Clear selections after successful merge
       onClearSelection?.();

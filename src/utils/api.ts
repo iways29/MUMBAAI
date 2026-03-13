@@ -1,7 +1,16 @@
 import { getPrompt } from '../services/configService.ts';
 
+export interface TokenUsage {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+}
+
 export interface ApiResponse {
   response: string;
+  usage?: TokenUsage;
+  provider?: string;
+  model?: string;
 }
 
 export interface ApiError {
@@ -18,8 +27,15 @@ const templateKeyMap: Record<MergeTemplate, string> = {
   resolve: 'merge_resolve',
 };
 
+export interface StreamingResponse {
+  response: string;
+  usage?: TokenUsage;
+  provider?: string;
+  model?: string;
+}
+
 export class ApiService {
-  static async sendMessage(prompt: string, model: string = 'gemini-1.5-flash'): Promise<string> {
+  static async sendMessage(prompt: string, model: string = 'gemini-1.5-flash'): Promise<StreamingResponse> {
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -34,10 +50,15 @@ export class ApiService {
       }
 
       const data: ApiResponse = await response.json();
-      return data.response;
+      return {
+        response: data.response,
+        usage: data.usage,
+        provider: data.provider,
+        model: data.model
+      };
     } catch (error) {
       console.error('Error calling API:', error);
-      return this.generateMockResponse(prompt);
+      return { response: this.generateMockResponse(prompt) };
     }
   }
 
@@ -45,7 +66,7 @@ export class ApiService {
     prompt: string,
     model: string = 'gemini-1.5-flash',
     onChunk: (chunk: string) => void
-  ): Promise<string> {
+  ): Promise<StreamingResponse> {
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -66,6 +87,9 @@ export class ApiService {
 
       const decoder = new TextDecoder();
       let fullResponse = '';
+      let usage: TokenUsage | undefined;
+      let provider: string | undefined;
+      let responseModel: string | undefined;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -87,6 +111,12 @@ export class ApiService {
               } else if (parsed.error) {
                 throw new Error(parsed.error);
               }
+              // Capture usage data from the final chunk
+              if (parsed.usage) {
+                usage = parsed.usage;
+                provider = parsed.provider;
+                responseModel = parsed.model;
+              }
             } catch (e) {
               // Skip malformed JSON
             }
@@ -94,7 +124,12 @@ export class ApiService {
         }
       }
 
-      return fullResponse;
+      return {
+        response: fullResponse,
+        usage,
+        provider,
+        model: responseModel || model
+      };
     } catch (error) {
       console.error('Error calling streaming API:', error);
       const mockResponse = this.generateMockResponse(prompt);
@@ -103,7 +138,7 @@ export class ApiService {
         onChunk(chunk);
         await this.delay(50);
       }
-      return mockResponse;
+      return { response: mockResponse };
     }
   }
 
@@ -124,7 +159,7 @@ export class ApiService {
     userInput?: string,
     model: string = 'gemini-2.5-flash',
     onChunk?: (chunk: string) => void
-  ): Promise<string> {
+  ): Promise<StreamingResponse> {
     let finalPrompt: string;
 
     if (userInput && userInput.trim()) {
@@ -143,7 +178,7 @@ export class ApiService {
       }
     } catch (error) {
       console.error('Merge generation failed:', error);
-      return this.generateMockMergeResponse(selectedMessages);
+      return { response: this.generateMockMergeResponse(selectedMessages) };
     }
   }
 

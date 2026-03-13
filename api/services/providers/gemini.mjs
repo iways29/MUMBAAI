@@ -41,10 +41,19 @@ export class GeminiProvider {
           .filter(Boolean)
           .join('\n') || 'No response';
 
+      // Extract token usage from response (Gemini uses usageMetadata)
+      const usage = data.usageMetadata ? {
+        prompt_tokens: data.usageMetadata.promptTokenCount || 0,
+        completion_tokens: data.usageMetadata.candidatesTokenCount || 0,
+        total_tokens: data.usageMetadata.totalTokenCount ||
+          (data.usageMetadata.promptTokenCount || 0) + (data.usageMetadata.candidatesTokenCount || 0)
+      } : null;
+
       return {
         response: text,
         provider: 'google',
         model: resolvedModel,
+        usage
       };
     } catch (error) {
       console.error('Gemini API Error:', error);
