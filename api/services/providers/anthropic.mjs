@@ -31,10 +31,18 @@ export class AnthropicProvider {
 
       const data = await response.json();
 
+      // Extract token usage from response (Anthropic uses input_tokens/output_tokens)
+      const usage = data.usage ? {
+        prompt_tokens: data.usage.input_tokens || 0,
+        completion_tokens: data.usage.output_tokens || 0,
+        total_tokens: (data.usage.input_tokens || 0) + (data.usage.output_tokens || 0)
+      } : null;
+
       return {
         response: data.content[0].text,
         provider: 'anthropic',
-        model: model
+        model: model,
+        usage
       };
     } catch (error) {
       console.error('Anthropic API Error:', error);

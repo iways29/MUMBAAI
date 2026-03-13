@@ -357,6 +357,51 @@ export class DatabaseService {
       .subscribe();
   }
 
+  // TOKEN USAGE TRACKING
+
+  static async saveTokenUsage(
+    conversationId: string,
+    messageId: string,
+    usage: {
+      prompt_tokens: number;
+      completion_tokens: number;
+      total_tokens: number;
+    },
+    model: string,
+    provider: string
+  ): Promise<boolean> {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) {
+        console.warn('No authenticated user, skipping token usage tracking');
+        return false;
+      }
+
+      const { error } = await supabase
+        .from('token_usage')
+        .insert({
+          user_id: user.user.id,
+          conversation_id: conversationId,
+          message_id: messageId,
+          prompt_tokens: usage.prompt_tokens,
+          completion_tokens: usage.completion_tokens,
+          total_tokens: usage.total_tokens,
+          model: model,
+          provider: provider
+        });
+
+      if (error) {
+        console.error('Error saving token usage:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error saving token usage:', error);
+      return false;
+    }
+  }
+
   // PRO INTEREST TRACKING
 
   static async trackProInterestEvent(

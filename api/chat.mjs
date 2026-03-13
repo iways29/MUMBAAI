@@ -34,6 +34,7 @@ export default async function handler(req, res) {
         const reader = readableStream.getReader();
         const decoder = new TextDecoder();
         let buffer = ''; // Buffer for incomplete chunks
+        let streamUsage = null; // Track token usage from stream
 
         while (true) {
           const { done, value } = await reader.read();
@@ -60,6 +61,14 @@ export default async function handler(req, res) {
                   if (content) {
                     res.write(`data: ${JSON.stringify({ content })}\n\n`);
                   }
+                  // Extract usage from final chunk (when stream_options.include_usage is true)
+                  if (parsed.usage) {
+                    streamUsage = {
+                      prompt_tokens: parsed.usage.prompt_tokens || 0,
+                      completion_tokens: parsed.usage.completion_tokens || 0,
+                      total_tokens: parsed.usage.total_tokens || 0
+                    };
+                  }
                 } catch (e) {
                   // Skip malformed JSON
                 }
@@ -76,6 +85,22 @@ export default async function handler(req, res) {
                     if (content) {
                       res.write(`data: ${JSON.stringify({ content })}\n\n`);
                     }
+                  }
+                  // Extract usage from message_delta event at the end
+                  if (data.type === 'message_delta' && data.usage) {
+                    streamUsage = {
+                      prompt_tokens: data.usage.input_tokens || 0,
+                      completion_tokens: data.usage.output_tokens || 0,
+                      total_tokens: (data.usage.input_tokens || 0) + (data.usage.output_tokens || 0)
+                    };
+                  }
+                  // Also check message_start for input tokens
+                  if (data.type === 'message_start' && data.message?.usage) {
+                    streamUsage = {
+                      prompt_tokens: data.message.usage.input_tokens || 0,
+                      completion_tokens: 0,
+                      total_tokens: data.message.usage.input_tokens || 0
+                    };
                   }
                 } catch (e) {
                   // Skip malformed JSON
@@ -97,6 +122,15 @@ export default async function handler(req, res) {
                     console.log(`[Gemini Stream] Chunk length: ${content.length}, content: "${content.substring(0, 50)}..."`);
                     res.write(`data: ${JSON.stringify({ content })}\n\n`);
                   }
+                  // Extract usage from usageMetadata (usually in final chunk)
+                  if (data.usageMetadata) {
+                    streamUsage = {
+                      prompt_tokens: data.usageMetadata.promptTokenCount || 0,
+                      completion_tokens: data.usageMetadata.candidatesTokenCount || 0,
+                      total_tokens: data.usageMetadata.totalTokenCount ||
+                        (data.usageMetadata.promptTokenCount || 0) + (data.usageMetadata.candidatesTokenCount || 0)
+                    };
+                  }
                 } catch (e) {
                   // Skip malformed JSON or incomplete chunks
                 }
@@ -105,6 +139,10 @@ export default async function handler(req, res) {
           }
         }
 
+        // Send usage data before ending if available
+        if (streamUsage) {
+          res.write(`data: ${JSON.stringify({ usage: streamUsage, provider, model })}\n\n`);
+        }
         res.write('data: [DONE]\n\n');
         res.end();
       } catch (streamError) {
