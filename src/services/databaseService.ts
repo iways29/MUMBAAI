@@ -385,7 +385,7 @@ export class DatabaseService {
           message_id: messageId,
           prompt_tokens: usage.prompt_tokens,
           completion_tokens: usage.completion_tokens,
-          total_tokens: usage.total_tokens,
+          // total_tokens is a generated column - calculated automatically
           model: model,
           provider: provider
         });
