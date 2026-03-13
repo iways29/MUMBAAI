@@ -387,4 +387,137 @@ export class DatabaseService {
       return false;
     }
   }
+
+  // ADMIN ANALYTICS
+
+  static async getAdminOverviewStats(): Promise<{
+    total_users: number;
+    total_conversations: number;
+    total_messages: number;
+    total_tokens: number;
+  } | null> {
+    try {
+      const { data, error } = await supabase.rpc('get_admin_overview_stats');
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching overview stats:', error);
+      return null;
+    }
+  }
+
+  static async getDailyActiveUsers(daysBack: number = 30): Promise<Array<{
+    date: string;
+    active_users: number;
+  }>> {
+    try {
+      const { data, error } = await supabase.rpc('get_daily_active_users', { days_back: daysBack });
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching DAU:', error);
+      return [];
+    }
+  }
+
+  static async getUserGrowth(weeksBack: number = 12): Promise<Array<{
+    week: string;
+    new_users: number;
+    cumulative_users: number;
+  }>> {
+    try {
+      const { data, error } = await supabase.rpc('get_user_growth', { weeks_back: weeksBack });
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching user growth:', error);
+      return [];
+    }
+  }
+
+  static async getLLMUsageStats(): Promise<Array<{
+    model: string;
+    provider: string;
+    message_count: number;
+    token_count: number;
+    percentage: number;
+  }>> {
+    try {
+      const { data, error } = await supabase.rpc('get_llm_usage_stats');
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching LLM usage:', error);
+      return [];
+    }
+  }
+
+  static async getConversationStats(): Promise<{
+    avg_messages_per_conversation: number;
+    avg_tokens_per_conversation: number;
+    total_splits: number;
+    total_merges: number;
+  } | null> {
+    try {
+      const { data, error } = await supabase.rpc('get_conversation_stats');
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching conversation stats:', error);
+      return null;
+    }
+  }
+
+  static async getUserUsageStats(limitCount: number = 20): Promise<Array<{
+    user_id: string;
+    email: string;
+    display_name: string | null;
+    joined_at: string;
+    last_active: string | null;
+    conversation_count: number;
+    total_tokens: number;
+    message_count: number;
+    days_active: number;
+  }>> {
+    try {
+      const { data, error } = await supabase.rpc('get_user_usage_stats', { limit_count: limitCount });
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching user usage stats:', error);
+      return [];
+    }
+  }
+
+  static async getAvgDaysActive(): Promise<{
+    avg_days_active: number;
+    users_active_today: number;
+    users_active_this_week: number;
+  } | null> {
+    try {
+      const { data, error } = await supabase.rpc('get_avg_days_active');
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching avg days active:', error);
+      return null;
+    }
+  }
+
+  static async getBranchStats(): Promise<{
+    total_conversations: number;
+    conversations_with_splits: number;
+    conversations_with_merges: number;
+    avg_splits_per_conversation: number;
+    avg_merges_per_conversation: number;
+  } | null> {
+    try {
+      const { data, error } = await supabase.rpc('get_branch_stats');
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching branch stats:', error);
+      return null;
+    }
+  }
 }
