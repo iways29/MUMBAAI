@@ -147,14 +147,14 @@ STABLE
 AS $$
 DECLARE
     result JSON;
-    total_tokens BIGINT;
+    v_total_tokens BIGINT;  -- renamed to avoid conflict with column name
 BEGIN
     IF NOT public.is_admin(auth.uid()) THEN
         RAISE EXCEPTION 'Access denied: Admin only';
     END IF;
 
     -- Get total tokens for percentage calculation
-    SELECT COALESCE(SUM(total_tokens), 1) INTO total_tokens FROM public.token_usage;
+    SELECT COALESCE(SUM(total_tokens), 1) INTO v_total_tokens FROM public.token_usage;
 
     SELECT json_agg(model_stats ORDER BY token_count DESC)
     INTO result
@@ -164,7 +164,7 @@ BEGIN
             provider,
             COUNT(*) as message_count,
             SUM(total_tokens) as token_count,
-            ROUND((SUM(total_tokens)::NUMERIC / total_tokens * 100), 2) as percentage
+            ROUND((SUM(total_tokens)::NUMERIC / v_total_tokens * 100), 2) as percentage
         FROM public.token_usage
         GROUP BY model, provider
     ) model_stats;

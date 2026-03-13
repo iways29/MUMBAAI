@@ -171,6 +171,21 @@ export class DatabaseService {
     }
   }
 
+  static async updateMessageContent(messageId: string, content: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .update({ content })
+        .eq('id', messageId);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error updating message content:', error);
+      return false;
+    }
+  }
+
   // NODE POSITIONS
 
   static async loadNodePositions(conversationId: string): Promise<Record<string, { x: number; y: number }>> {

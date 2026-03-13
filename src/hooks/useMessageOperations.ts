@@ -184,6 +184,10 @@ export const useMessageOperations = ({
       // Update the merged message with the final content
       mergedMessage.content = result.response;
 
+      // Persist the updated content to the database
+      DatabaseService.updateMessageContent(mergedMessage.id, result.response)
+        .catch(err => console.error('Failed to update message content:', err));
+
       // Save token usage to database if available
       if (result.usage && result.provider) {
         DatabaseService.saveTokenUsage(
