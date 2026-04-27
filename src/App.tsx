@@ -12,6 +12,7 @@ import {
   AdminDashboard,
   AdminPrompts,
   AdminModels,
+  AdminTiers,
   AdminUsers
 } from './pages/index.ts';
 
@@ -104,6 +105,7 @@ const AppRoutes: React.FC = () => {
         <Route index element={<AdminDashboard />} />
         <Route path="prompts" element={<AdminPrompts />} />
         <Route path="models" element={<AdminModels />} />
+        <Route path="tiers" element={<AdminTiers />} />
         <Route path="users" element={<AdminUsers />} />
       </Route>
 

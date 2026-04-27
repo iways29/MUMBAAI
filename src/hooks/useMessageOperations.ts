@@ -1,8 +1,38 @@
 import { useState, useCallback } from 'react';
 import { Message } from '../types/conversation.ts';
 import { MessageHelpers } from '../utils/messageHelpers.ts';
-import { ApiService, MergeTemplate } from '../utils/api.ts';
+import { ApiService, MergeTemplate, LimitExceededError } from '../utils/api.ts';
 import { DatabaseService } from '../services/databaseService.ts';
+
+// Helper to check if error is a limit exceeded error
+function isLimitError(error: unknown): error is LimitExceededError {
+  return (error as LimitExceededError)?.type === 'limit_exceeded';
+}
+
+// Format limit error message for user
+function formatLimitError(error: LimitExceededError): string {
+  let message = error.reason || 'You have reached your usage limit.';
+
+  if (error.usage && error.limits) {
+    const parts: string[] = [];
+
+    if (error.limits.daily_token_limit !== null && error.usage.tokens_today >= error.limits.daily_token_limit) {
+      parts.push(`Daily tokens: ${error.usage.tokens_today.toLocaleString()}/${error.limits.daily_token_limit.toLocaleString()}`);
+    }
+    if (error.limits.monthly_token_limit !== null && error.usage.tokens_this_month >= error.limits.monthly_token_limit) {
+      parts.push(`Monthly tokens: ${error.usage.tokens_this_month.toLocaleString()}/${error.limits.monthly_token_limit.toLocaleString()}`);
+    }
+    if (error.limits.daily_merge_limit !== null && error.usage.merges_today >= error.limits.daily_merge_limit) {
+      parts.push(`Daily merges: ${error.usage.merges_today}/${error.limits.daily_merge_limit}`);
+    }
+
+    if (parts.length > 0) {
+      message += '\n\n' + parts.join('\n');
+    }
+  }
+
+  return message;
+}
 
 interface UseMessageOperationsProps {
   activeConversation: string;
@@ -31,9 +61,13 @@ export const useMessageOperations = ({
   const [isLoading, setIsLoading] = useState(false);
   const [mergeTemplate, setMergeTemplate] = useState<MergeTemplate>('smart');
   const [streamingContent, setStreamingContent] = useState<string>('');
+  const [limitError, setLimitError] = useState<string | null>(null);
 
   const sendMessage = useCallback(async () => {
     if (!inputText.trim() || !activeConversation) return;
+
+    // Clear any previous limit error
+    setLimitError(null);
 
     const userMessage = MessageHelpers.createMessage('user', inputText);
 
@@ -91,9 +125,18 @@ export const useMessageOperations = ({
 
     } catch (error) {
       console.error('Error sending message:', error);
+
+      let errorContent = 'Sorry, I encountered an error. Please try again.';
+
+      // Handle limit exceeded errors
+      if (isLimitError(error)) {
+        errorContent = formatLimitError(error);
+        setLimitError(errorContent);
+      }
+
       const errorMessage = MessageHelpers.createMessage(
         'assistant',
-        'Sorry, I encountered an error. Please try again.'
+        errorContent
       );
       addMessage(activeConversation, userMessage.id, errorMessage);
     } finally {
@@ -117,6 +160,8 @@ export const useMessageOperations = ({
 
     if (effectiveMergeNodes.length < 2 || !activeConversation) return;
 
+    // Clear any previous limit error
+    setLimitError(null);
     setIsLoading(true);
     try {
       // Get the conversation branches with limited context (15 recent messages per branch)
@@ -204,10 +249,33 @@ export const useMessageOperations = ({
 
     } catch (error) {
       console.error('Intelligent merge failed:', error);
-      
-      // Create a fallback merged message
+
+      // Handle limit exceeded errors
+      if (isLimitError(error)) {
+        const errorContent = formatLimitError(error);
+        setLimitError(errorContent);
+
+        // Show limit error as a merged message
+        const parentMessage = effectiveMergeNodes
+          .map(id => findMessage(id))
+          .find(msg => msg !== null);
+
+        if (parentMessage) {
+          const errorMessage = MessageHelpers.createMessage('assistant', `⚠️ **Merge Limit Reached**\n\n${errorContent}`, {
+            mergedFrom: effectiveMergeNodes,
+            isMergeRoot: true,
+            model: selectedModel
+          });
+          addMessage(activeConversation, parentMessage.id, errorMessage);
+          onMessageSent?.(errorMessage.id);
+        }
+
+        return;
+      }
+
+      // Create a fallback merged message for other errors
       const fallbackContent = `I've combined insights from ${effectiveMergeNodes.length} different conversation paths. While I couldn't generate a full synthesis due to a technical issue, these different perspectives offer valuable viewpoints on the topic.`;
-      
+
       const parentMessage = effectiveMergeNodes
         .map(id => findMessage(id))
         .find(msg => msg !== null);
@@ -220,7 +288,7 @@ export const useMessageOperations = ({
         });
         addMessage(activeConversation, parentMessage.id, fallbackMessage);
         onMessageSent?.(fallbackMessage.id);
-        
+
         // Clear selections after fallback merge too
         onClearSelection?.();
       }
@@ -278,6 +346,11 @@ export const useMessageOperations = ({
     return findMessage(selectedMessageId);
   }, [selectedMessageId, findMessage]);
 
+  // Function to clear limit error
+  const clearLimitError = useCallback(() => {
+    setLimitError(null);
+  }, []);
+
   return {
     // Input state
     inputText,
@@ -290,6 +363,10 @@ export const useMessageOperations = ({
 
     // Streaming state
     streamingContent,
+
+    // Limit error state
+    limitError,
+    clearLimitError,
 
     // Operations
     sendMessage,

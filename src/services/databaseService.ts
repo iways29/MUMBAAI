@@ -580,4 +580,109 @@ export class DatabaseService {
       return null;
     }
   }
+
+  // USER LIMITS & USAGE
+
+  static async checkUserCanProceed(actionType: 'chat' | 'merge'): Promise<{
+    allowed: boolean;
+    reason?: string;
+    limits?: {
+      daily_token_limit: number | null;
+      monthly_token_limit: number | null;
+      daily_merge_limit: number | null;
+      requests_per_minute: number;
+    };
+    usage?: {
+      tokens_today: number;
+      tokens_this_month: number;
+      merges_today: number;
+    };
+  }> {
+    try {
+      const { data, error } = await supabase.rpc('check_user_can_proceed', {
+        p_action_type: actionType
+      });
+
+      if (error) {
+        console.error('Error checking user limits:', error);
+        // Default to allowed if we can't check (fail open for UX, but log the error)
+        return { allowed: true };
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error checking user limits:', error);
+      return { allowed: true };
+    }
+  }
+
+  static async incrementUserUsage(
+    tokensUsed: number,
+    isMerge: boolean
+  ): Promise<boolean> {
+    try {
+      const { error } = await supabase.rpc('increment_user_usage', {
+        p_tokens_used: tokensUsed,
+        p_is_merge: isMerge
+      });
+
+      if (error) {
+        console.error('Error incrementing usage:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error incrementing usage:', error);
+      return false;
+    }
+  }
+
+  static async getEffectiveUserLimits(): Promise<{
+    tier_name: string;
+    tier_display_name: string;
+    tier_color: string;
+    daily_token_limit: number | null;
+    monthly_token_limit: number | null;
+    daily_merge_limit: number | null;
+    requests_per_minute: number;
+    allowed_model_ids: string[] | null;
+    is_suspended: boolean;
+    suspension_reason: string | null;
+    is_admin: boolean;
+  } | null> {
+    try {
+      const { data, error } = await supabase.rpc('get_effective_user_limits');
+
+      if (error) {
+        console.error('Error getting effective limits:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error getting effective limits:', error);
+      return null;
+    }
+  }
+
+  static async getUserDailyUsage(): Promise<{
+    tokens_used: number;
+    merges_performed: number;
+    requests_count: number;
+  }> {
+    try {
+      const { data, error } = await supabase.rpc('get_user_daily_usage');
+
+      if (error) {
+        console.error('Error getting daily usage:', error);
+        return { tokens_used: 0, merges_performed: 0, requests_count: 0 };
+      }
+
+      return data || { tokens_used: 0, merges_performed: 0, requests_count: 0 };
+    } catch (error) {
+      console.error('Error getting daily usage:', error);
+      return { tokens_used: 0, merges_performed: 0, requests_count: 0 };
+    }
+  }
 }

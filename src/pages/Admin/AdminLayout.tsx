@@ -6,7 +6,8 @@ import {
   Bot,
   Users,
   ArrowLeft,
-  Shield
+  Shield,
+  Layers
 } from 'lucide-react'
 import { useAdmin } from '../../hooks/useAdmin.ts'
 
@@ -56,6 +57,7 @@ const AdminLayout: React.FC = () => {
     { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
     { to: '/admin/prompts', icon: MessageSquareText, label: 'Prompts' },
     { to: '/admin/models', icon: Bot, label: 'Models' },
+    { to: '/admin/tiers', icon: Layers, label: 'Tiers' },
     { to: '/admin/users', icon: Users, label: 'Users' },
   ]
 
