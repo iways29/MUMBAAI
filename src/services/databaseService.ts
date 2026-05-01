@@ -685,4 +685,192 @@ export class DatabaseService {
       return { tokens_used: 0, merges_performed: 0, requests_count: 0 };
     }
   }
+
+  // ===== WAITLIST ANALYTICS & CONFIG =====
+
+  /**
+   * Get app configuration value by key
+   */
+  static async getAppConfig(key: string): Promise<any> {
+    try {
+      const { data, error } = await supabase
+        .from('app_config')
+        .select('value')
+        .eq('key', key)
+        .single();
+
+      if (error) {
+        console.error(`Error getting config for key ${key}:`, error);
+        return null;
+      }
+
+      return data?.value || null;
+    } catch (error) {
+      console.error(`Error getting config for key ${key}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Update app configuration value
+   */
+  static async updateAppConfig(key: string, value: any, userId?: string): Promise<boolean> {
+    try {
+      console.log(`[DatabaseService] Updating config "${key}" to:`, value)
+
+      const { data, error } = await supabase
+        .from('app_config')
+        .update({
+          value,
+          updated_at: new Date().toISOString(),
+          updated_by: userId || null
+        })
+        .eq('key', key)
+        .select();
+
+      if (error) {
+        console.error(`[DatabaseService] Error updating config for key ${key}:`, {
+          error,
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        return false;
+      }
+
+      console.log(`[DatabaseService] Config updated successfully:`, data)
+      return true;
+    } catch (error) {
+      console.error(`[DatabaseService] Exception updating config for key ${key}:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Get waitlist overview statistics
+   */
+  static async getWaitlistStats(): Promise<{
+    total_signups: number;
+    signups_today: number;
+    signups_this_week: number;
+    unique_companies: number;
+    solving_yes: number;
+    solving_no: number;
+    solving_maybe: number;
+  }> {
+    try {
+      const { data, error } = await supabase.rpc('get_waitlist_stats');
+
+      if (error) {
+        console.error('Error getting waitlist stats:', error);
+        return {
+          total_signups: 0,
+          signups_today: 0,
+          signups_this_week: 0,
+          unique_companies: 0,
+          solving_yes: 0,
+          solving_no: 0,
+          solving_maybe: 0
+        };
+      }
+
+      return data || {
+        total_signups: 0,
+        signups_today: 0,
+        signups_this_week: 0,
+        unique_companies: 0,
+        solving_yes: 0,
+        solving_no: 0,
+        solving_maybe: 0
+      };
+    } catch (error) {
+      console.error('Error getting waitlist stats:', error);
+      return {
+        total_signups: 0,
+        signups_today: 0,
+        signups_this_week: 0,
+        unique_companies: 0,
+        solving_yes: 0,
+        solving_no: 0,
+        solving_maybe: 0
+      };
+    }
+  }
+
+  /**
+   * Get waitlist breakdown by problem validation response
+   */
+  static async getWaitlistByProblemValidation(): Promise<Array<{
+    response: string;
+    count: number;
+    percentage: number;
+  }>> {
+    try {
+      const { data, error } = await supabase.rpc('get_waitlist_by_problem_validation');
+
+      if (error) {
+        console.error('Error getting waitlist by problem validation:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error getting waitlist by problem validation:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get recent waitlist signups
+   */
+  static async getRecentWaitlistSignups(limit: number = 10): Promise<Array<{
+    id: string;
+    name: string;
+    email: string;
+    ai_use: string;
+    company: string | null;
+    beta_tester: boolean;
+    created_at: string;
+  }>> {
+    try {
+      const { data, error } = await supabase.rpc('get_recent_waitlist_signups', {
+        limit_count: limit
+      });
+
+      if (error) {
+        console.error('Error getting recent waitlist signups:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error getting recent waitlist signups:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get daily waitlist signups for the last N days
+   */
+  static async getWaitlistDailySignups(daysBack: number = 14): Promise<Array<{
+    date: string;
+    signups: number;
+  }>> {
+    try {
+      const { data, error } = await supabase.rpc('get_waitlist_daily_signups', {
+        days_back: daysBack
+      });
+
+      if (error) {
+        console.error('Error getting daily waitlist signups:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error getting daily waitlist signups:', error);
+      return [];
+    }
+  }
 }

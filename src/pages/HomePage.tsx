@@ -1,15 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { CheckCircle, Clock, Building, Play, Lock, Layers, GitBranch, Combine } from 'lucide-react';
 import { ReactComponent as AnthropicIcon } from '../assets/anthropic.svg';
 import { ReactComponent as OpenAIIcon } from '../assets/openai.svg';
 import { ReactComponent as GoogleIcon } from '../assets/google-gemini.svg';
 import { FeedbackForm } from '../components/FeedbackForm.tsx';
+import { WaitlistSection } from '../sections/WaitlistSection.tsx';
+import { DatabaseService } from '../services/databaseService.ts';
 
 interface HomePageProps {
   onGetStarted: () => void;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
+  const [waitlistEnabled, setWaitlistEnabled] = useState(false);
+
+  useEffect(() => {
+    // Fetch waitlist config from database
+    const fetchWaitlistConfig = async () => {
+      const config = await DatabaseService.getAppConfig('waitlist_enabled');
+      setWaitlistEnabled(config?.enabled || false);
+    };
+
+    fetchWaitlistConfig();
+  }, []);
+
+  // Handle button click - either scroll to waitlist or go to auth
+  const handleGetStartedClick = () => {
+    if (waitlistEnabled) {
+      const waitlistSection = document.getElementById('waitlist');
+      waitlistSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      onGetStarted();
+    }
+  };
+
   return (
     <div className="bg-[#FFF8F0]">
       {/* Hero Section - Full viewport with video */}
@@ -32,7 +56,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
               <span className="text-2xl sm:text-3xl font-bold text-stone-800 tracking-tight">MUMBAAI</span>
             </div>
             <button
-              onClick={onGetStarted}
+              onClick={handleGetStartedClick}
               className="bg-gradient-to-r from-[#FF8811] to-[#F4D06F] text-white px-6 py-2.5 rounded-xl font-medium hover:from-[#e67a0f] hover:to-[#e6c35f] transition-all duration-300 shadow-lg shadow-[#FF8811]/25 hover:shadow-xl hover:shadow-[#FF8811]/30"
             >
               Sign In
@@ -76,12 +100,21 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <button
-                onClick={onGetStarted}
+                onClick={handleGetStartedClick}
                 className="group bg-gradient-to-r from-[#FF8811] to-[#F4D06F] text-white px-8 py-4 rounded-xl font-semibold hover:from-[#e67a0f] hover:to-[#e6c35f] transition-all duration-300 text-lg shadow-lg shadow-[#FF8811]/30 hover:shadow-xl hover:shadow-[#FF8811]/40 hover:-translate-y-0.5"
               >
                 Start Free
                 <span className="inline-block transition-transform group-hover:translate-x-1 ml-2">→</span>
               </button>
+              {waitlistEnabled && (
+                <button
+                  onClick={handleGetStartedClick}
+                  className="group bg-gradient-to-r from-[#FF8811] to-[#F4D06F] text-white px-8 py-4 rounded-xl font-semibold hover:from-[#e67a0f] hover:to-[#e6c35f] transition-all duration-300 text-lg shadow-lg shadow-[#FF8811]/30 hover:shadow-xl hover:shadow-[#FF8811]/40 hover:-translate-y-0.5"
+                >
+                  Join Waitlist
+                  <span className="inline-block transition-transform group-hover:translate-x-1 ml-2">→</span>
+                </button>
+              )}
               <a
                 href="https://youtu.be/O620a-fz_4g"
                 target="_blank"
@@ -654,6 +687,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
         </div>
       </section>
 
+      {/* Waitlist Section - Only show if waitlist mode is enabled */}
+      {waitlistEnabled && <WaitlistSection />}
+
       {/* Feedback Form Section */}
       <FeedbackForm id="feedback" />
 
@@ -667,7 +703,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
             Join users who are already thinking better with MUMBAAI's branching conversation trees.
           </p>
           <button
-            onClick={onGetStarted}
+            onClick={handleGetStartedClick}
             className="bg-gradient-to-r from-[#FF8811] to-[#F4D06F] text-white px-8 py-4 rounded-xl font-semibold hover:from-[#e67a0f] hover:to-[#e6c35f] transition-all duration-300 text-lg shadow-lg shadow-[#FF8811]/30 hover:shadow-xl hover:shadow-[#FF8811]/40 hover:-translate-y-0.5"
           >
             Start Your First Conversation →
