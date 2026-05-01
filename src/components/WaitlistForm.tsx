@@ -139,7 +139,7 @@ export const WaitlistForm: React.FC = () => {
             </label>
             <input
               type="text"
-              placeholder="Acme Inc."
+              placeholder="The Unreal Lab"
               value={company}
               onChange={(e) => setCompany(e.target.value)}
               className="w-full p-4 bg-[#FFF8F0]/50 border border-[#F4D06F]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8811]/50 focus:border-[#FF8811] transition-all placeholder:text-stone-400"
