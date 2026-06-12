@@ -88,7 +88,7 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
 
       // Convert to PNG with custom styling
       toPng(document.querySelector('.react-flow__viewport') as HTMLElement, {
-        backgroundColor: '#f9fafb', // Match your app's background
+        backgroundColor: '#000000', // Match the void canvas
         width: imageWidth,
         height: imageHeight,
         style: {
@@ -104,7 +104,7 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
         console.error('Error generating image:', error);
         // Fallback: try with basic settings
         toPng(document.querySelector('.react-flow__viewport') as HTMLElement, {
-          backgroundColor: '#f9fafb',
+          backgroundColor: '#000000',
           pixelRatio: 1,
         }).then((dataUrl) => {
           downloadImage(dataUrl, filename);
@@ -124,10 +124,10 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
       {/* Timeline Controls - Show when chat collapsed */}
       {chatPanelCollapsed && (
         <Panel position="top-center">
-          <div className="flex items-center gap-3 bg-white rounded-xl shadow-lg border border-gray-200 p-3">
+          <div className="flex items-center gap-3 bg-panel rounded-node border border-hairline p-3">
             <button
               onClick={onStartAnimation}
-              className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              className="p-2 text-ash hover:text-bone hover:bg-panel-2 rounded-[8px] transition-colors duration-fast"
               title={isAnimating ? "Pause Animation" : "Play Timeline Animation"}
             >
               {isAnimating ? <Pause size={16} /> : <Play size={16} />}
@@ -135,14 +135,14 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
 
             <button
               onClick={onResetTimeline}
-              className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              className="p-2 text-ash hover:text-bone hover:bg-panel-2 rounded-[8px] transition-colors duration-fast"
               title="Reset Timeline"
             >
               <RotateCcw size={16} />
             </button>
 
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">Timeline:</span>
+              <span className="text-xs text-smoke">Timeline</span>
               <input
                 type="range"
                 min="0"
@@ -153,7 +153,7 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
                 className="w-32"
                 disabled={isAnimating}
               />
-              <span className="text-xs text-gray-500 w-8">
+              <span className="text-xs text-smoke w-8">
                 {Math.round(timelinePosition * 100)}%
               </span>
             </div>
@@ -163,62 +163,62 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
 
       {/* Search and Filter Controls */}
       <Panel position="top-right">
-        <div className="flex items-center gap-2 bg-white rounded-xl shadow border border-gray-200 p-3">
+        <div className="flex items-center gap-2 bg-panel rounded-node border border-hairline p-3">
           <div className="flex items-center gap-1">
-            <Search size={14} />
+            <Search size={14} className="text-smoke" />
             <input
               type="text"
               placeholder="Search..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="w-24 text-xs border-none bg-transparent focus:outline-none placeholder-gray-400"
+              className="w-24 text-xs text-bone border-none bg-transparent focus:outline-none placeholder:text-smoke"
             />
           </div>
 
-          <div className="w-px h-4 bg-gray-300"></div>
+          <div className="w-px h-4" style={{ background: 'var(--color-hairline)' }}></div>
 
           {/* Auto Layout Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowLayoutDropdown(!showLayoutDropdown)}
-              className="p-1 text-gray-700 hover:bg-gray-100 rounded transition-colors"
+              className="p-1 text-ash hover:text-bone hover:bg-panel-2 rounded transition-colors duration-fast"
               title={`Auto Layout (${currentLayout === 'TB' ? 'Vertical' : 'Horizontal'})`}
             >
               {currentLayout === 'TB' ? <ArrowUpDown size={14} /> : <ArrowLeftRight size={14} />}
             </button>
             
             {showLayoutDropdown && (
-              <div className="absolute top-full right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]">
+              <div className="absolute top-full right-0 mt-1 bg-panel border border-hairline rounded-node z-10 min-w-[130px] overflow-hidden">
                 <button
                   onClick={() => handleLayoutSelect('TB')}
-                  className={`w-full px-3 py-2 text-left text-xs hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 ${
-                    currentLayout === 'TB' ? 'bg-blue-50 text-blue-700' : ''
+                  className={`w-full px-3 py-2 text-left text-xs hover:bg-panel-2 flex items-center gap-2 border-b border-hairline transition-colors duration-fast ${
+                    currentLayout === 'TB' ? 'text-bone' : 'text-ash'
                   }`}
                 >
                   <ArrowUpDown size={12} />
                   Vertical
-                  {currentLayout === 'TB' && <span className="ml-auto text-blue-500">✓</span>}
+                  {currentLayout === 'TB' && <span className="ml-auto text-plum">✓</span>}
                 </button>
                 <button
                   onClick={() => handleLayoutSelect('LR')}
-                  className={`w-full px-3 py-2 text-left text-xs hover:bg-gray-50 flex items-center gap-2 ${
-                    currentLayout === 'LR' ? 'bg-blue-50 text-blue-700' : ''
+                  className={`w-full px-3 py-2 text-left text-xs hover:bg-panel-2 flex items-center gap-2 transition-colors duration-fast ${
+                    currentLayout === 'LR' ? 'text-bone' : 'text-ash'
                   }`}
                 >
                   <ArrowLeftRight size={12} />
                   Horizontal
-                  {currentLayout === 'LR' && <span className="ml-auto text-blue-500">✓</span>}
+                  {currentLayout === 'LR' && <span className="ml-auto text-plum">✓</span>}
                 </button>
               </div>
             )}
           </div>
 
-          <div className="w-px h-4 bg-gray-300"></div>
+          <div className="w-px h-4" style={{ background: 'var(--color-hairline)' }}></div>
 
           <select
             value={filterType}
             onChange={(e) => onFilterChange(e.target.value as any)}
-            className="text-xs border-none bg-transparent focus:outline-none"
+            className="text-xs text-ash border-none bg-panel focus:outline-none cursor-pointer"
           >
             <option value="all">All</option>
             <option value="user">User</option>
@@ -226,12 +226,12 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
             <option value="merged">Merged</option>
           </select>
 
-          <div className="w-px h-4 bg-gray-300"></div>
+          <div className="w-px h-4" style={{ background: 'var(--color-hairline)' }}></div>
 
           {/* Download Button - Always visible */}
           <button
             onClick={handleDownload}
-            className="p-1 text-gray-700 hover:bg-gray-100 rounded transition-colors"
+            className="p-1 text-ash hover:text-bone hover:bg-panel-2 rounded transition-colors duration-fast"
             title="Download conversation as PNG"
           >
             <Download size={14} />

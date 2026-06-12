@@ -76,92 +76,64 @@ export const ProInterestButton: React.FC<ProInterestButtonProps> = ({ className 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap');
-
         .pro-btn {
-          font-family: 'DM Sans', system-ui, sans-serif;
+          font-family: var(--font-sans);
           position: relative;
           display: inline-flex;
           align-items: center;
           gap: 6px;
           padding: 6px 14px;
-          font-size: 13px;
-          font-weight: 500;
-          letter-spacing: 0.01em;
-          color: #1e40af;
-          background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-          border: 1px solid #bfdbfe;
-          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 600;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+          color: var(--color-ash);
+          background: transparent;
+          border: 1px solid var(--color-hairline);
+          border-radius: 24px;
           cursor: pointer;
-          transition: all 0.2s ease;
-          box-shadow: 0 1px 4px rgba(59, 130, 246, 0.1);
+          transition: color 120ms cubic-bezier(0.16, 1, 0.3, 1), border-color 120ms cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .pro-btn:hover {
-          background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-          border-color: #93c5fd;
-          box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
-          transform: translateY(-1px);
-        }
-
-        .pro-btn:active {
-          transform: translateY(0);
+          color: var(--color-bone);
+          border-color: var(--color-hairline-strong);
         }
 
         .pro-btn.pro-btn-large {
           padding: 12px 24px;
-          font-size: 15px;
+          font-size: 13px;
           gap: 10px;
-          border-radius: 10px;
-          color: #1e40af;
-          background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-          border: 1px solid #bfdbfe;
-          box-shadow: 0 2px 12px rgba(59, 130, 246, 0.15);
-        }
-
-        .pro-btn.pro-btn-large .pro-badge {
-          padding: 4px 10px;
-          font-size: 10px;
-          color: #ffffff;
-          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-        }
-
-        .pro-btn.pro-btn-large:hover {
-          background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-          border-color: #93c5fd;
-          box-shadow: 0 6px 20px rgba(59, 130, 246, 0.25);
-          transform: translateY(-2px);
         }
 
         .pro-badge {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          padding: 2px 6px;
+          padding: 2px 7px;
           font-size: 9px;
           font-weight: 600;
           letter-spacing: 0.05em;
           text-transform: uppercase;
-          color: #ffffff;
-          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-          border-radius: 3px;
+          color: var(--color-bone);
+          background: var(--color-plum);
+          border-radius: 24px;
         }
 
         .pro-modal-overlay {
           position: fixed;
           inset: 0;
-          background: rgba(15, 12, 8, 0.6);
-          backdrop-filter: blur(8px);
+          background: rgba(0, 0, 0, 0.7);
           display: flex;
           align-items: center;
           justify-content: center;
           z-index: 9999;
           padding: 24px;
-          animation: fadeIn 0.2s ease;
+          animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .pro-modal-overlay.closing {
-          animation: fadeOut 0.2s ease forwards;
+          animation: fadeOut 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         @keyframes fadeIn {
@@ -175,22 +147,19 @@ export const ProInterestButton: React.FC<ProInterestButtonProps> = ({ className 
         }
 
         .pro-modal {
-          font-family: 'DM Sans', system-ui, sans-serif;
+          font-family: var(--font-sans);
           position: relative;
           width: 100%;
           max-width: 420px;
-          background: #fdfcfa;
-          border-radius: 16px;
+          background: var(--color-panel);
+          border: 1px solid var(--color-hairline);
+          border-radius: 24px;
           overflow: hidden;
-          box-shadow:
-            0 0 0 1px rgba(0,0,0,0.03),
-            0 24px 48px -12px rgba(0,0,0,0.25),
-            0 0 80px -20px rgba(139, 115, 85, 0.15);
           animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .pro-modal-overlay.closing .pro-modal {
-          animation: modalOut 0.2s ease forwards;
+          animation: modalOut 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         @keyframes modalIn {
@@ -218,8 +187,7 @@ export const ProInterestButton: React.FC<ProInterestButtonProps> = ({ className 
         .pro-modal-header {
           position: relative;
           padding: 40px 36px 32px;
-          background: linear-gradient(180deg, #f8f6f2 0%, #fdfcfa 100%);
-          border-bottom: 1px solid #ebe7df;
+          border-bottom: 1px solid var(--color-hairline);
         }
 
         .pro-modal-close {
@@ -235,27 +203,26 @@ export const ProInterestButton: React.FC<ProInterestButtonProps> = ({ className 
           border: none;
           border-radius: 8px;
           cursor: pointer;
-          color: #9a8f7f;
-          transition: all 0.15s ease;
+          color: var(--color-smoke);
+          transition: color 120ms ease, background 120ms ease;
         }
 
         .pro-modal-close:hover {
-          background: #f0ebe3;
-          color: #6b5d4d;
+          background: var(--color-panel-2);
+          color: var(--color-bone);
         }
 
         .pro-modal-title {
-          font-family: 'Instrument Serif', Georgia, serif;
-          font-size: 30px;
-          font-weight: 400;
-          color: #1a1714;
+          font-size: 26px;
+          font-weight: 200;
+          color: var(--color-bone);
           margin: 0 0 14px;
-          letter-spacing: -0.01em;
+          letter-spacing: -0.02em;
         }
 
         .pro-modal-subtitle {
           font-size: 15px;
-          color: #7a7062;
+          color: var(--color-ash);
           margin: 0;
           line-height: 1.6;
           max-width: 340px;
@@ -269,7 +236,7 @@ export const ProInterestButton: React.FC<ProInterestButtonProps> = ({ className 
           display: flex;
           gap: 16px;
           padding: 16px 0;
-          border-bottom: 1px solid #f0ebe3;
+          border-bottom: 1px solid var(--color-hairline);
         }
 
         .pro-feature:last-child {
@@ -283,85 +250,71 @@ export const ProInterestButton: React.FC<ProInterestButtonProps> = ({ className 
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #f8f6f2;
-          border: 1px solid #ebe7df;
-          border-radius: 8px;
-          font-family: 'Instrument Serif', Georgia, serif;
-          font-size: 15px;
-          font-style: italic;
-          color: #8b7355;
+          background: transparent;
+          border: 1px solid var(--color-hairline);
+          border-radius: 24px;
+          font-size: 13px;
+          color: var(--color-plum);
         }
 
         .pro-feature-content h4 {
           font-size: 14px;
           font-weight: 600;
-          color: #2a2520;
+          color: var(--color-bone);
           margin: 0 0 4px;
         }
 
         .pro-feature-content p {
           font-size: 13px;
-          color: #7a7062;
+          color: var(--color-ash);
           margin: 0;
           line-height: 1.45;
         }
 
         .pro-modal-footer {
           padding: 24px 32px 32px;
-          background: #fdfcfa;
         }
 
         .pro-cta {
           width: 100%;
           padding: 14px 24px;
-          font-family: 'DM Sans', system-ui, sans-serif;
-          font-size: 14px;
+          font-family: var(--font-sans);
+          font-size: 13px;
           font-weight: 600;
-          letter-spacing: 0.01em;
-          color: #fdfcfa;
-          background: linear-gradient(135deg, #3d3429 0%, #2a2520 100%);
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+          color: var(--color-bone);
+          background: var(--color-plum);
           border: none;
-          border-radius: 10px;
+          border-radius: 24px;
           cursor: pointer;
-          transition: all 0.2s ease;
-          box-shadow:
-            0 1px 2px rgba(0,0,0,0.1),
-            inset 0 1px 0 rgba(255,255,255,0.05);
+          transition: background 120ms cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .pro-cta:hover {
-          background: linear-gradient(135deg, #4a4035 0%, #3d3429 100%);
-          transform: translateY(-1px);
-          box-shadow:
-            0 4px 12px rgba(0,0,0,0.15),
-            inset 0 1px 0 rgba(255,255,255,0.05);
-        }
-
-        .pro-cta:active {
-          transform: translateY(0);
+          background: var(--color-plum-hover);
         }
 
         .pro-cta:disabled {
-          opacity: 0.6;
+          opacity: 0.5;
           cursor: not-allowed;
-          transform: none;
         }
 
         .pro-dismiss {
           width: 100%;
           padding: 10px;
           margin-top: 8px;
-          font-family: 'DM Sans', system-ui, sans-serif;
+          font-family: var(--font-sans);
           font-size: 13px;
-          color: #9a8f7f;
+          color: var(--color-smoke);
           background: transparent;
           border: none;
           cursor: pointer;
-          transition: color 0.15s ease;
+          transition: color 120ms ease;
         }
 
         .pro-dismiss:hover {
-          color: #6b5d4d;
+          color: var(--color-bone);
         }
 
         .pro-confirmed {
@@ -376,27 +329,26 @@ export const ProInterestButton: React.FC<ProInterestButtonProps> = ({ className 
           display: flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(135deg, #f0ebe3 0%, #e8e0d4 100%);
+          border: 1px solid var(--color-plum);
           border-radius: 50%;
         }
 
         .pro-confirmed-icon svg {
           width: 24px;
           height: 24px;
-          color: #6b5d4d;
+          color: var(--color-plum);
         }
 
         .pro-confirmed h3 {
-          font-family: 'Instrument Serif', Georgia, serif;
-          font-size: 24px;
+          font-size: 22px;
           font-weight: 400;
-          color: #1a1714;
+          color: var(--color-bone);
           margin: 0 0 8px;
         }
 
         .pro-confirmed p {
           font-size: 14px;
-          color: #7a7062;
+          color: var(--color-ash);
           margin: 0 0 28px;
           line-height: 1.5;
         }
@@ -404,20 +356,19 @@ export const ProInterestButton: React.FC<ProInterestButtonProps> = ({ className 
         .pro-done-btn {
           display: inline-flex;
           padding: 12px 28px;
-          font-family: 'DM Sans', system-ui, sans-serif;
+          font-family: var(--font-sans);
           font-size: 14px;
           font-weight: 500;
-          color: #2a2520;
-          background: #f8f6f2;
-          border: 1px solid #e8e4dc;
-          border-radius: 8px;
+          color: var(--color-bone);
+          background: transparent;
+          border: 1px solid var(--color-hairline);
+          border-radius: 24px;
           cursor: pointer;
-          transition: all 0.15s ease;
+          transition: border-color 120ms ease;
         }
 
         .pro-done-btn:hover {
-          background: #f0ebe3;
-          border-color: #d4cfc3;
+          border-color: var(--color-hairline-strong);
         }
 
         .pro-already-joined {
@@ -432,27 +383,26 @@ export const ProInterestButton: React.FC<ProInterestButtonProps> = ({ className 
           display: flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+          border: 1px solid var(--color-plum);
           border-radius: 50%;
         }
 
         .pro-already-joined-icon svg {
           width: 28px;
           height: 28px;
-          color: #4caf50;
+          color: var(--color-plum);
         }
 
         .pro-already-joined h3 {
-          font-family: 'Instrument Serif', Georgia, serif;
-          font-size: 26px;
+          font-size: 24px;
           font-weight: 400;
-          color: #1a1714;
+          color: var(--color-bone);
           margin: 0 0 12px;
         }
 
         .pro-already-joined p {
           font-size: 15px;
-          color: #7a7062;
+          color: var(--color-ash);
           margin: 0 0 32px;
           line-height: 1.6;
         }

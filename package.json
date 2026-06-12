@@ -4,10 +4,12 @@
   "private": true,
   "dependencies": {
     "@dagrejs/dagre": "^1.1.5",
+    "@fontsource-variable/inter": "^5.2.8",
     "@google/generative-ai": "^0.14.1",
     "@supabase/supabase-js": "^2.53.0",
     "@types/dagre": "^0.7.53",
     "@types/react-router-dom": "^5.3.3",
+    "@types/three": "^0.184.1",
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
     "@xyflow/react": "^12.8.2",
@@ -20,7 +22,8 @@
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.13.0",
     "react-scripts": "5.0.1",
-    "reactflow": "^11.11.0"
+    "reactflow": "^11.11.0",
+    "three": "^0.184.0"
   },
   "scripts": {
     "start": "react-scripts start",

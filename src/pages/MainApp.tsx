@@ -81,7 +81,6 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
       } else {
         newSelected.add(messageId);
       }
-      console.log('Multi-select updated:', Array.from(newSelected));
       setSelectedNodes(newSelected);
     } else {
       setSelectedMessageId(messageId);
@@ -200,10 +199,10 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
   // Show loading while loading conversations
   if (conversationHook.loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen bg-void">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading conversations...</p>
+          <div className="animate-spin rounded-full h-10 w-10 border-2 mx-auto mb-4" style={{ borderColor: 'var(--color-hairline)', borderTopColor: 'var(--color-plum)' }}></div>
+          <p className="text-ash text-sm">Loading conversations…</p>
         </div>
       </div>
     );
@@ -223,19 +222,18 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
           showProfileButton={true}
           onProfileClick={handleNavigateToProfile}
         />
-        <div style={{ marginTop: '72px', height: 'calc(100vh - 72px)', overflowY: 'auto' }}>
+        <div className="bg-void" style={{ marginTop: '56px', height: 'calc(100vh - 56px)', overflowY: 'auto' }}>
           <ErrorBoundary
             fallback={
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center p-8">
-                  <div className="text-red-600 text-6xl mb-4">📝</div>
-                  <p className="text-red-700 font-medium text-xl mb-2">Conversations List Error</p>
-                  <p className="text-red-600 mb-4">Unable to load your conversations</p>
+              <div className="flex items-center justify-center h-full bg-void">
+                <div className="text-center p-8 max-w-sm">
+                  <p className="text-bone font-medium text-lg mb-2">Couldn't load your conversations</p>
+                  <p className="text-ash text-sm mb-6">Something went wrong on our side. A refresh usually fixes it.</p>
                   <button
                     onClick={() => window.location.reload()}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                    className="px-5 py-2.5 rounded-pill border border-hairline hover:border-hairline-strong text-bone text-[12px] font-semibold uppercase tracking-kicker transition-colors duration-fast"
                   >
-                    Refresh Page
+                    Refresh
                   </button>
                 </div>
               </div>
@@ -276,16 +274,15 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
         viewMode={chatViewMode}
         onViewModeChange={setChatViewMode}
       />
-      <div className="flex bg-gray-50" style={{ marginTop: '72px', height: 'calc(100vh - 72px)', overflow: 'hidden' }}>
+      <div className="flex bg-void" style={{ marginTop: '56px', height: 'calc(100vh - 56px)', overflow: 'hidden' }}>
         {/* Chat Panel - Only visible in Combined view */}
         {chatViewMode === 'combined' && (
           <ErrorBoundary
             fallback={
-              <div className="w-96 bg-red-50 border-r border-red-200 flex items-center justify-center">
+              <div className="w-96 bg-void border-r border-hairline flex items-center justify-center">
                 <div className="text-center p-4">
-                  <div className="text-red-600 text-4xl mb-2">💬</div>
-                  <p className="text-red-700 font-medium">Chat Panel Error</p>
-                  <p className="text-red-600 text-sm">Please refresh to restore chat</p>
+                  <p className="text-bone font-medium">Chat panel hit an error</p>
+                  <p className="text-ash text-sm mt-1">Refresh the page to restore it</p>
                 </div>
               </div>
             }
@@ -328,16 +325,15 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
         {/* Flow Canvas */}
         <ErrorBoundary
           fallback={
-            <div className="flex-1 bg-red-50 flex items-center justify-center">
-              <div className="text-center p-8">
-                <div className="text-red-600 text-6xl mb-4">🌐</div>
-                <p className="text-red-700 font-medium text-xl mb-2">Flow Visualization Error</p>
-                <p className="text-red-600">The conversation flow couldn't be displayed</p>
+            <div className="flex-1 bg-void flex items-center justify-center">
+              <div className="text-center p-8 max-w-sm">
+                <p className="text-bone font-medium text-lg mb-2">The canvas couldn't render</p>
+                <p className="text-ash text-sm mb-6">Your conversation is safe — refresh to restore the view.</p>
                 <button
                   onClick={() => window.location.reload()}
-                  className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                  className="px-5 py-2.5 rounded-pill border border-hairline hover:border-hairline-strong text-bone text-[12px] font-semibold uppercase tracking-kicker transition-colors duration-fast"
                 >
-                  Refresh to Restore
+                  Refresh
                 </button>
               </div>
             </div>

@@ -52,10 +52,10 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 }) => {
   if (collapsed) {
     return (
-      <div className="w-12 bg-white border-r border-gray-200 flex flex-col items-center justify-center">
+      <div className="w-12 bg-void border-r border-hairline flex flex-col items-center justify-center">
         <button
           onClick={onToggleCollapse}
-          className="p-3 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+          className="p-3 text-smoke hover:text-bone hover:bg-panel rounded-[8px] transition-colors duration-fast"
           title="Show Chat"
         >
           <ChevronLeft size={20} className="rotate-180" />
@@ -65,7 +65,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   }
 
   return (
-    <div className="w-2/5 bg-white border-r border-gray-200 flex flex-col shadow-sm transition-all duration-300">
+    <div className="w-2/5 bg-void border-r border-hairline flex flex-col transition-all duration-med">
       {/* Message Thread */}
       <MessageThread
         messages={messageThread}

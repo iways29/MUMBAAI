@@ -1,8 +1,11 @@
+/* Hallmark · genre: atmospheric · macrostructure: Marquee Hero · theme: studied-DNA (source: refero export of dala.craftedbygc.com)
+ * design-system: design.md · designed-as-app */
+@import './styles/tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Reset any default margins/padding */
 html, body, #root {
   margin: 0;
   padding: 0;
@@ -10,15 +13,42 @@ html, body, #root {
   overflow: hidden;
 }
 
-/* React Flow custom styles */
+body {
+  background: var(--color-void);
+  color: var(--color-bone);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  letter-spacing: var(--tracking-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-plum);
+  color: var(--color-bone);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-plum);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 150ms !important;
+  }
+}
+
+/* ---------- React Flow — void theme ---------- */
 .react-flow__node-message {
   background: transparent;
   border: none;
 }
 
 .react-flow__node-message .react-flow__handle {
-  background: #6b7280;
-  border: 2px solid white;
+  background: var(--color-smoke);
+  border: 2px solid var(--color-void);
   width: 8px;
   height: 8px;
 }
@@ -32,16 +62,18 @@ html, body, #root {
 }
 
 .react-flow__edge-path {
-  stroke-width: 2;
+  stroke: rgba(255, 255, 255, 0.18);
+  stroke-width: 1.5;
 }
 
 .react-flow__edge.animated .react-flow__edge-path {
+  stroke: var(--color-plum);
   stroke-dasharray: 5;
   animation: dashdraw 0.5s linear infinite;
 }
 
 .react-flow__edge.selected .react-flow__edge-path {
-  stroke: #fbbf24 !important;
+  stroke: var(--color-plum) !important;
 }
 
 @keyframes dashdraw {
@@ -50,122 +82,86 @@ html, body, #root {
   }
 }
 
-/* Custom node styles */
-.user-node {
-  border-color: #3b82f6 !important;
-}
-
-.assistant-node {
-  border-color: #10b981 !important;
-}
-
-.bookmarked-node {
-  box-shadow: 0 0 0 2px #fbbf24;
-}
-
-/* React Flow controls customization */
 .react-flow__controls {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  background: var(--color-panel);
+  border: 1px solid var(--color-hairline);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: none;
 }
 
 .react-flow__controls-button {
-  background: white;
-  border-bottom: 1px solid #e5e7eb;
-  color: #374151;
+  background: var(--color-panel);
+  border-bottom: 1px solid var(--color-hairline);
+  color: var(--color-ash);
+  fill: var(--color-ash);
 }
 
 .react-flow__controls-button:hover {
-  background: #f9fafb;
+  background: var(--color-panel-2);
+  color: var(--color-bone);
 }
 
 .react-flow__controls-button:last-child {
   border-bottom: none;
 }
 
-/* MiniMap customization */
 .react-flow__minimap {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--color-panel);
+  border: 1px solid var(--color-hairline);
+  border-radius: 12px;
 }
 
-/* Panel customization */
 .react-flow__panel {
   z-index: 5;
 }
 
-/* Selection box */
+.react-flow__attribution {
+  background: transparent;
+  color: var(--color-smoke);
+}
+
 .react-flow__selection {
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px dashed #3b82f6;
+  background: var(--color-plum-soft);
+  border: 1px dashed var(--color-plum);
 }
 
-/* Loading animations */
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: .5;
-  }
+/* Merge pulse — one-shot on merged-node creation */
+@keyframes merge-pulse {
+  0% { transform: scale(0.96); opacity: 0.4; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.merge-pulse {
+  animation: merge-pulse var(--dur-slow) var(--ease-out) 1;
 }
 
-/* Landing page animations */
-@keyframes blob {
-  0% {
-    transform: translate(0px, 0px) scale(1);
-  }
-  33% {
-    transform: translate(30px, -50px) scale(1.1);
-  }
-  66% {
-    transform: translate(-20px, 20px) scale(0.9);
-  }
-  100% {
-    transform: translate(0px, 0px) scale(1);
-  }
+/* Streaming caret */
+@keyframes caret-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.15; }
 }
 
-.animate-blob {
-  animation: blob 7s infinite;
+.caret-pulse {
+  animation: caret-pulse 1s var(--ease-in-out) infinite;
 }
 
-.animation-delay-2000 {
-  animation-delay: 2s;
+/* Thin scrollbars on the void */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 }
 
-.animation-delay-4000 {
-  animation-delay: 4s;
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+*::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
 }
 
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.perspective-1000 {
-  perspective: 1000px;
-}
-
-/* Grid background pattern */
-.bg-grid-pattern {
-  background-image: linear-gradient(to right, #e5e7eb 1px, transparent 1px),
-                    linear-gradient(to bottom, #e5e7eb 1px, transparent 1px);
-  background-size: 4rem 4rem;
-  mask-image: radial-gradient(ellipse 60% 50% at 50% 0%, #000 70%, transparent 110%);
-  -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 0%, #000 70%, transparent 110%);
+*::-webkit-scrollbar-track {
+  background: transparent;
 }

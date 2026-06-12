@@ -1,15 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, Clock, Building, Play, Lock, Layers, GitBranch, Combine } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { ReactComponent as AnthropicIcon } from '../assets/anthropic.svg';
 import { ReactComponent as OpenAIIcon } from '../assets/openai.svg';
 import { ReactComponent as GoogleIcon } from '../assets/google-gemini.svg';
 import { FeedbackForm } from '../components/FeedbackForm.tsx';
 import { WaitlistSection } from '../sections/WaitlistSection.tsx';
 import { DatabaseService } from '../services/databaseService.ts';
+import { BrainStoryHero } from '../components/Landing/BrainStoryHero.tsx';
+import { DemoSceneSection } from '../components/Landing/DemoSceneSection.tsx';
 
 interface HomePageProps {
   onGetStarted: () => void;
 }
+
+const STEPS = [
+  {
+    n: '01',
+    title: 'Branch',
+    body: 'Any reply can fork. Ask a follow-up in one direction without abandoning the others — every branch keeps its own context.',
+  },
+  {
+    n: '02',
+    title: 'Explore in parallel',
+    body: 'Run several threads side by side, each with the model you choose — Claude, GPT, or Gemini — and compare answers on one canvas.',
+  },
+  {
+    n: '03',
+    title: 'Smart Merge',
+    body: 'Select the branches worth keeping and AI synthesizes them into a single answer that carries the best of every path.',
+  },
+];
+
+const ROADMAP = [
+  { phase: 'Phase 1', name: 'POC', desc: 'Concept validation and internal demo', status: 'done' as const, when: 'Shipped' },
+  { phase: 'Phase 2', name: 'MVP', desc: 'Real users, personal storage, Smart Merge', status: 'now' as const, when: 'Now' },
+  { phase: 'Phase 3', name: 'Growth', desc: 'Subscriptions, refined UI, custom models', status: 'next' as const, when: 'Q3 2026' },
+  { phase: 'Phase 4', name: 'Advanced', desc: 'Deep research, artifacts, MCP connectors', status: 'later' as const, when: '2026+' },
+  { phase: 'Phase 5', name: 'Enterprise', desc: 'Integrations, priority support, security', status: 'later' as const, when: '2026+' },
+];
 
 export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
   const [waitlistEnabled, setWaitlistEnabled] = useState(false);
@@ -24,7 +52,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
     fetchWaitlistConfig();
   }, []);
 
-  // Handle button click - either scroll to waitlist or go to auth
+  // Either scroll to waitlist or go to auth
   const handleGetStartedClick = () => {
     if (waitlistEnabled) {
       const waitlistSection = document.getElementById('waitlist');
@@ -35,715 +63,199 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
   };
 
   return (
-    <div className="bg-[#FFF8F0]">
-      {/* Hero Section - Full viewport with video */}
-      <section className="min-h-screen relative overflow-hidden bg-gradient-to-b from-[#FFF8F0] via-white to-[#9DD9D2]/10">
-        {/* Decorative background elements */}
-        <div className="absolute inset-0 pointer-events-none">
-          {/* Grid pattern */}
-          <div className="absolute inset-0 bg-grid-pattern opacity-30" />
-
-          {/* Gradient orbs for depth */}
-          <div className="absolute top-20 -left-40 w-96 h-96 bg-[#FF8811] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
-          <div className="absolute top-40 -right-40 w-96 h-96 bg-[#9DD9D2] rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
-          <div className="absolute bottom-40 left-1/3 w-96 h-96 bg-[#F4D06F] rounded-full mix-blend-multiply filter blur-3xl opacity-25 animate-blob animation-delay-4000" />
-        </div>
-
-        {/* Navigation */}
-        <nav className="relative z-20 px-8 py-6">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl sm:text-3xl font-bold text-stone-800 tracking-tight">MUMBAAI</span>
-            </div>
-            <button
-              onClick={handleGetStartedClick}
-              className="bg-gradient-to-r from-[#FF8811] to-[#F4D06F] text-white px-6 py-2.5 rounded-xl font-medium hover:from-[#e67a0f] hover:to-[#e6c35f] transition-all duration-300 shadow-lg shadow-[#FF8811]/25 hover:shadow-xl hover:shadow-[#FF8811]/30"
-            >
-              Sign In
-            </button>
+    <div className="bg-void text-bone font-sans">
+      {/* Navigation */}
+      <nav className="fixed top-0 inset-x-0 z-50 bg-void/90 border-b border-hairline" style={{ backdropFilter: 'blur(8px)' }}>
+        <div className="max-w-page mx-auto flex items-center justify-between px-6 md:px-12 h-16">
+          <span className="text-[17px] font-semibold tracking-body text-bone">MUMBAAI</span>
+          <div className="hidden md:flex items-center gap-8">
+            <a href="#how" className="text-[14px] text-smoke hover:text-bone transition-colors duration-fast">
+              How it works
+            </a>
+            <a href="#roadmap" className="text-[14px] text-smoke hover:text-bone transition-colors duration-fast">
+              Roadmap
+            </a>
+            <a href="#feedback" className="text-[14px] text-smoke hover:text-bone transition-colors duration-fast">
+              Feedback
+            </a>
           </div>
-        </nav>
-
-        {/* Hero Content */}
-        <div className="relative z-10 pt-16 pb-20 px-6 md:px-8">
-          <div className="max-w-6xl mx-auto text-center">
-            {/* Announcement Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm border border-[#9DD9D2]/50 rounded-full mb-8 shadow-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF8811] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF8811]"></span>
-              </span>
-              <span className="text-sm font-medium text-stone-700">Now in MVP Phase</span>
-              <span className="text-[#9DD9D2]">|</span>
-              <span className="text-sm text-stone-500">Join early adopters</span>
-            </div>
-
-            {/* Main Headline */}
-            <div className="flex justify-center mb-6">
-              <div className="inline-flex items-center px-6 py-3 bg-white/70 backdrop-blur-md border border-[#F4D06F]/30 rounded-2xl shadow-lg shadow-[#F4D06F]/20">
-                <p className="text-xl sm:text-2xl md:text-3xl text-stone-700 font-semibold tracking-tight">
-                  The future of AI conversation is here
-                </p>
-              </div>
-            </div>
-            <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-6 leading-[1.1] tracking-tight">
-              <span className="bg-gradient-to-r from-[#FF8811] via-[#F4D06F] to-[#FF8811] bg-clip-text text-transparent">
-                Never Lose a Thought Again
-              </span>
-            </h1>
-
-            {/* Subheadline */}
-            <p className="text-lg sm:text-xl md:text-2xl text-stone-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Stop losing brilliant ideas in linear chat. Explore every possibility with visual conversation trees.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-              <button
-                onClick={handleGetStartedClick}
-                className="group bg-gradient-to-r from-[#FF8811] to-[#F4D06F] text-white px-8 py-4 rounded-xl font-semibold hover:from-[#e67a0f] hover:to-[#e6c35f] transition-all duration-300 text-lg shadow-lg shadow-[#FF8811]/30 hover:shadow-xl hover:shadow-[#FF8811]/40 hover:-translate-y-0.5"
-              >
-                Start Free
-                <span className="inline-block transition-transform group-hover:translate-x-1 ml-2">→</span>
-              </button>
-              {waitlistEnabled && (
-                <button
-                  onClick={handleGetStartedClick}
-                  className="group bg-gradient-to-r from-[#FF8811] to-[#F4D06F] text-white px-8 py-4 rounded-xl font-semibold hover:from-[#e67a0f] hover:to-[#e6c35f] transition-all duration-300 text-lg shadow-lg shadow-[#FF8811]/30 hover:shadow-xl hover:shadow-[#FF8811]/40 hover:-translate-y-0.5"
-                >
-                  Join Waitlist
-                  <span className="inline-block transition-transform group-hover:translate-x-1 ml-2">→</span>
-                </button>
-              )}
-              <a
-                href="https://youtu.be/O620a-fz_4g"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 text-stone-600 hover:text-[#FF8811] transition-colors font-medium px-4 py-2"
-              >
-                <div className="w-10 h-10 bg-white border border-[#F4D06F]/40 rounded-full flex items-center justify-center shadow-sm">
-                  <Play size={18} className="text-[#FF8811] ml-0.5" fill="currentColor" />
-                </div>
-                <span>Watch with sound</span>
-              </a>
-            </div>
-
-            {/* Browser Mockup with Video */}
-            <div className="relative max-w-5xl mx-auto perspective-1000">
-              {/* Glow effect behind browser */}
-              <div className="absolute -inset-4 bg-gradient-to-r from-[#F4D06F]/40 via-[#9DD9D2]/30 to-[#F4D06F]/40 rounded-3xl blur-2xl opacity-70" />
-
-              {/* Browser Frame */}
-              <div className="relative bg-white rounded-2xl shadow-2xl shadow-stone-900/10 border border-[#F4D06F]/30 overflow-hidden transform hover:scale-[1.01] transition-transform duration-500 animate-float">
-                {/* Browser Chrome */}
-                <div className="flex items-center gap-3 px-4 py-3 bg-[#FFF8F0] border-b border-[#F4D06F]/20">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-rose-400 hover:bg-rose-500 transition-colors" />
-                    <div className="w-3 h-3 rounded-full bg-[#F4D06F] hover:bg-[#e6c35f] transition-colors" />
-                    <div className="w-3 h-3 rounded-full bg-[#9DD9D2] hover:bg-[#8bc9c2] transition-colors" />
-                  </div>
-                  <div className="flex-1 flex justify-center">
-                    <div className="flex items-center gap-2 bg-white rounded-lg px-4 py-1.5 text-sm text-stone-500 border border-[#F4D06F]/30 shadow-inner">
-                      <Lock size={12} className="text-[#FF8811]" />
-                      <span>mumba.ai</span>
-                    </div>
-                  </div>
-                  <div className="w-16" /> {/* Spacer for balance */}
-                </div>
-
-                {/* Video Container */}
-                <div className="relative aspect-video bg-gray-900">
-                  <iframe
-                    src="https://www.youtube.com/embed/O620a-fz_4g?autoplay=1&mute=1&loop=1&playlist=O620a-fz_4g&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&hd=1&vq=hd1080"
-                    title="MUMBAAI Demo"
-                    className="absolute inset-0 w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                  {/* Overlay to block interactions and hide YouTube hover elements */}
-                  <div className="absolute inset-0 pointer-events-auto" />
-                </div>
-              </div>
-            </div>
-
-            {/* Value Props - Authentic MVP Benefits */}
-            <div className="mt-12 flex flex-wrap justify-center items-center gap-3">
-              {/* Free Beta Badge */}
-              <div className="group flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#9DD9D2]/30 to-[#9DD9D2]/10 border border-[#9DD9D2]/50 rounded-full hover:border-[#9DD9D2] transition-all cursor-default">
-                <div className="w-5 h-5 rounded-full bg-[#9DD9D2]/40 flex items-center justify-center">
-                  <span className="text-[#2a8a7d] text-xs">✓</span>
-                </div>
-                <span className="text-sm font-medium text-[#2a8a7d]">Free during beta</span>
-              </div>
-
-              {/* Multi-Model Support */}
-              <div className="group flex items-center gap-2.5 px-4 py-2 bg-gradient-to-r from-[#FF8811]/10 to-[#F4D06F]/20 border border-[#FF8811]/30 rounded-full hover:border-[#FF8811]/60 transition-all cursor-default">
-                <div className="flex items-center -space-x-1.5">
-                  <div className="w-5 h-5 rounded-full bg-white border border-[#F4D06F]/40 flex items-center justify-center shadow-sm">
-                    <AnthropicIcon width={12} height={12} />
-                  </div>
-                  <div className="w-5 h-5 rounded-full bg-white border border-[#F4D06F]/40 flex items-center justify-center shadow-sm">
-                    <OpenAIIcon width={12} height={12} />
-                  </div>
-                  <div className="w-5 h-5 rounded-full bg-white border border-[#F4D06F]/40 flex items-center justify-center shadow-sm">
-                    <GoogleIcon width={12} height={12} />
-                  </div>
-                </div>
-                <span className="text-sm font-medium text-[#c96d0e]">Use Any Model</span>
-              </div>
-
-              {/* Unlimited Branches */}
-              <div className="group flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#F4D06F]/20 to-[#F4D06F]/10 border border-[#F4D06F]/50 rounded-full hover:border-[#F4D06F] transition-all cursor-default">
-                <GitBranch size={14} className="text-[#c9a545]" />
-                <span className="text-sm font-medium text-[#a08030]">Unlimited branches</span>
-              </div>
-
-              {/* No Credit Card */}
-              <div className="group flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-stone-100/60 to-stone-50 border border-stone-200 rounded-full hover:border-stone-300 transition-all cursor-default">
-                <Lock size={12} className="text-stone-400" />
-                <span className="text-sm font-medium text-stone-500">No credit card</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Why MUMBAAI Section - Transformation Narrative */}
-      <section className="relative py-28 overflow-hidden">
-        <style>{`
-          @keyframes float-subtle {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-8px) rotate(1deg); }
-          }
-          @keyframes draw-line {
-            from { stroke-dashoffset: 100; }
-            to { stroke-dashoffset: 0; }
-          }
-          .feature-card:hover .feature-icon {
-            transform: scale(1.1) rotate(-5deg);
-          }
-          .feature-card:hover .feature-line {
-            opacity: 1;
-            transform: scaleX(1);
-          }
-          .transform-arrow {
-            animation: float-subtle 3s ease-in-out infinite;
-          }
-          .problem-item:hover {
-            transform: translateX(-4px);
-          }
-          .solution-item:hover {
-            transform: translateX(4px);
-          }
-        `}</style>
-
-        {/* Background - Diagonal Split */}
-        <div className="absolute inset-0">
-          {/* Problem side - warm ivory */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#FFF8F0] via-white to-stone-50" />
-          {/* Solution side overlay - flows diagonally */}
-          <div
-            className="absolute inset-0 bg-gradient-to-br from-[#9DD9D2]/0 via-[#9DD9D2]/20 to-[#9DD9D2]/40"
-            style={{ clipPath: 'polygon(40% 0, 100% 0, 100% 100%, 20% 100%)' }}
-          />
-          {/* Decorative flowing line between */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#FF8811" stopOpacity="0.3" />
-                <stop offset="50%" stopColor="#F4D06F" stopOpacity="0.4" />
-                <stop offset="100%" stopColor="#9DD9D2" stopOpacity="0.3" />
-              </linearGradient>
-            </defs>
-            <path
-              d="M 35% 0 Q 30% 50%, 25% 100%"
-              stroke="url(#flowGradient)"
-              strokeWidth="2"
-              fill="none"
-              className="hidden md:block"
-            />
-          </svg>
-        </div>
-
-        <div className="relative max-w-7xl mx-auto px-8">
-          {/* Section Header - Asymmetric */}
-          <div className="mb-20">
-            <div className="max-w-2xl">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="h-px w-12 bg-gradient-to-r from-[#FF8811] to-transparent" />
-                <span className="text-sm font-semibold text-[#FF8811] tracking-wider uppercase">The Difference</span>
-              </div>
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-stone-800 tracking-tight mb-6 leading-[1.1]">
-                From chaos to
-                <span className="relative inline-block ml-3">
-                  <span className="relative z-10 bg-gradient-to-r from-[#FF8811] to-[#F4D06F] bg-clip-text text-transparent">clarity</span>
-                  <svg className="absolute -bottom-2 left-0 w-full h-3 text-[#F4D06F]/50" viewBox="0 0 100 12" preserveAspectRatio="none">
-                    <path d="M0 6 Q25 0, 50 6 T100 6" stroke="currentColor" strokeWidth="4" fill="none" strokeLinecap="round" />
-                  </svg>
-                </span>
-              </h2>
-              <p className="text-xl text-stone-500 leading-relaxed">
-                Traditional AI chats are linear and forgettable. MUMBAAI transforms conversations into visual, explorable journeys.
-              </p>
-            </div>
-          </div>
-
-          {/* Problem/Solution - Overlapping Cards */}
-          <div className="relative mb-32">
-            <div className="grid lg:grid-cols-12 gap-8 items-start">
-
-              {/* Problem Card - Left aligned, slightly rotated */}
-              <div className="lg:col-span-5 lg:col-start-1">
-                <div className="relative group">
-                  {/* Shadow layer */}
-                  <div className="absolute inset-0 bg-stone-200/50 rounded-3xl transform rotate-1 translate-x-2 translate-y-2" />
-                  {/* Main card */}
-                  <div className="relative bg-white rounded-3xl p-8 md:p-10 border border-stone-200 shadow-xl shadow-stone-200/50">
-                    {/* Header */}
-                    <div className="flex items-center gap-4 mb-8">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-stone-100 to-stone-50 flex items-center justify-center border border-stone-200">
-                        <span className="text-2xl">😤</span>
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-stone-400 tracking-wider uppercase">The Problem</span>
-                        <h3 className="text-xl font-bold text-stone-800">Linear Chats</h3>
-                      </div>
-                    </div>
-                    {/* Items */}
-                    <div className="space-y-5">
-                      {[
-                        { text: "Lost context when exploring multiple ideas", delay: "0ms" },
-                        { text: "Can't revisit or compare different approaches", delay: "50ms" },
-                        { text: "Conversations disappear into endless scroll", delay: "100ms" },
-                        { text: "No way to organize complex discussions", delay: "150ms" }
-                      ].map((item, i) => (
-                        <div
-                          key={i}
-                          className="problem-item flex items-start gap-4 p-3 -ml-3 rounded-xl hover:bg-stone-50 transition-all duration-300 cursor-default"
-                          style={{ transitionDelay: item.delay }}
-                        >
-                          <div className="w-6 h-6 rounded-full bg-stone-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <div className="w-2 h-0.5 bg-stone-400 rounded-full" />
-                          </div>
-                          <p className="text-stone-600 leading-relaxed">{item.text}</p>
-                        </div>
-                      ))}
-                    </div>
-                    {/* Decorative corner */}
-                    <div className="absolute top-6 right-6 w-20 h-20 opacity-10">
-                      <div className="w-full h-full border-t-2 border-r-2 border-stone-300 rounded-tr-3xl" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Transform Arrow - Center */}
-              <div className="hidden lg:flex lg:col-span-2 items-center justify-center">
-                <div className="transform-arrow relative">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#FF8811] to-[#F4D06F] flex items-center justify-center shadow-lg shadow-[#FF8811]/30">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                  {/* Orbiting dots */}
-                  <div className="absolute inset-0 animate-spin" style={{ animationDuration: '8s' }}>
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#9DD9D2] rounded-full" />
-                  </div>
-                  <div className="absolute inset-0 animate-spin" style={{ animationDuration: '12s', animationDirection: 'reverse' }}>
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#F4D06F] rounded-full" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Solution Card - Right aligned, opposite rotation, overlapping */}
-              <div className="lg:col-span-5 lg:-mt-8">
-                <div className="relative group">
-                  {/* Glow effect */}
-                  <div className="absolute -inset-4 bg-gradient-to-br from-[#FF8811]/20 to-[#F4D06F]/30 rounded-[2rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  {/* Shadow layer */}
-                  <div className="absolute inset-0 bg-[#F4D06F]/30 rounded-3xl transform -rotate-1 -translate-x-2 translate-y-2" />
-                  {/* Main card */}
-                  <div className="relative bg-gradient-to-br from-[#FF8811] via-[#FF8811] to-[#F4D06F] rounded-3xl p-8 md:p-10 shadow-2xl shadow-[#FF8811]/25">
-                    {/* Header */}
-                    <div className="flex items-center gap-4 mb-8">
-                      <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
-                        <span className="text-2xl">✨</span>
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-white/80 tracking-wider uppercase">The Solution</span>
-                        <h3 className="text-xl font-bold text-white">MUMBAAI</h3>
-                      </div>
-                    </div>
-                    {/* Items */}
-                    <div className="space-y-5">
-                      {[
-                        { text: "Every idea branches into its own path", icon: "→" },
-                        { text: "Jump between branches, compare side-by-side", icon: "⇄" },
-                        { text: "Visual tree makes everything findable", icon: "◎" },
-                        { text: "Merge insights from multiple paths with AI", icon: "⊕" }
-                      ].map((item, i) => (
-                        <div
-                          key={i}
-                          className="solution-item flex items-start gap-4 p-3 -ml-3 rounded-xl hover:bg-white/10 transition-all duration-300 cursor-default"
-                        >
-                          <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0 mt-0.5 text-white text-xs font-bold">
-                            {item.icon}
-                          </div>
-                          <p className="text-white/90 leading-relaxed">{item.text}</p>
-                        </div>
-                      ))}
-                    </div>
-                    {/* Decorative corner */}
-                    <div className="absolute bottom-6 left-6 w-20 h-20 opacity-20">
-                      <div className="w-full h-full border-b-2 border-l-2 border-white rounded-bl-3xl" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Core Features - Connected Nodes Layout */}
-          <div className="relative">
-            {/* Section label */}
-            <div className="text-center mb-12">
-              <span className="inline-flex items-center gap-2 px-4 py-2 bg-[#FFF8F0] border border-[#F4D06F]/30 rounded-full text-sm font-medium text-stone-600">
-                <span className="w-1.5 h-1.5 bg-[#FF8811] rounded-full" />
-                Core Capabilities
-              </span>
-            </div>
-
-            {/* Connection lines SVG - Desktop only */}
-            <svg className="absolute top-1/2 left-0 w-full h-32 -translate-y-1/2 pointer-events-none hidden lg:block" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="lineGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#FF8811" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="#F4D06F" stopOpacity="0.3" />
-                </linearGradient>
-                <linearGradient id="lineGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#F4D06F" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="#9DD9D2" stopOpacity="0.3" />
-                </linearGradient>
-              </defs>
-              <path d="M 20% 50% Q 35% 30%, 50% 50%" stroke="url(#lineGrad1)" strokeWidth="2" fill="none" strokeDasharray="8 4" />
-              <path d="M 50% 50% Q 65% 70%, 80% 50%" stroke="url(#lineGrad2)" strokeWidth="2" fill="none" strokeDasharray="8 4" />
-            </svg>
-
-            {/* Feature Cards */}
-            <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
-              {/* Feature 1: Branching */}
-              <div className="feature-card group relative">
-                <div className="relative bg-white rounded-3xl p-8 border border-[#F4D06F]/30 shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
-                  {/* Icon */}
-                  <div className="feature-icon w-16 h-16 mb-6 rounded-2xl bg-gradient-to-br from-[#FF8811] to-[#F4D06F] flex items-center justify-center shadow-lg shadow-[#FF8811]/25 transition-transform duration-500">
-                    <GitBranch size={28} className="text-white" />
-                  </div>
-                  {/* Number badge */}
-                  <div className="absolute top-6 right-6 w-8 h-8 rounded-full bg-[#FFF8F0] border border-[#F4D06F]/30 flex items-center justify-center">
-                    <span className="text-sm font-bold text-[#FF8811]">01</span>
-                  </div>
-                  {/* Content */}
-                  <h3 className="text-xl font-bold text-stone-800 mb-3">Branching Conversations</h3>
-                  <p className="text-stone-500 leading-relaxed mb-4">
-                    Every response creates a new branch. Explore different angles without losing your train of thought.
-                  </p>
-                  {/* Decorative line */}
-                  <div className="feature-line h-1 w-12 bg-gradient-to-r from-[#FF8811] to-[#F4D06F] rounded-full opacity-0 transform scale-x-0 origin-left transition-all duration-500" />
-                </div>
-              </div>
-
-              {/* Feature 2: Visual Tree */}
-              <div className="feature-card group relative md:mt-8">
-                <div className="relative bg-white rounded-3xl p-8 border border-[#F4D06F]/30 shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
-                  {/* Icon */}
-                  <div className="feature-icon w-16 h-16 mb-6 rounded-2xl bg-gradient-to-br from-[#F4D06F] to-[#9DD9D2] flex items-center justify-center shadow-lg shadow-[#F4D06F]/25 transition-transform duration-500">
-                    <Layers size={28} className="text-white" />
-                  </div>
-                  {/* Number badge */}
-                  <div className="absolute top-6 right-6 w-8 h-8 rounded-full bg-[#F4D06F]/20 flex items-center justify-center">
-                    <span className="text-sm font-bold text-[#c9a545]">02</span>
-                  </div>
-                  {/* Content */}
-                  <h3 className="text-xl font-bold text-stone-800 mb-3">Visual Tree Structure</h3>
-                  <p className="text-stone-500 leading-relaxed mb-4">
-                    See your entire conversation as an interactive tree. Navigate and understand your thinking process.
-                  </p>
-                  {/* Decorative line */}
-                  <div className="feature-line h-1 w-12 bg-gradient-to-r from-[#F4D06F] to-[#9DD9D2] rounded-full opacity-0 transform scale-x-0 origin-left transition-all duration-500" />
-                </div>
-              </div>
-
-              {/* Feature 3: Smart Merge */}
-              <div className="feature-card group relative">
-                <div className="relative bg-white rounded-3xl p-8 border border-[#9DD9D2]/40 shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
-                  {/* Icon */}
-                  <div className="feature-icon w-16 h-16 mb-6 rounded-2xl bg-gradient-to-br from-[#9DD9D2] to-[#7bc4bd] flex items-center justify-center shadow-lg shadow-[#9DD9D2]/25 transition-transform duration-500">
-                    <Combine size={28} className="text-white" />
-                  </div>
-                  {/* Number badge */}
-                  <div className="absolute top-6 right-6 w-8 h-8 rounded-full bg-[#9DD9D2]/20 flex items-center justify-center">
-                    <span className="text-sm font-bold text-[#5ba59e]">03</span>
-                  </div>
-                  {/* Content */}
-                  <h3 className="text-xl font-bold text-stone-800 mb-3">Smart Merge</h3>
-                  <p className="text-stone-500 leading-relaxed mb-4">
-                    Combine insights from different branches with AI to create comprehensive solutions.
-                  </p>
-                  {/* Decorative line */}
-                  <div className="feature-line h-1 w-12 bg-gradient-to-r from-[#9DD9D2] to-[#7bc4bd] rounded-full opacity-0 transform scale-x-0 origin-left transition-all duration-500" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Roadmap Section - Editorial Journey Map */}
-      <section className="py-24 px-8 bg-gradient-to-b from-white via-[#FFF8F0] to-white overflow-hidden">
-        <style>{`
-          @keyframes gradient-shift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-          }
-          .roadmap-active-border {
-            background: linear-gradient(135deg, #FF8811, #F4D06F, #9DD9D2, #FF8811);
-            background-size: 300% 300%;
-            animation: gradient-shift 4s ease infinite;
-          }
-          @keyframes pulse-ring {
-            0% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.05); opacity: 0.4; }
-            100% { transform: scale(1); opacity: 0.8; }
-          }
-          .roadmap-pulse {
-            animation: pulse-ring 2s ease-in-out infinite;
-          }
-        `}</style>
-
-        <div className="max-w-6xl mx-auto">
-          {/* Section Header */}
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#FF8811]/10 border border-[#FF8811]/20 rounded-full mb-4">
-              <div className="w-1.5 h-1.5 bg-[#FF8811] rounded-full" />
-              <span className="text-sm font-medium text-[#c96d0e] tracking-wide">Building in Public</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-stone-800 tracking-tight mb-4">
-              Our Journey
-            </h2>
-            <p className="text-lg text-stone-500 max-w-xl mx-auto">
-              From concept to enterprise — here's where we are and where we're headed
-            </p>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="relative max-w-4xl mx-auto mb-16">
-            <div className="h-1 bg-stone-200 rounded-full overflow-hidden">
-              <div className="h-full w-[30%] bg-gradient-to-r from-[#FF8811] via-[#F4D06F] to-[#FF8811] rounded-full relative">
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white border-2 border-[#FF8811] rounded-full shadow-lg shadow-[#FF8811]/30" />
-              </div>
-            </div>
-            <div className="flex justify-between mt-3 px-1">
-              <span className="text-xs font-medium text-[#FF8811]">POC</span>
-              <span className="text-xs font-bold text-[#FF8811]">MVP</span>
-              <span className="text-xs text-stone-400">Growth</span>
-              <span className="text-xs text-stone-400">Advanced</span>
-              <span className="text-xs text-stone-400">Enterprise</span>
-            </div>
-          </div>
-
-          {/* Roadmap Cards - Staggered Grid */}
-          <div className="grid md:grid-cols-5 gap-4 md:gap-3">
-
-            {/* Phase 1: POC - Completed */}
-            <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#F4D06F]/30 to-[#9DD9D2]/20 rounded-2xl transform rotate-1 group-hover:rotate-2 transition-transform" />
-              <div className="relative bg-white rounded-2xl p-5 border border-[#F4D06F]/30 shadow-sm hover:shadow-md transition-all">
-                {/* Status indicator */}
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-bold text-[#FF8811] tracking-wider uppercase">Phase 1</span>
-                  <div className="flex items-center gap-1.5 text-[#5ba59e]">
-                    <CheckCircle size={14} />
-                    <span className="text-xs font-medium">Done</span>
-                  </div>
-                </div>
-                {/* Content */}
-                <h4 className="text-lg font-bold text-stone-800 mb-2">POC</h4>
-                <p className="text-sm text-stone-500 leading-relaxed mb-4">
-                  Concept validation & internal demo
-                </p>
-                {/* Decorative dots */}
-                <div className="flex gap-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#F4D06F]" />
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#FF8811]" />
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#9DD9D2]" />
-                </div>
-              </div>
-            </div>
-
-            {/* Phase 2: MVP - Current */}
-            <div className="group relative md:col-span-1 md:-mt-2">
-              {/* Animated gradient border */}
-              <div className="absolute -inset-[2px] roadmap-active-border rounded-2xl roadmap-pulse" />
-              <div className="relative bg-gradient-to-br from-[#FF8811] via-[#FF8811] to-[#F4D06F] rounded-2xl p-5 shadow-xl shadow-[#FF8811]/25">
-                {/* Status indicator */}
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-bold text-white/80 tracking-wider uppercase">Phase 2</span>
-                  <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                    </span>
-                    <span className="text-xs font-bold text-white">Now</span>
-                  </div>
-                </div>
-                {/* Content */}
-                <h4 className="text-xl font-bold text-white mb-2">MVP</h4>
-                <p className="text-sm text-white/80 leading-relaxed mb-4">
-                  Real users, personal storage, smart merge
-                </p>
-                {/* Progress mini-bar */}
-                <div className="h-1 bg-white/20 rounded-full overflow-hidden">
-                  <div className="h-full w-2/3 bg-white rounded-full" />
-                </div>
-              </div>
-            </div>
-
-            {/* Phase 3: Post-Funding - Planned */}
-            <div className="group relative">
-              <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-[#F4D06F]/30 hover:border-[#F4D06F] hover:bg-[#FFF8F0] transition-all">
-                {/* Status indicator */}
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-bold text-stone-400 tracking-wider uppercase">Phase 3</span>
-                  <div className="flex items-center gap-1.5 text-[#F4D06F]">
-                    <Clock size={14} />
-                    <span className="text-xs font-medium">Next</span>
-                  </div>
-                </div>
-                {/* Content */}
-                <h4 className="text-lg font-bold text-stone-700 mb-2">Growth</h4>
-                <p className="text-sm text-stone-400 leading-relaxed mb-4">
-                  Subscriptions, improved UI, custom models
-                </p>
-                {/* Locked indicator */}
-                <div className="flex items-center gap-2 text-stone-300">
-                  <div className="h-px flex-1 bg-stone-200" />
-                  <span className="text-xs">Q3 2026</span>
-                  <div className="h-px flex-1 bg-stone-200" />
-                </div>
-              </div>
-            </div>
-
-            {/* Phase 4: Advanced - Future */}
-            <div className="group relative">
-              <div className="relative bg-stone-50/80 backdrop-blur-sm rounded-2xl p-5 border border-stone-200 hover:border-stone-300 transition-all opacity-80 hover:opacity-100">
-                {/* Status indicator */}
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-bold text-stone-300 tracking-wider uppercase">Phase 4</span>
-                  <GitBranch size={14} className="text-stone-300" />
-                </div>
-                {/* Content */}
-                <h4 className="text-lg font-bold text-stone-500 mb-2">Advanced</h4>
-                <p className="text-sm text-stone-400 leading-relaxed mb-4">
-                  Deep research, artifacts, MCP connectors
-                </p>
-                {/* Locked indicator */}
-                <div className="flex items-center gap-2 text-stone-300">
-                  <div className="h-px flex-1 bg-stone-200" />
-                  <span className="text-xs">2026+</span>
-                  <div className="h-px flex-1 bg-stone-200" />
-                </div>
-              </div>
-            </div>
-
-            {/* Phase 5: Enterprise - Future */}
-            <div className="group relative">
-              <div className="relative bg-stone-50/60 backdrop-blur-sm rounded-2xl p-5 border border-stone-100 hover:border-stone-200 transition-all opacity-60 hover:opacity-90">
-                {/* Status indicator */}
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-bold text-stone-300 tracking-wider uppercase">Phase 5</span>
-                  <Building size={14} className="text-stone-300" />
-                </div>
-                {/* Content */}
-                <h4 className="text-lg font-bold text-stone-400 mb-2">Enterprise</h4>
-                <p className="text-sm text-stone-300 leading-relaxed mb-4">
-                  Integrations, priority support, security
-                </p>
-                {/* Locked indicator */}
-                <div className="flex items-center gap-2 text-stone-200">
-                  <div className="h-px flex-1 bg-stone-150" />
-                  <span className="text-xs">2026+</span>
-                  <div className="h-px flex-1 bg-stone-150" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom CTA */}
-          <div className="text-center mt-12">
-            <p className="text-sm text-stone-500">
-              Want to influence our roadmap? <a href="#feedback" className="text-[#FF8811] font-medium hover:text-[#c96d0e] underline underline-offset-2">Share your feedback</a>
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Waitlist Section - Only show if waitlist mode is enabled */}
-      {waitlistEnabled && <WaitlistSection />}
-
-      {/* Feedback Form Section */}
-      <FeedbackForm id="feedback" />
-
-      {/* CTA Section */}
-      <section className="py-20 px-8 bg-white">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-stone-800 mb-6">
-            Ready to Transform Your Conversations?
-          </h2>
-          <p className="text-xl text-stone-500 mb-12 max-w-2xl mx-auto">
-            Join users who are already thinking better with MUMBAAI's branching conversation trees.
-          </p>
           <button
             onClick={handleGetStartedClick}
-            className="bg-gradient-to-r from-[#FF8811] to-[#F4D06F] text-white px-8 py-4 rounded-xl font-semibold hover:from-[#e67a0f] hover:to-[#e6c35f] transition-all duration-300 text-lg shadow-lg shadow-[#FF8811]/30 hover:shadow-xl hover:shadow-[#FF8811]/40 hover:-translate-y-0.5"
+            className="rounded-pill border border-hairline hover:border-hairline-strong text-bone text-[12px] font-semibold uppercase tracking-kicker px-5 py-2.5 transition-colors duration-fast"
           >
-            Start Your First Conversation →
+            {waitlistEnabled ? 'Join waitlist' : 'Sign in'}
+          </button>
+        </div>
+      </nav>
+
+      {/* The brain story */}
+      <BrainStoryHero onGetStarted={handleGetStartedClick} />
+
+      {/* Night scenery + demo video in front */}
+      <DemoSceneSection />
+
+      {/* How it works */}
+      <section id="how" className="px-6 md:px-12 py-[120px] scroll-mt-20">
+        <div className="max-w-page mx-auto">
+          <div className="max-w-[560px] mb-16">
+            <p className="text-[13px] font-semibold uppercase tracking-kicker text-plum mb-5">
+              The loop
+            </p>
+            <h2 className="font-extralight tracking-display text-[clamp(36px,5vw,48px)] leading-[1.05]">
+              Branch. Explore. Merge.
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-x-12 gap-y-12 border-t border-hairline pt-12">
+            {STEPS.map((step) => (
+              <div key={step.n}>
+                <p className="text-[13px] font-semibold uppercase tracking-kicker text-smoke mb-4">
+                  {step.n}
+                </p>
+                <h3 className="text-[24px] font-normal text-bone mb-3">{step.title}</h3>
+                <p className="text-[15px] text-ash leading-relaxed tracking-body max-w-[40ch]">
+                  {step.body}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Models row */}
+          <div className="flex flex-wrap items-center gap-4 mt-16 pt-10 border-t border-hairline">
+            <div className="flex items-center gap-2">
+              {[AnthropicIcon, OpenAIIcon, GoogleIcon].map((Icon, i) => (
+                <span
+                  key={i}
+                  className="w-9 h-9 rounded-full border border-hairline flex items-center justify-center"
+                >
+                  <Icon width={15} height={15} className="text-bone" />
+                </span>
+              ))}
+            </div>
+            <p className="text-[14px] text-smoke tracking-body">
+              Claude, GPT, and Gemini on one canvas — pick a model per branch.
+            </p>
+            <span className="hidden sm:inline text-smoke">·</span>
+            <p className="text-[14px] text-smoke tracking-body">
+              Free during beta. No credit card.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Roadmap */}
+      <section id="roadmap" className="px-6 md:px-12 py-[120px] scroll-mt-20">
+        <div className="max-w-page mx-auto">
+          <div className="max-w-[560px] mb-16">
+            <p className="text-[13px] font-semibold uppercase tracking-kicker text-plum mb-5">
+              Building in public
+            </p>
+            <h2 className="font-extralight tracking-display text-[clamp(36px,5vw,48px)] leading-[1.05] mb-5">
+              Where this is going.
+            </h2>
+            <p className="text-ash text-[17px] leading-relaxed">
+              We're in MVP — real users, honest scope. Here's the road ahead.
+            </p>
+          </div>
+
+          <div className="max-w-2xl">
+            {ROADMAP.map((item) => (
+              <div
+                key={item.phase}
+                className="grid grid-cols-[20px_1fr_auto] gap-x-5 group"
+              >
+                {/* Rail */}
+                <div className="flex flex-col items-center">
+                  {item.status === 'done' ? (
+                    <span className="w-5 h-5 rounded-full border border-hairline-strong flex items-center justify-center shrink-0 mt-1">
+                      <Check size={10} className="text-ash" />
+                    </span>
+                  ) : item.status === 'now' ? (
+                    <span className="w-5 h-5 rounded-full bg-plum shrink-0 mt-1" />
+                  ) : (
+                    <span className="w-5 h-5 rounded-full border border-hairline shrink-0 mt-1" />
+                  )}
+                  <span className="w-px flex-1 bg-hairline group-last:hidden" style={{ background: 'var(--color-hairline)' }} />
+                </div>
+
+                {/* Content */}
+                <div className="pb-10">
+                  <p className="text-[12px] font-semibold uppercase tracking-kicker text-smoke mb-1.5">
+                    {item.phase}
+                  </p>
+                  <h3
+                    className={`text-[20px] font-normal mb-1 ${
+                      item.status === 'later' ? 'text-smoke' : 'text-bone'
+                    }`}
+                  >
+                    {item.name}
+                  </h3>
+                  <p className="text-[14px] text-ash leading-relaxed tracking-body max-w-[52ch]">
+                    {item.desc}
+                  </p>
+                </div>
+
+                <span
+                  className={`text-[12px] uppercase tracking-kicker mt-1 ${
+                    item.status === 'now' ? 'text-plum font-semibold' : 'text-smoke'
+                  }`}
+                >
+                  {item.when}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-[14px] text-smoke mt-6">
+            Want to influence the roadmap?{' '}
+            <a
+              href="#feedback"
+              className="text-bone underline underline-offset-4 decoration-[rgba(255,255,255,0.3)] hover:decoration-[var(--color-plum)] transition-colors duration-fast"
+            >
+              Share your feedback
+            </a>
+          </p>
+        </div>
+      </section>
+
+      {/* Waitlist — only when enabled */}
+      {waitlistEnabled && <WaitlistSection />}
+
+      {/* Feedback */}
+      <FeedbackForm id="feedback" />
+
+      {/* Final CTA */}
+      <section className="px-6 md:px-12 py-[120px]">
+        <div className="max-w-page mx-auto text-center">
+          <h2 className="font-extralight tracking-display text-[clamp(40px,6vw,64px)] leading-[1.02] max-w-[18ch] mx-auto mb-10">
+            Stop thinking in a straight line.
+          </h2>
+          <button
+            onClick={handleGetStartedClick}
+            className="rounded-pill bg-plum hover:bg-plum-hover text-bone text-[13px] font-semibold uppercase tracking-kicker px-8 py-4 transition-colors duration-fast"
+          >
+            {waitlistEnabled ? 'Join the waitlist' : 'Start free'}
           </button>
         </div>
       </section>
 
-      {/* Parent Company */}
-      <section className="py-12 px-8 bg-white border-t border-stone-100">
-        <div className="max-w-6xl mx-auto text-center">
-          <p className="text-sm text-stone-500 leading-relaxed">
-            Mumba.ai is a product of{' '}
-            <a
-              href="https://theunreallab.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-stone-700 font-medium hover:text-[#FF8811] transition-colors"
-            >
-              The Unreal Lab
-            </a>
-            , an AI venture studio focused on building scalable, applied intelligence systems.
-          </p>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="py-8 px-8 border-t border-[#F4D06F]/20 bg-[#FFF8F0]">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-stone-500">
-          <span className="font-medium text-stone-700">MUMBAAI</span>
+      {/* Footer — single line */}
+      <footer className="px-6 md:px-12 py-10 border-t border-hairline">
+        <div className="max-w-page mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-[13px] text-smoke tracking-body">
+          <span className="font-semibold text-bone">MUMBAAI</span>
           <p>
-            Built by{' '}
+            A product of{' '}
             <a
               href="https://theunreallab.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-stone-600 hover:text-[#FF8811] transition-colors"
+              className="text-ash hover:text-bone transition-colors duration-fast"
             >
               The Unreal Lab
             </a>
+            , an AI venture studio.
           </p>
+          <span>© {new Date().getFullYear()}</span>
         </div>
       </footer>
     </div>

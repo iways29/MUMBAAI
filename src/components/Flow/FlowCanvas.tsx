@@ -135,7 +135,7 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
   }, [nodes.length, fitView]);
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-50 relative" style={{ width: '100%' }}>
+    <div className="flex-1 flex flex-col bg-void relative" style={{ width: '100%' }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -143,7 +143,7 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
         onEdgesChange={handleEdgesChange}
         nodeTypes={nodeTypes}
         connectionLineType={ConnectionLineType.SmoothStep}
-        className="bg-gray-50 h-full"
+        className="bg-void h-full"
         nodesDraggable={true}
         nodesConnectable={false}
         elementsSelectable={true}
@@ -159,7 +159,12 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
         <Controls showInteractive={false} position="top-left" />
         
         
-        <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
+        <Background
+          variant={BackgroundVariant.Dots}
+          gap={24}
+          size={1}
+          color="rgba(255, 255, 255, 0.07)"
+        />
 
         {/* Flow Controls */}
         <FlowControls

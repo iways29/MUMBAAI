@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { MessageCircle, User, Bot, GitBranch, Sparkles, Share2, Bookmark } from 'lucide-react';
+import { User, Bot, GitBranch, Sparkles, Share2, Bookmark } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Message } from '../../types/conversation.ts';
 import { MessageHelpers } from '../../utils/messageHelpers.ts';
@@ -16,7 +16,7 @@ const getModelInfo = (model: string | undefined) => {
     const variant = model.includes('haiku') ? 'Haiku' :
                     model.includes('sonnet') ? 'Sonnet' :
                     model.includes('opus') ? 'Opus' : '';
-    return { provider: 'Claude', variant, icon: AnthropicIcon, color: 'text-[#8B5A2B]' };
+    return { provider: 'Claude', variant, icon: AnthropicIcon };
   }
 
   if (model.includes('gpt')) {
@@ -26,16 +26,37 @@ const getModelInfo = (model: string | undefined) => {
                     model.includes('gpt-5') ? '5' :
                     model.includes('gpt-4.1') ? '4.1' :
                     model.includes('gpt-4o') ? '4o' : '';
-    return { provider: 'GPT', variant, icon: OpenAIIcon, color: 'text-[#10A37F]' };
+    return { provider: 'GPT', variant, icon: OpenAIIcon };
   }
 
   if (model.includes('gemini')) {
     const variant = model.includes('2.5-flash') ? '2.5 Flash' :
                     model.includes('1.5-flash') ? '1.5 Flash' : '';
-    return { provider: 'Gemini', variant, icon: GoogleIcon, color: 'text-[#4285F4]' };
+    return { provider: 'Gemini', variant, icon: GoogleIcon };
   }
 
   return null;
+};
+
+const markdownComponents = {
+  p: ({ children }: any) => <p className="mb-2 last:mb-0">{children}</p>,
+  strong: ({ children }: any) => <strong className="font-semibold text-bone">{children}</strong>,
+  em: ({ children }: any) => <em className="italic">{children}</em>,
+  code: ({ children }: any) => (
+    <code className="bg-panel-2 px-1.5 py-0.5 rounded text-[13px] font-mono text-bone">{children}</code>
+  ),
+  pre: ({ children }: any) => (
+    <pre className="bg-panel-2 p-3 rounded-[8px] overflow-x-auto text-[13px] font-mono">{children}</pre>
+  ),
+  ul: ({ children }: any) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
+  ol: ({ children }: any) => <ol className="list-decimal pl-4 mb-2">{children}</ol>,
+  li: ({ children }: any) => <li className="mb-1">{children}</li>,
+  h1: ({ children }: any) => <h1 className="text-lg font-semibold mb-2 text-bone">{children}</h1>,
+  h2: ({ children }: any) => <h2 className="text-base font-semibold mb-2 text-bone">{children}</h2>,
+  h3: ({ children }: any) => <h3 className="text-sm font-semibold mb-1 text-bone">{children}</h3>,
+  blockquote: ({ children }: any) => (
+    <blockquote className="border-l-2 border-hairline-strong pl-4 italic text-ash mb-2">{children}</blockquote>
+  ),
 };
 
 interface MessageThreadProps {
@@ -61,7 +82,7 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ 
+      messagesEndRef.current.scrollIntoView({
         behavior: 'smooth',
         block: 'end'
       });
@@ -99,11 +120,18 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
   if (messages.length === 0) {
     return (
       <div className="flex-1 overflow-y-auto p-6" ref={containerRef}>
-        <div className="text-center text-gray-500 mt-32">
-          <MessageCircle size={64} className="mx-auto mb-6 opacity-40" />
-          <h3 className="text-xl font-medium mb-2">Start a new conversation</h3>
-          <p className="text-sm mb-6">Type your message below to begin exploring ideas</p>
-          <p className="text-xs text-gray-400">Double-click nodes in the tree to jump to any point</p>
+        <div className="max-w-sm mx-auto text-center mt-32">
+          <div className="w-12 h-12 mx-auto mb-6 rounded-full border border-hairline flex items-center justify-center">
+            <GitBranch size={20} className="text-smoke" />
+          </div>
+          <h3 className="text-[17px] font-medium text-bone mb-2">Start a thread</h3>
+          <p className="text-[14px] text-ash leading-relaxed tracking-body mb-4">
+            Type below to begin. Every reply can branch — click any node on the
+            canvas to continue from that point.
+          </p>
+          <p className="text-[12px] text-smoke">
+            Double-click a node to open it here
+          </p>
         </div>
       </div>
     );
@@ -114,86 +142,68 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
       <div className="space-y-4">
         {messages.map((message) => (
           <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-2xl px-4 py-3 rounded-2xl ${
+            <div className={`max-w-2xl px-4 py-3 rounded-node border ${
               message.type === 'user'
-                ? 'bg-gray-100 text-gray-900 shadow-sm ml-8'
-                : 'bg-transparent text-gray-900'
-            } ${message.id === selectedMessageId ? 'ring-2 ring-blue-400 ring-offset-2' : ''}`}>
+                ? 'bg-panel ml-8'
+                : 'bg-transparent'
+            } ${
+              message.id === selectedMessageId
+                ? 'border-plum'
+                : message.type === 'user'
+                ? 'border-hairline'
+                : 'border-transparent'
+            }`}>
 
               <div className="flex items-center gap-2 mb-2">
                 {message.type === 'user' ? (
-                  <User size={14} className="opacity-80 flex-shrink-0" />
+                  <User size={13} className="text-smoke flex-shrink-0" />
                 ) : (() => {
                   const modelInfo = getModelInfo(message.model);
                   return modelInfo ? (
-                    <modelInfo.icon width={14} height={14} className={`flex-shrink-0 ${modelInfo.color}`} />
+                    <modelInfo.icon width={13} height={13} className="flex-shrink-0 text-bone" />
                   ) : (
-                    <Bot size={14} className="opacity-70 flex-shrink-0" />
+                    <Bot size={13} className="text-smoke flex-shrink-0" />
                   );
                 })()}
-                <span className={`text-xs font-medium ${message.type === 'user' ? 'opacity-90' : 'opacity-70'}`}>
-                  {message.type === 'user' ? 'You' : 'Assistant'}
+                <span className="text-[12px] font-medium text-ash">
+                  {message.type === 'user' ? 'You' : (() => {
+                    const modelInfo = getModelInfo(message.model);
+                    return modelInfo ? `${modelInfo.provider} ${modelInfo.variant}`.trim() : 'Assistant';
+                  })()}
                 </span>
-                {message.type === 'assistant' && (() => {
-                  const modelInfo = getModelInfo(message.model);
-                  return modelInfo ? (
-                    <span className={`text-xs font-medium ${modelInfo.color}`}>
-                      · {modelInfo.provider} {modelInfo.variant}
-                    </span>
-                  ) : null;
-                })()}
-                <span className={`text-xs opacity-60 flex-shrink-0 ${message.type === 'user' ? 'ml-auto' : ''}`}>
+                <span className={`text-[11px] text-smoke flex-shrink-0 ${message.type === 'user' ? 'ml-auto' : ''}`}>
                   {MessageHelpers.formatTimestamp(message.timestamp)}
                 </span>
               </div>
 
-              <div className="text-sm leading-relaxed mb-2 break-words">
+              <div className={`text-[14px] leading-relaxed tracking-body mb-2 break-words ${
+                message.type === 'user' ? 'text-bone' : 'text-ash'
+              }`}>
                 {message.type === 'assistant' ? (
-                  <div className="prose prose-sm max-w-none prose-gray">
-                    <ReactMarkdown 
-                      components={{
-                      p: ({children}) => <p className="mb-2 last:mb-0">{children}</p>,
-                      strong: ({children}) => <strong className="font-semibold text-gray-900">{children}</strong>,
-                      em: ({children}) => <em className="italic">{children}</em>,
-                      code: ({children}) => <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono">{children}</code>,
-                      pre: ({children}) => <pre className="bg-gray-100 p-3 rounded-lg overflow-x-auto text-sm font-mono">{children}</pre>,
-                      ul: ({children}) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
-                      ol: ({children}) => <ol className="list-decimal pl-4 mb-2">{children}</ol>,
-                      li: ({children}) => <li className="mb-1">{children}</li>,
-                      h1: ({children}) => <h1 className="text-lg font-semibold mb-2 text-gray-900">{children}</h1>,
-                      h2: ({children}) => <h2 className="text-base font-semibold mb-2 text-gray-900">{children}</h2>,
-                      h3: ({children}) => <h3 className="text-sm font-semibold mb-1 text-gray-900">{children}</h3>,
-                      blockquote: ({children}) => <blockquote className="border-l-4 border-gray-300 pl-4 italic text-gray-700 mb-2">{children}</blockquote>
-                    }}
-                    >
-                      {message.content}
-                    </ReactMarkdown>
-                  </div>
+                  <ReactMarkdown components={markdownComponents}>
+                    {message.content}
+                  </ReactMarkdown>
                 ) : (
                   <div className="whitespace-pre-wrap">{message.content}</div>
                 )}
               </div>
 
               {/* Message Actions and Info */}
-              <div className={`flex items-center gap-3 pt-1 border-t ${
-                message.type === 'user' ? 'border-gray-400 border-opacity-30' : 'border-gray-200'
-              }`}>
+              <div className="flex items-center gap-3 pt-1.5 border-t border-hairline">
                 {/* Response count */}
                 {message.children && message.children.length > 0 && (
-                  <div className="text-xs opacity-70 flex items-center gap-1">
-                    <GitBranch size={8} />
-                    {message.children.length} response{message.children.length > 1 ? 's' : ''}
+                  <div className="text-[11px] text-smoke flex items-center gap-1">
+                    <GitBranch size={10} />
+                    {message.children.length} {message.children.length > 1 ? 'branches' : 'branch'}
                   </div>
                 )}
 
                 {/* Merged info */}
                 {MessageHelpers.isMergedMessage(message) && (
-                  <div className={`text-xs flex items-center gap-1 ${
-                    message.type === 'user' ? 'text-gray-600' : 'text-purple-600'
-                  } opacity-90`}>
-                    <Sparkles size={8} />
+                  <div className="text-[11px] text-plum flex items-center gap-1">
+                    <Sparkles size={10} />
                     Merged from {message.mergedFrom?.length} branches
-                    {message.isMergeRoot && " • Root"}
+                    {message.isMergeRoot && ' · Root'}
                   </div>
                 )}
 
@@ -201,16 +211,18 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
                 <div className="flex gap-3 ml-auto">
                   <button
                     onClick={() => handleCopyMessage(message.content)}
-                    className="text-xs opacity-60 hover:opacity-100 flex items-center gap-1 transition-opacity"
+                    className="text-[11px] text-smoke hover:text-bone flex items-center gap-1 transition-colors duration-fast"
                   >
-                    <Share2 size={8} />
+                    <Share2 size={10} />
                     Copy
                   </button>
                   <button
                     onClick={() => onToggleBookmark(message.id)}
-                    className="text-xs opacity-60 hover:opacity-100 flex items-center gap-1 transition-opacity"
+                    className={`text-[11px] flex items-center gap-1 transition-colors duration-fast ${
+                      bookmarkedNodes.has(message.id) ? 'text-bone' : 'text-smoke hover:text-bone'
+                    }`}
                   >
-                    <Bookmark size={8} />
+                    <Bookmark size={10} />
                     {bookmarkedNodes.has(message.id) ? 'Saved' : 'Save'}
                   </button>
                 </div>
@@ -222,33 +234,17 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
         {/* Show streaming content while it's being generated */}
         {streamingContent && (
           <div className="flex justify-start">
-            <div className="max-w-2xl px-4 py-3 rounded-2xl bg-transparent text-gray-900">
+            <div className="max-w-2xl px-4 py-3 rounded-node bg-transparent">
               <div className="flex items-center gap-2 mb-2">
-                <Bot size={14} className="opacity-70 flex-shrink-0" />
-                <span className="text-xs font-medium opacity-70">Assistant</span>
-                <span className="text-xs opacity-60 flex-shrink-0">Streaming...</span>
+                <Bot size={13} className="text-smoke flex-shrink-0" />
+                <span className="text-[12px] font-medium text-ash">Assistant</span>
+                <span className="text-[11px] text-plum flex-shrink-0">streaming</span>
               </div>
-              <div className="text-sm leading-relaxed mb-2 break-words">
-                <div className="prose prose-sm max-w-none prose-gray">
-                  <ReactMarkdown
-                    components={{
-                      p: ({children}) => <p className="mb-2 last:mb-0">{children}</p>,
-                      strong: ({children}) => <strong className="font-semibold text-gray-900">{children}</strong>,
-                      em: ({children}) => <em className="italic">{children}</em>,
-                      code: ({children}) => <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono">{children}</code>,
-                      pre: ({children}) => <pre className="bg-gray-100 p-3 rounded-lg overflow-x-auto text-sm font-mono">{children}</pre>,
-                      ul: ({children}) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
-                      ol: ({children}) => <ol className="list-decimal pl-4 mb-2">{children}</ol>,
-                      li: ({children}) => <li className="mb-1">{children}</li>,
-                      h1: ({children}) => <h1 className="text-lg font-semibold mb-2 text-gray-900">{children}</h1>,
-                      h2: ({children}) => <h2 className="text-base font-semibold mb-2 text-gray-900">{children}</h2>,
-                      h3: ({children}) => <h3 className="text-sm font-semibold mb-1 text-gray-900">{children}</h3>,
-                      blockquote: ({children}) => <blockquote className="border-l-4 border-gray-300 pl-4 italic text-gray-700 mb-2">{children}</blockquote>
-                    }}
-                  >
-                    {streamingContent}
-                  </ReactMarkdown>
-                </div>
+              <div className="text-[14px] text-ash leading-relaxed tracking-body mb-2 break-words">
+                <ReactMarkdown components={markdownComponents}>
+                  {streamingContent}
+                </ReactMarkdown>
+                <span className="caret-pulse inline-block w-[2px] h-[14px] bg-plum align-middle ml-0.5" />
               </div>
             </div>
           </div>
@@ -256,7 +252,7 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
 
         {isLoading && !streamingContent && (
           <div className="flex justify-start">
-            <ThinkingIndicator text="Assistant is thinking..." />
+            <ThinkingIndicator text="Thinking…" />
           </div>
         )}
 

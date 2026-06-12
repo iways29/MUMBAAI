@@ -90,9 +90,9 @@ export const LLMSelector: React.FC<LLMSelectorProps> = ({
   // Loading state
   if (loading) {
     return (
-      <div className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-400 border border-gray-200 rounded-lg">
-        <div className="w-5 h-5 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
-        <span>Loading models...</span>
+      <div className="flex items-center gap-3 px-4 py-2.5 text-sm text-smoke border border-hairline rounded-pill">
+        <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--color-hairline)', borderTopColor: 'var(--color-plum)' }}></div>
+        <span>Loading models…</span>
       </div>
     );
   }
@@ -100,7 +100,7 @@ export const LLMSelector: React.FC<LLMSelectorProps> = ({
   // No enabled models available
   if (enabledModels.length === 0) {
     return (
-      <div className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 border border-red-200 rounded-lg">
+      <div className="flex items-center gap-3 px-4 py-2.5 text-sm text-danger border border-danger rounded-pill">
         <span>No models enabled</span>
       </div>
     );
@@ -111,7 +111,7 @@ export const LLMSelector: React.FC<LLMSelectorProps> = ({
       {/* Model Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200"
+        className="flex items-center gap-2.5 px-3.5 py-2 text-[13px] text-ash hover:text-bone hover:border-hairline-strong rounded-pill transition-colors duration-fast border border-hairline"
         title={`Current model: ${currentModel?.display_name || 'Unknown'}`}
       >
         {currentModel && providerIcons[currentModel.provider]}
@@ -122,23 +122,23 @@ export const LLMSelector: React.FC<LLMSelectorProps> = ({
       {isOpen && (
         <div
           ref={popupRef}
-          className="absolute bottom-full left-0 mb-2 w-[420px] bg-white border border-gray-200 rounded-xl shadow-lg z-50"
+          className="absolute bottom-full left-0 mb-2 w-[420px] bg-panel border border-hairline rounded-node z-50 overflow-hidden"
         >
           {/* Provider Tabs */}
-          <div className="flex border-b border-gray-100 overflow-x-auto no-scrollbar">
+          <div className="flex border-b border-hairline overflow-x-auto no-scrollbar">
             {providers.map((provider) => {
               const providerInfo = getProviderInfo(provider);
               return (
                 <button
                   key={provider}
                   onClick={() => setActiveTab(provider)}
-                  className={`flex-shrink-0 flex items-center justify-center gap-3 px-4 py-4 text-sm font-medium transition-colors min-w-fit ${
+                  className={`flex-shrink-0 flex items-center justify-center gap-3 px-4 py-3.5 text-sm font-medium transition-colors duration-fast min-w-fit ${
                     activeTab === provider
-                      ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                      : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                      ? 'text-bone border-b-2 border-plum'
+                      : 'text-smoke hover:text-ash hover:bg-panel-2'
                   }`}
                 >
-                  {providerIcons[provider] || <span className="w-5 h-5 rounded bg-gray-300"></span>}
+                  {providerIcons[provider] || <span className="w-5 h-5 rounded bg-panel-2"></span>}
                   <span className="whitespace-nowrap">{providerInfo.label}</span>
                 </button>
               );
@@ -152,37 +152,37 @@ export const LLMSelector: React.FC<LLMSelectorProps> = ({
                 key={model.id}
                 onClick={() => model.is_enabled && handleModelSelect(model.model_id)}
                 disabled={!model.is_enabled}
-                className={`w-full text-left p-3 rounded-lg transition-colors relative mb-2 ${
+                className={`w-full text-left p-3 rounded-node transition-colors duration-fast relative mb-2 ${
                   !model.is_enabled
-                    ? 'opacity-50 cursor-not-allowed bg-gray-50 border border-gray-200'
+                    ? 'opacity-40 cursor-not-allowed border border-hairline'
                     : model.model_id === selectedModel
-                    ? 'bg-blue-50 border border-blue-200'
-                    : 'hover:bg-gray-50 border border-gray-100'
+                    ? 'border border-plum'
+                    : 'hover:bg-panel-2 border border-hairline'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className={`text-sm font-medium ${model.is_enabled ? 'text-gray-900' : 'text-gray-400'}`}>
+                    <div className={`text-sm font-medium ${model.is_enabled ? 'text-bone' : 'text-smoke'}`}>
                       {model.display_name}
                     </div>
-                    <div className={`text-xs mt-1 font-mono ${model.is_enabled ? 'text-gray-500' : 'text-gray-400'}`}>
+                    <div className={`text-xs mt-1 font-mono ${model.is_enabled ? 'text-smoke' : 'text-smoke'}`}>
                       {model.model_id}
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
                     {!model.is_enabled && (
-                      <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
+                      <div className="text-xs text-smoke border border-hairline px-2 py-0.5 rounded-pill">
                         Disabled
                       </div>
                     )}
 
                     {model.model_id === selectedModel && model.is_enabled && (
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <div className="w-2 h-2 bg-plum rounded-full"></div>
                     )}
 
                     {model.is_default && model.is_enabled && model.model_id !== selectedModel && (
-                      <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                      <div className="text-xs text-ash border border-hairline px-2 py-0.5 rounded-pill">
                         Default
                       </div>
                     )}

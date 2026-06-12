@@ -6,3 +6,8 @@
 
 # Environment variables
 .env
+
+.claude
+.agents
+skills-lock.json
+
