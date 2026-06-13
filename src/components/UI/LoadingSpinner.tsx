@@ -20,27 +20,31 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <div
-        className={`${sizeClasses[size]} border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin`}
+        className={`${sizeClasses[size]} border-2 rounded-full animate-spin`}
+        style={{ borderColor: 'var(--color-hairline)', borderTopColor: 'var(--color-plum)' }}
       />
-      {text && <span className="text-sm text-gray-600">{text}</span>}
+      {text && <span className="text-sm text-ash tracking-body">{text}</span>}
     </div>
   );
 };
 
-export const ThinkingIndicator: React.FC<{ text?: string }> = ({ text = 'Thinking...' }) => (
-  <div className="flex items-center gap-2 p-3 bg-gray-100 rounded-lg">
-    <div className="flex gap-1">
-      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+export const ThinkingIndicator: React.FC<{ text?: string }> = ({ text = 'Thinking…' }) => (
+  <div className="flex items-center gap-3 px-4 py-3 bg-panel border border-hairline rounded-node">
+    <div className="flex gap-1.5">
+      <div className="w-1.5 h-1.5 bg-smoke rounded-full caret-pulse" style={{ animationDelay: '0ms' }} />
+      <div className="w-1.5 h-1.5 bg-smoke rounded-full caret-pulse" style={{ animationDelay: '160ms' }} />
+      <div className="w-1.5 h-1.5 bg-smoke rounded-full caret-pulse" style={{ animationDelay: '320ms' }} />
     </div>
-    <span className="text-sm text-gray-600">{text}</span>
+    <span className="text-sm text-ash tracking-body">{text}</span>
   </div>
 );
 
-export const MergeIndicator: React.FC<{ text?: string }> = ({ text = 'Merging responses...' }) => (
-  <div className="flex items-center gap-2 p-3 bg-purple-100 rounded-lg">
-    <div className="w-4 h-4 border-2 border-purple-300 border-t-purple-600 rounded-full animate-spin" />
-    <span className="text-sm text-purple-700">{text}</span>
+export const MergeIndicator: React.FC<{ text?: string }> = ({ text = 'Merging branches…' }) => (
+  <div className="flex items-center gap-3 px-4 py-3 bg-panel border border-plum rounded-node">
+    <div
+      className="w-4 h-4 border-2 rounded-full animate-spin"
+      style={{ borderColor: 'var(--color-plum-soft)', borderTopColor: 'var(--color-plum)' }}
+    />
+    <span className="text-sm text-bone tracking-body">{text}</span>
   </div>
 );

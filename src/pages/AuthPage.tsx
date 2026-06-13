@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, ArrowLeft, Mail, Lock } from 'lucide-react';
+import { GitBranch, ArrowLeft, Mail, Lock } from 'lucide-react';
 import { supabase } from '../lib/supabase.ts';
 
 interface AuthPageProps {
@@ -56,12 +56,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-void flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 overflow-y-auto">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Back button */}
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8 transition-colors"
+          className="flex items-center gap-2 text-smoke hover:text-bone mb-8 transition-colors duration-fast text-[14px]"
         >
           <ArrowLeft size={20} />
           Back to Home
@@ -69,16 +69,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onBack }) => {
 
         {/* Logo and title */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-12 h-12 bg-gray-900 rounded-lg flex items-center justify-center">
-            <Sparkles size={28} className="text-white" />
+          <div className="w-11 h-11 rounded-full border border-hairline flex items-center justify-center">
+            <GitBranch size={20} className="text-plum" />
           </div>
-          <span className="text-2xl font-bold text-gray-900">MUMBAAI</span>
+          <span className="text-xl font-semibold text-bone tracking-body">MUMBAAI</span>
         </div>
 
-        <h2 className="text-center text-3xl font-bold text-gray-900 mb-2">
+        <h2 className="text-center text-[28px] font-extralight text-bone tracking-display mb-2">
           {isSignUp ? 'Create your account' : 'Sign in to your account'}
         </h2>
-        <p className="text-center text-gray-600 mb-8">
+        <p className="text-center text-ash text-[14px] mb-8">
           {isSignUp 
             ? 'Start your journey with branching conversations' 
             : 'Welcome back to your conversation trees'
@@ -87,12 +87,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onBack }) => {
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-lg sm:rounded-lg sm:px-10">
+        <div className="bg-panel border border-hairline py-8 px-5 rounded-[24px] sm:px-10">
           {/* Google Sign In */}
           <button
             onClick={handleGoogleAuth}
             disabled={loading}
-            className="w-full flex justify-center items-center gap-3 py-3 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full flex justify-center items-center gap-3 py-3 px-4 border border-hairline hover:border-hairline-strong rounded-pill bg-transparent text-bone text-[14px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-fast"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -106,10 +106,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onBack }) => {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <div className="w-full border-t border-hairline" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+                <span className="px-3 bg-panel text-smoke text-[12px] uppercase tracking-kicker">Or with email</span>
               </div>
             </div>
           </div>
@@ -117,7 +117,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onBack }) => {
           {/* Email/Password Form */}
           <form className="mt-6 space-y-6" onSubmit={handleEmailAuth}>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-[13px] font-semibold text-ash mb-1">
                 Email address
               </label>
               <div className="mt-1 relative">
@@ -129,15 +129,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onBack }) => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 pl-10 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
-                  placeholder="Enter your email"
+                  className="appearance-none block w-full px-3 py-2.5 pl-10 bg-void border border-hairline hover:border-hairline-strong focus:border-plum rounded-node text-bone placeholder:text-smoke text-[14px] outline-none transition-colors duration-fast"
+                  placeholder="you@example.com"
                 />
-                <Mail className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                <Mail className="absolute left-3 top-3 h-4.5 w-4.5 text-smoke" size={18} />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-[13px] font-semibold text-ash mb-1">
                 Password
               </label>
               <div className="mt-1 relative">
@@ -149,18 +149,18 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onBack }) => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 pl-10 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-gray-500 focus:border-gray-500"
-                  placeholder="Enter your password"
+                  className="appearance-none block w-full px-3 py-2.5 pl-10 bg-void border border-hairline hover:border-hairline-strong focus:border-plum rounded-node text-bone placeholder:text-smoke text-[14px] outline-none transition-colors duration-fast"
+                  placeholder="Your password"
                 />
-                <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                <Lock className="absolute left-3 top-3 h-4.5 w-4.5 text-smoke" size={18} />
               </div>
             </div>
 
             {message && (
-              <div className={`text-sm p-3 rounded-lg ${
-                message.includes('successfully') 
-                  ? 'bg-green-50 text-green-700 border border-green-200' 
-                  : 'bg-red-50 text-red-700 border border-red-200'
+              <div className={`text-sm p-3 rounded-node border ${
+                message.includes('successfully')
+                  ? 'border-plum text-bone'
+                  : 'border-danger text-danger'
               }`}>
                 {message}
               </div>
@@ -170,9 +170,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onBack }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full flex justify-center py-3 px-4 rounded-pill text-[12px] font-semibold uppercase tracking-kicker text-bone bg-plum hover:bg-plum-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-fast"
               >
-                {loading ? 'Please wait...' : (isSignUp ? 'Create Account' : 'Sign In')}
+                {loading ? 'Please wait…' : (isSignUp ? 'Create account' : 'Sign in')}
               </button>
             </div>
           </form>
@@ -182,7 +182,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onBack }) => {
               <button
                 type="button"
                 onClick={() => setIsSignUp(!isSignUp)}
-                className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                className="text-[13px] text-smoke hover:text-bone transition-colors duration-fast"
               >
                 {isSignUp 
                   ? 'Already have an account? Sign in' 

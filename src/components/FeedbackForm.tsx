@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
 import { supabase } from '../lib/supabase.ts'
-import { MessageSquare } from 'lucide-react'
 
 interface FeedbackFormProps {
   id?: string
 }
+
+const inputClass =
+  'w-full bg-panel border border-hairline hover:border-hairline-strong focus:border-plum rounded-node px-4 py-3.5 text-bone placeholder:text-smoke text-[15px] tracking-body outline-none transition-colors duration-fast'
 
 export const FeedbackForm: React.FC<FeedbackFormProps> = ({ id }) => {
   const [name, setName] = useState('')
@@ -38,101 +40,97 @@ export const FeedbackForm: React.FC<FeedbackFormProps> = ({ id }) => {
     }
   }
 
+  const succeeded = message.includes('Thank you')
+
   return (
-    <section id={id} className="py-20 px-8 bg-gradient-to-b from-[#FFF8F0] to-white">
-      <div className="max-w-xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#9DD9D2]/20 border border-[#9DD9D2]/40 rounded-full mb-4">
-            <MessageSquare size={14} className="text-[#5ba59e]" />
-            <span className="text-sm font-medium text-[#5ba59e] tracking-wide">We're listening</span>
-          </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-stone-800 tracking-tight mb-3">
-            Share Your Feedback
+    <section id={id} className="px-6 md:px-12 py-[120px] scroll-mt-20">
+      <div className="max-w-2xl mx-auto">
+        <div className="text-center mb-12">
+          <p className="text-[13px] font-semibold uppercase tracking-kicker text-plum mb-5">
+            We're listening
+          </p>
+          <h2 className="font-extralight text-bone tracking-display text-[clamp(36px,5vw,48px)] leading-[1.05] mb-5">
+            Tell us what you think.
           </h2>
-          <p className="text-stone-500">Help us build the future of conversational AI</p>
+          <p className="text-ash text-[17px] leading-relaxed max-w-[48ch] mx-auto">
+            MUMBAAI is built in public. Your feedback decides what we build next.
+          </p>
         </div>
 
-        {/* Form Card */}
-        <div className="relative">
-          {/* Glow effect */}
-          <div className="absolute -inset-4 bg-gradient-to-r from-[#FF8811]/20 via-[#F4D06F]/20 to-[#9DD9D2]/20 rounded-3xl blur-2xl opacity-60" />
+        <div className="border border-hairline rounded-[24px] p-8 md:p-10">
+          {message && (
+            <div
+              className={`mb-6 px-4 py-3 rounded-node border text-[14px] ${
+                succeeded
+                  ? 'border-plum text-bone'
+                  : 'border-danger text-danger'
+              }`}
+            >
+              {message}
+            </div>
+          )}
 
-          <div className="relative bg-white rounded-2xl p-8 border border-[#F4D06F]/30 shadow-xl shadow-stone-200/50">
-            {message && (
-              <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${
-                message.includes('Thank you')
-                  ? 'bg-[#9DD9D2]/20 text-[#2a8a7d] border border-[#9DD9D2]/40'
-                  : 'bg-red-50 text-red-700 border border-red-200'
-              }`}>
-                <span className="text-lg">{message.includes('Thank you') ? '✓' : '!'}</span>
-                {message}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid sm:grid-cols-2 gap-4">
+              <input
+                type="text"
+                placeholder="Your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={inputClass}
+                required
+              />
+              <input
+                type="email"
+                placeholder="Your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={inputClass}
+                required
+              />
+            </div>
+
+            <div>
+              <p className="text-[13px] font-semibold text-ash mb-3 tracking-body">
+                How would you rate your experience?
+              </p>
+              <div className="flex gap-2" role="radiogroup" aria-label="Rating">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    role="radio"
+                    aria-checked={rating === star}
+                    aria-label={`${star} of 5`}
+                    onClick={() => setRating(star)}
+                    className={`w-11 h-11 rounded-pill border text-[14px] font-semibold transition-colors duration-fast ${
+                      rating && rating >= star
+                        ? 'border-plum text-bone'
+                        : 'border-hairline text-smoke hover:border-hairline-strong hover:text-ash'
+                    }`}
+                  >
+                    {star}
+                  </button>
+                ))}
               </div>
-            )}
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Your Name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full p-4 bg-[#FFF8F0]/50 border border-[#F4D06F]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8811]/50 focus:border-[#FF8811] transition-all placeholder:text-stone-400"
-                    required
-                  />
-                </div>
-                <div>
-                  <input
-                    type="email"
-                    placeholder="Your Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full p-4 bg-[#FFF8F0]/50 border border-[#F4D06F]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8811]/50 focus:border-[#FF8811] transition-all placeholder:text-stone-400"
-                    required
-                  />
-                </div>
-              </div>
+            <textarea
+              placeholder="What works? What's missing? What would you love to see?"
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              className={`${inputClass} h-32 resize-none`}
+              required
+            />
 
-              <div className="text-center py-2">
-                <p className="text-sm text-stone-500 mb-3">How would you rate your experience?</p>
-                <div className="flex gap-2 justify-center">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setRating(star)}
-                      className={`text-3xl transition-all duration-200 hover:scale-110 ${
-                        rating && rating >= star
-                          ? 'text-[#F4D06F] drop-shadow-sm'
-                          : 'text-stone-200 hover:text-[#F4D06F]/60'
-                      }`}
-                    >
-                      ★
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <textarea
-                  placeholder="Tell us what you think... What features would you love to see?"
-                  value={feedback}
-                  onChange={(e) => setFeedback(e.target.value)}
-                  className="w-full p-4 bg-[#FFF8F0]/50 border border-[#F4D06F]/30 rounded-xl h-32 resize-none focus:outline-none focus:ring-2 focus:ring-[#FF8811]/50 focus:border-[#FF8811] transition-all placeholder:text-stone-400"
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-gradient-to-r from-[#FF8811] to-[#F4D06F] text-white p-4 rounded-xl font-semibold hover:from-[#e67a0f] hover:to-[#e6c35f] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 shadow-lg shadow-[#FF8811]/25 hover:shadow-xl hover:shadow-[#FF8811]/30 hover:-translate-y-0.5"
-              >
-                {isSubmitting ? 'Sending...' : 'Submit Feedback →'}
-              </button>
-            </form>
-          </div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full rounded-pill bg-plum hover:bg-plum-hover disabled:opacity-50 disabled:cursor-not-allowed text-bone text-[13px] font-semibold uppercase tracking-kicker py-4 transition-colors duration-fast"
+            >
+              {isSubmitting ? 'Sending…' : 'Send feedback'}
+            </button>
+          </form>
         </div>
       </div>
     </section>

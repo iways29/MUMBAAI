@@ -95,118 +95,116 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
   };
 
   return (
-    <div className="fixed left-0 right-0 z-50 bg-white backdrop-blur-md border-b border-gray-300 shadow-sm" style={{ top: '8px' }}>
-      <div className="px-8 py-4">
-        <div className="flex items-center justify-between">
-          {/* Left Section */}
-          <div className="flex items-center gap-4">
-            {showBackButton && onBackClick && (
-              <button
-                onClick={onBackClick}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                title="Back to conversations"
-              >
-                <ArrowLeft size={20} />
-              </button>
-            )}
-            
-            {/* Brand Name */}
+    <div className="fixed top-0 left-0 right-0 z-50 bg-void border-b border-hairline">
+      <div className="px-5 h-14 flex items-center justify-between">
+        {/* Left Section */}
+        <div className="flex items-center gap-3 min-w-0">
+          {showBackButton && onBackClick && (
             <button
-              onClick={onBrandClick}
-              className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors"
+              onClick={onBackClick}
+              className="p-2 text-smoke hover:text-bone hover:bg-panel rounded-[8px] transition-colors duration-fast"
+              title="Back to conversations"
             >
-              {brandName}
+              <ArrowLeft size={18} />
             </button>
+          )}
 
-            {/* Conversation Name - Only show if not on conversations page */}
-            {!isConversationsPage && (
-              <>
-                <div className="w-px h-6 bg-gray-300" />
-                <div className="flex items-center gap-2">
-                  {isEditing ? (
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      value={editingName}
-                      onChange={(e) => setEditingName(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      className="px-3 py-1 text-lg font-medium text-gray-800 bg-white border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[200px]"
-                      placeholder="Conversation name..."
-                    />
-                  ) : (
-                    <button
-                      onClick={handleStartEditing}
-                      className="flex items-center gap-2 px-3 py-1 text-lg font-medium text-gray-800 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors group"
-                      title="Click to edit conversation name"
-                    >
-                      <span>{conversationName}</span>
-                      <Edit3 size={14} className="opacity-0 group-hover:opacity-50 transition-opacity" />
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
+          {/* Brand Name */}
+          <button
+            onClick={onBrandClick}
+            className="text-[15px] font-semibold text-bone hover:text-ash transition-colors duration-fast tracking-body"
+          >
+            {brandName}
+          </button>
 
-          {/* Right Section */}
-          <div className="flex items-center gap-3">
-            {/* Only show other buttons if not on conversations page */}
-            {!isConversationsPage && (
-              <>
-                {/* New Chat Button */}
-                {showNewChatButton && onNewChat && (
+          {/* Conversation Name - Only show if not on conversations page */}
+          {!isConversationsPage && (
+            <>
+              <div className="w-px h-5" style={{ background: 'var(--color-hairline)' }} />
+              <div className="flex items-center gap-2 min-w-0">
+                {isEditing ? (
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={editingName}
+                    onChange={(e) => setEditingName(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="px-3 py-1 text-[14px] text-bone bg-panel border border-plum rounded-[8px] outline-none min-w-[200px]"
+                    placeholder="Conversation name…"
+                  />
+                ) : (
                   <button
-                    onClick={onNewChat}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                    title="New Chat"
+                    onClick={handleStartEditing}
+                    className="flex items-center gap-2 px-3 py-1 text-[14px] text-ash hover:text-bone hover:bg-panel rounded-[8px] transition-colors duration-fast group min-w-0"
+                    title="Click to edit conversation name"
                   >
-                    <Plus size={16} />
-                    New Chat
+                    <span className="truncate">{conversationName}</span>
+                    <Edit3 size={13} className="opacity-0 group-hover:opacity-60 transition-opacity duration-fast shrink-0" />
                   </button>
                 )}
-                
-                {/* View Toggle */}
-                {showViewToggle && onViewModeChange && (
-                  <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-                    <button
-                      onClick={() => onViewModeChange('combined')}
-                      className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
-                        viewMode === 'combined'
-                          ? 'bg-white text-gray-900 shadow-sm'
-                          : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                    >
-                      Combined
-                    </button>
-                    <button
-                      onClick={() => onViewModeChange('flow')}
-                      className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
-                        viewMode === 'flow'
-                          ? 'bg-white text-gray-900 shadow-sm'
-                          : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                    >
-                      Flow View
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-            
-            {/* Pro Interest Button */}
-            <ProInterestButton large={isConversationsPage} />
+              </div>
+            </>
+          )}
+        </div>
 
-            {/* User Profile Button - Show when enabled */}
-            {showProfileButton && onProfileClick && (
-              <button
-                onClick={onProfileClick}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                title="User Profile"
-              >
-                <User size={20} />
-              </button>
-            )}
-          </div>
+        {/* Right Section */}
+        <div className="flex items-center gap-2.5">
+          {/* Only show other buttons if not on conversations page */}
+          {!isConversationsPage && (
+            <>
+              {/* New Chat Button */}
+              {showNewChatButton && onNewChat && (
+                <button
+                  onClick={onNewChat}
+                  className="flex items-center gap-1.5 px-4 py-1.5 bg-plum hover:bg-plum-hover text-bone rounded-pill transition-colors duration-fast text-[12px] font-semibold uppercase tracking-kicker"
+                  title="New Chat"
+                >
+                  <Plus size={14} />
+                  New chat
+                </button>
+              )}
+
+              {/* View Toggle */}
+              {showViewToggle && onViewModeChange && (
+                <div className="flex items-center gap-1 border border-hairline rounded-pill p-1">
+                  <button
+                    onClick={() => onViewModeChange('combined')}
+                    className={`px-3 py-1 text-[12px] font-medium rounded-pill transition-colors duration-fast ${
+                      viewMode === 'combined'
+                        ? 'bg-panel-2 text-bone'
+                        : 'text-smoke hover:text-bone'
+                    }`}
+                  >
+                    Combined
+                  </button>
+                  <button
+                    onClick={() => onViewModeChange('flow')}
+                    className={`px-3 py-1 text-[12px] font-medium rounded-pill transition-colors duration-fast ${
+                      viewMode === 'flow'
+                        ? 'bg-panel-2 text-bone'
+                        : 'text-smoke hover:text-bone'
+                    }`}
+                  >
+                    Canvas
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Pro Interest Button */}
+          <ProInterestButton large={isConversationsPage} />
+
+          {/* User Profile Button - Show when enabled */}
+          {showProfileButton && onProfileClick && (
+            <button
+              onClick={onProfileClick}
+              className="p-2 text-smoke hover:text-bone hover:bg-panel rounded-[8px] transition-colors duration-fast"
+              title="User Profile"
+            >
+              <User size={18} />
+            </button>
+          )}
         </div>
       </div>
     </div>

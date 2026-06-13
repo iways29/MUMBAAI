@@ -24,10 +24,13 @@ import { useAuth } from './hooks/useAuth.ts';
 
 // Loading component
 const LoadingScreen: React.FC = () => (
-  <div className="flex items-center justify-center h-screen">
+  <div className="flex items-center justify-center h-screen bg-void">
     <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF8811] mx-auto mb-4"></div>
-      <p className="text-gray-600">Loading...</p>
+      <div
+        className="animate-spin rounded-full h-10 w-10 border-2 mx-auto mb-4"
+        style={{ borderColor: 'var(--color-hairline)', borderTopColor: 'var(--color-plum)' }}
+      ></div>
+      <p className="text-ash text-sm">Loading…</p>
     </div>
   </div>
 );

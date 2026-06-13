@@ -1,0 +1,14 @@
+{
+  "scanned": "2026-06-12",
+  "framework": "Create React App (react-scripts 5) + React 18 + TypeScript 4.9",
+  "router": "react-router-dom 7",
+  "canvas": "reactflow 11 (package 'reactflow', plus @xyflow/react 12 also in deps — only reactflow 11 imported)",
+  "styling": "Tailwind 3.4, zero theme.extend — no tokens anywhere",
+  "fonts": "system default only; DM Sans + Instrument Serif imported ad hoc inside ProInterestButton.tsx via @import",
+  "palette": "no token system. Hex literals inline: #FF8811 (147×), #F4D06F (77×), #9DD9D2 (44×), #FFF8F0 (20×) on landing; raw Tailwind stone/gray/blue/green/purple/red across app",
+  "motion": "no motion library; ad-hoc keyframes in index.css and inline <style> blocks inside components",
+  "spacing": "default Tailwind scale, no semantic tokens",
+  "dark_mode": "none",
+  "preserve": "stack (CRA + Tailwind + ReactFlow), routes, component ownership, Supabase/LLM/SSE layers",
+  "introduce": "full token system (light+dark), type pairing, macrostructure, motion discipline, slop-test gates"
+}
