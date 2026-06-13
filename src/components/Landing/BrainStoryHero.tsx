@@ -2,8 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { buildFormations, brainFormation, SCENE_COUNT } from './formations.ts';
 
-// The brain story — one continuous particle field, six formations,
+// The brain story — one continuous particle field, seven formations,
 // scrubbed by damped scroll progress. See design.md § Story.
+// Layout: copy lives in a left column (or top on mobile); the figure owns the
+// right half (or lower half on mobile) and is large + in focus.
 
 interface BrainStoryHeroProps {
   onGetStarted: () => void;
@@ -13,7 +15,7 @@ interface Beat {
   kicker?: string;
   title: string;
   sub?: string;
-  align: 'hero' | 'center' | 'center-cta';
+  align: 'split' | 'burst';
   cta?: boolean;
 }
 
@@ -22,53 +24,63 @@ const BEATS: Beat[] = [
     kicker: 'The branching AI canvas',
     title: 'One Question.\nEvery Direction.',
     sub: 'MUMBAAI turns AI chat into a canvas of parallel thoughts — branch any reply and explore everything at once.',
-    align: 'hero',
+    align: 'split',
     cta: true,
   },
   {
-    title: 'Chat Is A Straight Line.',
-    sub: "Your thinking isn't. Ideas fall off the edges and disappear.",
-    align: 'center',
+    title: 'Chat Is\nA Straight Line.',
+    sub: "Your thinking isn't. Ideas fall off the edges and vanish.",
+    align: 'split',
   },
   {
-    title: 'Branch Any Reply.',
+    title: 'Branch\nAny Reply.',
     sub: 'Split the thread. Run parallel directions side by side.',
-    align: 'center',
+    align: 'split',
   },
   {
-    title: 'See The Whole Map.',
+    title: 'See The\nWhole Map.',
     sub: 'Every branch on one canvas. Nothing lost, nothing scrolled away.',
-    align: 'center',
+    align: 'split',
   },
   {
-    title: 'Smart Merge.',
+    title: 'Smart\nMerge.',
     sub: 'The best of every branch, synthesized into one answer.',
-    align: 'center',
+    align: 'split',
   },
   {
-    title: 'A Conversation Shaped\nLike Your Mind.',
-    align: 'center-cta',
+    title: 'A Mind,\nMapped.',
+    sub: 'A living network of conversations — shaped like the way you think.',
+    align: 'split',
+  },
+  {
+    title: 'Start Exploring.',
+    align: 'burst',
     cta: true,
   },
 ];
 
-// Per-scene field placement (world units). Scene 0 pushes the brain to the
-// right half (Dala split); mid scenes lift the formation above the copy.
-const OFFSETS_WIDE: [number, number][] = [
-  [0.5, 0.02],
-  [0, 0.18],
-  [0, 0.18],
-  [0, 0.2],
-  [0, 0.16],
-  [0, 0.24],
+// Per-scene field placement (world units) + scale. Index matches formation.
+// Wide screens: figure pushed right, text in the left column.
+// ox, oy, scale
+const SCENES_WIDE: [number, number, number][] = [
+  [0.46, 0.0, 1.0], // brain dim
+  [0.46, 0.0, 1.15], // line
+  [0.46, 0.0, 1.15], // fork
+  [0.46, 0.0, 1.1], // tree
+  [0.46, 0.0, 1.05], // pulse
+  [0.46, 0.0, 1.1], // brain lit (network)
+  [0.06, 0.0, 1.4], // explode — center + big
 ];
-const OFFSETS_NARROW: [number, number][] = [
-  [0, 0.42],
-  [0, 0.22],
-  [0, 0.22],
-  [0, 0.24],
-  [0, 0.2],
-  [0, 0.28],
+// Narrow screens: figure pushed up, text below at... we put text at TOP and
+// figure lower, so figure oy is negative (down).
+const SCENES_NARROW: [number, number, number][] = [
+  [0.0, -0.52, 0.78], // brain dim — low + small so the hero copy is clear
+  [0.0, -0.46, 0.82], // line
+  [0.0, -0.46, 0.82], // fork
+  [0.0, -0.46, 0.8], // tree
+  [0.0, -0.5, 0.78], // pulse
+  [0.0, -0.52, 0.82], // brain lit
+  [0.0, 0.0, 1.2], // explode — center + big
 ];
 
 const VERTEX = `
@@ -82,6 +94,7 @@ uniform float uScale;
 uniform vec2 uOffset;
 uniform float uSize;
 uniform float uIntro;
+uniform float uArc;
 uniform vec2 uMouse;
 uniform float uMouseActive;
 varying vec3 vColor;
@@ -91,11 +104,11 @@ void main() {
   float d = clamp((uProgress - aSeed * 0.22) / 0.78, 0.0, 1.0);
   float e = d * d * (3.0 - 2.0 * d);
   vec3 pos = mix(position, aTarget, e);
-  // arc the journey: particles bow sideways mid-transition instead of
-  // travelling in straight lines
+  // arc the journey: particles bow sideways mid-transition (uArc scales it —
+  // the explosion turns this up so the burst feels violent)
   float arc = e * (1.0 - e);
-  pos.x += arc * 0.22 * sin(aSeed * 61.0);
-  pos.y += arc * 0.22 * cos(aSeed * 47.0);
+  pos.x += arc * uArc * sin(aSeed * 61.0);
+  pos.y += arc * uArc * cos(aSeed * 47.0);
   // idle drift
   pos.x += 0.005 * sin(uTime * 0.6 + aSeed * 41.0);
   pos.y += 0.005 * cos(uTime * 0.5 + aSeed * 57.0);
@@ -139,9 +152,9 @@ void main() {
 // Static SVG poster — used when WebGL is unavailable.
 const BrainPoster: React.FC = () => {
   const dots = React.useMemo(() => {
-    const f = brainFormation(420, true);
+    const f = brainFormation(460, true);
     const out: { x: number; y: number; c: string; o: number }[] = [];
-    for (let i = 0; i < 420; i++) {
+    for (let i = 0; i < 460; i++) {
       const r = Math.round(f.colors[i * 3] * 255);
       const g = Math.round(f.colors[i * 3 + 1] * 255);
       const b = Math.round(f.colors[i * 3 + 2] * 255);
@@ -157,7 +170,7 @@ const BrainPoster: React.FC = () => {
   return (
     <svg viewBox="0 0 100 100" className="w-full h-full" aria-hidden="true">
       {dots.map((d, i) => (
-        <circle key={i} cx={d.x} cy={d.y} r={0.42} fill={d.c} opacity={d.o} />
+        <circle key={i} cx={d.x} cy={d.y} r={0.45} fill={d.c} opacity={d.o} />
       ))}
     </svg>
   );
@@ -256,6 +269,7 @@ export const BrainStoryHero: React.FC<BrainStoryHeroProps> = ({ onGetStarted }) 
         uOffset: { value: new THREE.Vector2(0, 0) },
         uSize: { value: 8 },
         uIntro: { value: 0 },
+        uArc: { value: 0.22 },
         uMouse: { value: new THREE.Vector2(99, 99) },
         uMouseActive: { value: 0 },
       },
@@ -280,6 +294,7 @@ export const BrainStoryHero: React.FC<BrainStoryHeroProps> = ({ onGetStarted }) 
     };
 
     let aspect = 1;
+    let baseSize = 5;
     const resize = () => {
       const w = wrapper.clientWidth;
       const h = window.innerHeight;
@@ -289,10 +304,7 @@ export const BrainStoryHero: React.FC<BrainStoryHeroProps> = ({ onGetStarted }) 
       aspect = w / h;
       camera.aspect = aspect;
       camera.updateProjectionMatrix();
-      material.uniforms.uScale.value = Math.min(1, Math.max(0.4, aspect * 0.78));
-      // crisp shapes fill the whole point sprite — keep them small so the
-      // silhouette stays fine-grained
-      material.uniforms.uSize.value = (isMobile ? 4 : 5) * dpr * (h / 800);
+      baseSize = (isMobile ? 4 : 5) * dpr * (h / 800);
     };
     resize();
     window.addEventListener('resize', resize);
@@ -327,6 +339,7 @@ export const BrainStoryHero: React.FC<BrainStoryHeroProps> = ({ onGetStarted }) 
     let last = t0;
     let smoothT = 0; // damped story position, 0..SCENE_COUNT-1
     let intro = 0;
+    const tmpOffset = new THREE.Vector2();
 
     const animate = () => {
       raf = requestAnimationFrame(animate);
@@ -360,14 +373,19 @@ export const BrainStoryHero: React.FC<BrainStoryHeroProps> = ({ onGetStarted }) 
       material.uniforms.uProgress.value = u;
       material.uniforms.uTime.value = (now - t0) / 1000;
 
-      // per-scene placement, interpolated through the transition
-      const offsets = aspect > 1.1 ? OFFSETS_WIDE : OFFSETS_NARROW;
-      const a = offsets[idx];
-      const b = offsets[Math.min(idx + 1, SCENE_COUNT - 1)];
-      (material.uniforms.uOffset.value as THREE.Vector2).set(
-        a[0] + (b[0] - a[0]) * ue,
-        a[1] + (b[1] - a[1]) * ue
-      );
+      // explosion: the final transition (into scene 6) turns the arc way up
+      const explodeT = Math.max(0, t - (SCENE_COUNT - 2)); // 0..1 over last segment
+      material.uniforms.uArc.value = 0.22 + explodeT * 0.9;
+
+      // per-scene placement + scale, interpolated through the transition
+      const scenes = aspect > 1.1 ? SCENES_WIDE : SCENES_NARROW;
+      const a = scenes[idx];
+      const b = scenes[Math.min(idx + 1, SCENE_COUNT - 1)];
+      tmpOffset.set(a[0] + (b[0] - a[0]) * ue, a[1] + (b[1] - a[1]) * ue);
+      (material.uniforms.uOffset.value as THREE.Vector2).copy(tmpOffset);
+      const sc = a[2] + (b[2] - a[2]) * ue;
+      material.uniforms.uScale.value = Math.min(1.5, Math.max(0.4, aspect * 0.7)) * sc;
+      material.uniforms.uSize.value = baseSize;
 
       // cursor easing
       const mu = material.uniforms.uMouse.value as THREE.Vector2;
@@ -433,7 +451,7 @@ export const BrainStoryHero: React.FC<BrainStoryHeroProps> = ({ onGetStarted }) 
   }
 
   return (
-    <div ref={wrapperRef} className="relative" style={{ height: '560vh' }}>
+    <div ref={wrapperRef} className="relative" style={{ height: '660vh' }}>
       <div className="sticky top-0 h-screen overflow-hidden">
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
@@ -444,15 +462,25 @@ export const BrainStoryHero: React.FC<BrainStoryHeroProps> = ({ onGetStarted }) 
               beatRefs.current[i] = el;
             }}
             className={
-              beat.align === 'hero'
-                ? 'absolute inset-0 flex items-center max-md:items-end max-md:pb-[16vh]'
-                : 'absolute inset-x-0 bottom-[8vh] text-center'
+              beat.align === 'burst'
+                ? 'absolute inset-0 flex items-center justify-center text-center'
+                : 'absolute inset-0 flex items-start md:items-center pt-[16vh] md:pt-0'
             }
             style={{ opacity: i === 0 ? 1 : 0, pointerEvents: i === 0 ? 'auto' : 'none' }}
           >
             <div className="max-w-page mx-auto w-full px-6 md:px-12">
-              {beat.align === 'hero' ? (
-                <div className="max-w-[560px]">
+              {beat.align === 'burst' ? (
+                <div className="mx-auto max-w-[680px]">
+                  <h2
+                    className="font-extralight text-bone tracking-display"
+                    style={{ fontSize: 'clamp(48px, 7vw, 96px)', lineHeight: 0.94 }}
+                  >
+                    {renderTitle(beat.title)}
+                  </h2>
+                  {beat.cta && <Cta onGetStarted={onGetStarted} centered />}
+                </div>
+              ) : (
+                <div className="max-w-[520px] text-center md:text-left">
                   {beat.kicker && (
                     <p className="text-[13px] font-semibold uppercase tracking-kicker text-plum mb-6">
                       {beat.kicker}
@@ -460,35 +488,16 @@ export const BrainStoryHero: React.FC<BrainStoryHeroProps> = ({ onGetStarted }) 
                   )}
                   <h1
                     className="font-extralight text-bone tracking-display"
-                    style={{ fontSize: 'clamp(52px, 7vw, 100px)', lineHeight: 0.92 }}
+                    style={{ fontSize: 'clamp(48px, 6.5vw, 96px)', lineHeight: 0.92 }}
                   >
                     {renderTitle(beat.title)}
                   </h1>
-                  <p className="text-ash text-base md:text-lg leading-relaxed tracking-body mt-7 max-w-[44ch]">
-                    {beat.sub}
-                  </p>
-                  {beat.cta && <Cta onGetStarted={onGetStarted} />}
-                </div>
-              ) : (
-                <div className="mx-auto max-w-[760px]">
-                  <h2
-                    className="font-extralight text-bone tracking-display"
-                    style={{
-                      fontSize:
-                        beat.align === 'center-cta'
-                          ? 'clamp(44px, 6vw, 84px)'
-                          : 'clamp(40px, 5.2vw, 72px)',
-                      lineHeight: 0.96,
-                    }}
-                  >
-                    {renderTitle(beat.title)}
-                  </h2>
                   {beat.sub && (
-                    <p className="text-ash text-base md:text-lg leading-relaxed tracking-body mt-5 max-w-[52ch] mx-auto">
+                    <p className="text-ash text-base md:text-lg leading-relaxed tracking-body mt-7 max-w-[42ch] mx-auto md:mx-0">
                       {beat.sub}
                     </p>
                   )}
-                  {beat.cta && <Cta onGetStarted={onGetStarted} centered />}
+                  {beat.cta && <Cta onGetStarted={onGetStarted} />}
                 </div>
               )}
             </div>

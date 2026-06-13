@@ -28,25 +28,35 @@ atmospheric (marketing) · modern-minimal discipline (app chrome)
 ## Story
 
 The brand narrative is **the brain story**, told by one continuous particle
-field on the landing hero, scrubbed by native scroll:
+field (seven formations) on the landing hero, scrubbed by damped scroll. The
+line / fork / tree scenes flow **top → bottom**, mirroring the app's vertical
+(TB) conversation tree.
 
-1. **Brain** — particles assemble into a mind. "Your mind doesn't think in a straight line."
-2. **Line** — the brain compresses into one flat row. "Every AI chat forces it through one."
-3. **Fork** — the line branches into parallel streams. "Branch any reply. Explore in parallel."
-4. **Map** — pull back: a synaptic constellation — the Mumba canvas.
-5. **Pulse** — pathways converge into one plum flash. Smart Merge.
-6. **Brain, again** — the field settles back into the brain, organized and lit.
-   "A conversation shaped like your mind." → Start free.
+1. **Brain** — particles assemble into a mind (rounded top-profile, central
+   fissure). "One Question. Every Direction."
+2. **Line** — the brain compresses into one vertical row. "Chat Is A Straight Line."
+3. **Fork** — the line branches into three downward streams. "Branch Any Reply."
+4. **Tree** — a top-down conversation tree, root above. "See The Whole Map."
+5. **Pulse** — pathways converge into one plum flash. "Smart Merge."
+6. **Brain, networked** — a legible network of conversation nodes + edges inside
+   the brain silhouette. "A Mind, Mapped."
+7. **Explosion** — the brain bursts outward into a full-screen starfield; the
+   center clears and the CTA lands. "Start Exploring." → Start free.
 
 After the story, the real demo video rises into the foreground over a sparse
 constellation drift on the void as you scroll — atmosphere in back, product
 in front. The hero is interactive: an intro burst assembles the brain on
-load, scroll progress is damped (never 1:1 with the wheel), and particles
-part gently around the cursor.
+load, scroll progress is damped (never 1:1 with the wheel), particles arc
+between formations, and the field parts gently around the cursor.
 
-Display headlines are short Title Case statements at 52–113px, weight 200,
-line-height ≤0.96. Scene copy after the fold is centered under the formation,
-never tucked in a corner.
+**Layout:** copy lives in a **left column** (desktop) or **top block**
+(mobile); the figure owns the right half (desktop) or lower area (mobile),
+large and in focus — never behind the text. Display headlines are short Title
+Case statements, weight 200, line-height ≤0.94.
+
+**Roadmap:** a horizontal rail — a 30% plum progress thread with a node at the
+current phase, above a 5-column phase grid (big thin 01–05 numerals, status
+pills, the "Now" phase carrying a plum top-rule, later phases dimmed).
 
 ## Macrostructure family
 
