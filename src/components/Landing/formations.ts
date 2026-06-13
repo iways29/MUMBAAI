@@ -3,8 +3,11 @@
 // Each formation returns positions (N*3); colors are derived per formation so the
 // same particle can change role between scenes.
 //
-// Orientation note: the line / fork / tree scenes flow TOP -> BOTTOM, mirroring
-// the app's vertical (TB) conversation tree.
+// The anatomy IS the metaphor and flows top -> bottom:
+//   side-brain -> spinal cord (one straight thread) -> branching spinal nerves
+//   with ganglia nodules -> conversation tree -> merge -> networked brain -> burst.
+// The brain is a LATERAL (side) profile: frontal lobe left, occiput/cerebellum
+// right, brain stem / medulla descending from the lower right.
 
 export interface Formation {
   positions: Float32Array;
@@ -47,9 +50,8 @@ function setColor(
   arr[i * 3 + 2] = c[2] * brightness;
 }
 
-// ---------- Brain silhouette (top-profile, like a walnut/two hemispheres) ----------
-// A rounder, more obviously-a-brain outline: two hemispheres split by a central
-// fissure, with fold bands carving the surface.
+// ---------- Lateral brain silhouette ----------
+// Frontal lobe left, occipital/cerebellum right, stem descending lower-right.
 function brainFold(x: number, y: number): number {
   return (
     Math.sin(x * 13 + Math.sin(y * 9) * 1.7) *
@@ -57,21 +59,26 @@ function brainFold(x: number, y: number): number {
   );
 }
 
-function insideBrain(x: number, y: number): boolean {
-  // overall rounded mass, slightly wider than tall
-  const body = (x / 0.66) ** 2 + (y / 0.56) ** 2 < 1;
-  if (!body) return false;
-  // central fissure: thin gap down the middle near the top
-  const fissure = Math.abs(x) < 0.035 && y > -0.15;
-  if (fissure) return false;
-  // flatten the very bottom a touch (brain stem notch)
-  if (y < -0.46 && Math.abs(x) > 0.12) return false;
-  return true;
+function inStem(x: number, y: number): boolean {
+  if (y > -0.04 || y < -0.64) return false;
+  const t = (-0.04 - y) / 0.6; // 0 at top of stem, 1 at the medulla tip
+  const cx = 0.24 + t * 0.05; // leans slightly right going down
+  const halfW = 0.075 * (1 - t * 0.4); // tapers toward the medulla
+  return Math.abs(x - cx) < halfW;
 }
 
-// Lit brain = a NETWORK OF CONVERSATIONS inside the brain silhouette.
-// Conversation nodes are bright clusters; edges are dim dust connecting them;
-// the remaining particles are faint surface fill that keeps the silhouette.
+function insideBrain(x: number, y: number): boolean {
+  // main cerebrum mass — egg-shaped, bulk toward center, frontal bulge left
+  const cerebrum = ((x + 0.04) / 0.62) ** 2 + ((y - 0.14) / 0.4) ** 2 < 1;
+  // temporal lobe — lower bulge
+  const temporal =
+    ((x + 0.02) / 0.5) ** 2 + ((y + 0.12) / 0.26) ** 2 < 1 && y > -0.3;
+  // cerebellum — lower right, behind the stem
+  const cerebellum = ((x - 0.44) / 0.22) ** 2 + ((y + 0.18) / 0.17) ** 2 < 1;
+  return cerebrum || temporal || cerebellum || inStem(x, y);
+}
+
+// Lit brain = network of conversation nodes + edges inside the silhouette.
 interface ConvNode {
   x: number;
   y: number;
@@ -81,18 +88,15 @@ interface ConvNode {
 function brainConvNodes(rand: () => number): { nodes: ConvNode[]; edges: [number, number][] } {
   const nodes: ConvNode[] = [];
   const hues = [PLUM, AMBER, LICHEN];
-  // scatter nodes that fall inside the brain
   let guard = 0;
-  while (nodes.length < 16 && guard < 4000) {
+  while (nodes.length < 15 && guard < 4000) {
     guard++;
     const x = (rand() * 2 - 1) * 0.62;
-    const y = (rand() * 2 - 1) * 0.5;
-    if (!insideBrain(x, y)) continue;
-    // keep nodes apart
-    if (nodes.some((n) => (n.x - x) ** 2 + (n.y - y) ** 2 < 0.045)) continue;
+    const y = 0.12 + (rand() * 2 - 1) * 0.42;
+    if (!insideBrain(x, y) || inStem(x, y)) continue; // keep nodes in the cerebrum
+    if (nodes.some((n) => (n.x - x) ** 2 + (n.y - y) ** 2 < 0.05)) continue;
     nodes.push({ x, y, hue: hues[nodes.length % 3] });
   }
-  // connect each node to its 2 nearest neighbours -> a synaptic network
   const edges: [number, number][] = [];
   const seen = new Set<string>();
   nodes.forEach((n, i) => {
@@ -117,7 +121,6 @@ export function brainFormation(count: number, lit: boolean): Formation {
   const colors = new Float32Array(count * 3);
 
   if (!lit) {
-    // First brain: soft surface dust, dim, mostly bone with faint chromatic specks.
     let i = 0;
     while (i < count) {
       const x = rand() * 2 - 1;
@@ -136,22 +139,18 @@ export function brainFormation(count: number, lit: boolean): Formation {
     return { positions, colors };
   }
 
-  // Lit brain: conversation network inside the silhouette.
   const { nodes, edges } = brainConvNodes(rand);
-  const nodeShare = 0.4; // dense bright node clusters
-  const edgeShare = 0.32; // dust along edges
-  // remaining = faint surface fill
+  const nodeShare = 0.38;
+  const edgeShare = 0.3;
   for (let i = 0; i < count; i++) {
     const roll = rand();
-    if (roll < nodeShare) {
-      // bright node cluster
+    if (roll < nodeShare && nodes.length) {
       const node = nodes[Math.floor(rand() * nodes.length)];
       const ang = rand() * Math.PI * 2;
       const rad = Math.abs(rand() + rand() - 1) * 0.045;
       set3(positions, i, node.x + Math.cos(ang) * rad, node.y + Math.sin(ang) * rad, (rand() - 0.5) * 0.08);
       setColor(colors, i, node.hue, 0.7 + rand() * 0.3);
     } else if (roll < nodeShare + edgeShare && edges.length) {
-      // edge dust between two nodes
       const [a, b] = edges[Math.floor(rand() * edges.length)];
       const na = nodes[a];
       const nb = nodes[b];
@@ -165,7 +164,6 @@ export function brainFormation(count: number, lit: boolean): Formation {
       );
       setColor(colors, i, BONE, 0.3 + rand() * 0.25);
     } else {
-      // faint surface fill keeps the brain readable
       let x = 0,
         y = 0,
         ok = false,
@@ -186,23 +184,26 @@ export function brainFormation(count: number, lit: boolean): Formation {
   return { positions, colors };
 }
 
-// ---------- Vertical line (top -> bottom) ----------
-export function lineFormation(count: number): Formation {
+// ---------- Spinal cord (one straight vertical thread, segmented) ----------
+export function spineFormation(count: number): Formation {
   const rand = mulberry32(7002);
   const positions = new Float32Array(count * 3);
   const colors = new Float32Array(count * 3);
+  const x0 = 0.1; // continues from where the medulla sat
   for (let i = 0; i < count; i++) {
     const t = rand();
     const y = 0.92 - t * 1.84;
-    const x = (rand() - 0.5) * 0.022;
-    set3(positions, i, x, y, (rand() - 0.5) * 0.05);
-    const edge = 1 - Math.abs(t - 0.5) * 1.2;
-    setColor(colors, i, SMOKE, 0.35 + 0.45 * edge);
+    const seg = Math.sin(y * 9.0); // vertebral segmentation
+    const halfW = 0.04 + 0.02 * Math.max(0, seg); // slight bulge at each segment
+    const x = x0 + (rand() - 0.5) * 2 * halfW;
+    set3(positions, i, x, y, (rand() - 0.5) * 0.06);
+    const bright = 0.4 + 0.4 * Math.max(0, seg) + rand() * 0.15;
+    setColor(colors, i, rand() < 0.92 ? SMOKE : PLUM, bright);
   }
   return { positions, colors };
 }
 
-function quadPoint(
+function quad(
   p0: [number, number],
   p1: [number, number],
   p2: [number, number],
@@ -211,58 +212,72 @@ function quadPoint(
   const a = (1 - t) * (1 - t);
   const b = 2 * (1 - t) * t;
   const c = t * t;
-  return [
-    a * p0[0] + b * p1[0] + c * p2[0],
-    a * p0[1] + b * p1[1] + c * p2[1],
-  ];
+  return [a * p0[0] + b * p1[0] + c * p2[0], a * p0[1] + b * p1[1] + c * p2[1]];
 }
 
-// ---------- Vertical fork (stem at top splits into three downward streams) ----------
-export function forkFormation(count: number): Formation {
+// ---------- Branching spinal nerves with ganglia nodules ----------
+export function nerveFormation(count: number): Formation {
   const rand = mulberry32(7003);
   const positions = new Float32Array(count * 3);
   const colors = new Float32Array(count * 3);
-  const stemShare = 0.22;
-  const fork: [number, number] = [0, 0.28];
-  const branches: {
-    p1: [number, number];
-    p2: [number, number];
-    color: [number, number, number];
-  }[] = [
-    { p1: [-0.5, 0.0], p2: [-0.58, -0.78], color: PLUM },
-    { p1: [0.0, -0.05], p2: [0.02, -0.82], color: AMBER },
-    { p1: [0.5, 0.0], p2: [0.58, -0.78], color: LICHEN },
-  ];
+  const x0 = 0.06;
+  const levels = [0.6, 0.32, 0.04, -0.24, -0.52];
+  const hues = [PLUM, AMBER, LICHEN];
+  interface Branch {
+    ctrl: [number, number];
+    end: [number, number];
+    hue: [number, number, number];
+  }
+  const branches: Branch[] = [];
+  levels.forEach((L, li) => {
+    [-1, 1].forEach((s) => {
+      branches.push({
+        ctrl: [x0 + s * 0.3, L + 0.03],
+        end: [x0 + s * 0.62, L - 0.16],
+        hue: hues[(li + (s > 0 ? 0 : 1)) % 3],
+      });
+    });
+  });
+
+  const cordShare = 0.24;
+  const noduleShare = 0.32;
   for (let i = 0; i < count; i++) {
-    const r = rand();
-    let x: number, y: number;
-    let color: [number, number, number] = BONE;
-    let bright = 0.5;
-    if (r < stemShare) {
-      const t = rand();
-      y = 0.92 - t * 0.64; // top stem down to the fork
-      x = (rand() - 0.5) * 0.022;
-      bright = 0.45 + rand() * 0.3;
+    const roll = rand();
+    if (roll < cordShare) {
+      // central cord
+      const y = 0.86 - rand() * 1.7;
+      set3(positions, i, x0 + (rand() - 0.5) * 0.07, y, (rand() - 0.5) * 0.05);
+      setColor(colors, i, SMOKE, 0.4 + rand() * 0.25);
+    } else if (roll < cordShare + noduleShare) {
+      // ganglion nodule at a branch end
+      const br = branches[Math.floor(rand() * branches.length)];
+      const ang = rand() * Math.PI * 2;
+      const rad = Math.abs(rand() + rand() - 1) * 0.05;
+      set3(positions, i, br.end[0] + Math.cos(ang) * rad, br.end[1] + Math.sin(ang) * rad, (rand() - 0.5) * 0.07);
+      setColor(colors, i, br.hue, 0.7 + rand() * 0.3);
     } else {
-      const b = branches[Math.floor(rand() * 3)];
+      // nerve fibre along a branch path
+      const br = branches[Math.floor(rand() * branches.length)];
       const t = rand();
-      const [px, py] = quadPoint(fork, b.p1, b.p2, t);
-      x = px + (rand() - 0.5) * (0.015 + t * 0.05);
-      y = py + (rand() - 0.5) * (0.015 + t * 0.05);
-      color = rand() < 0.55 ? b.color : BONE;
-      bright = 0.35 + t * 0.55;
+      const [px, py] = quad([x0, br.ctrl[1] - 0.03], br.ctrl, br.end, t);
+      set3(
+        positions,
+        i,
+        px + (rand() - 0.5) * 0.018,
+        py + (rand() - 0.5) * 0.018,
+        (rand() - 0.5) * 0.06
+      );
+      setColor(colors, i, rand() < 0.4 ? br.hue : BONE, 0.3 + t * 0.4);
     }
-    set3(positions, i, x, y, (rand() - 0.5) * 0.08);
-    setColor(colors, i, color, bright);
   }
   return { positions, colors };
 }
 
-// ---------- Vertical tree (root at top, branches fan downward — like app TB) ----------
+// ---------- Conversation tree (root at top, branches fan downward — app TB) ----------
 interface TreeNode {
   x: number;
   y: number;
-  parent: number; // index into nodes, -1 for root
+  parent: number;
   hue: [number, number, number];
 }
 
@@ -347,7 +362,6 @@ export function explodeFormation(count: number): Formation {
   const positions = new Float32Array(count * 3);
   const colors = new Float32Array(count * 3);
   for (let i = 0; i < count; i++) {
-    // radial scatter biased outward, brighter chromatic specks
     const ang = rand() * Math.PI * 2;
     const rad = 0.4 + Math.pow(rand(), 0.6) * 1.5;
     const x = Math.cos(ang) * rad * (1.3 + rand() * 0.4);
@@ -367,8 +381,8 @@ export const SCENE_COUNT = 7;
 export function buildFormations(count: number): Formation[] {
   return [
     brainFormation(count, false),
-    lineFormation(count),
-    forkFormation(count),
+    spineFormation(count),
+    nerveFormation(count),
     mapFormation(count),
     pulseFormation(count),
     brainFormation(count, true),

@@ -27,19 +27,21 @@ atmospheric (marketing) · modern-minimal discipline (app chrome)
 
 ## Story
 
-The brand narrative is **the brain story**, told by one continuous particle
-field (seven formations) on the landing hero, scrubbed by damped scroll. The
-line / fork / tree scenes flow **top → bottom**, mirroring the app's vertical
-(TB) conversation tree.
+The brand narrative is **the brain story** — the *anatomy is the metaphor*,
+told by one continuous particle field (seven formations) scrubbed by damped
+scroll. Everything flows **top → bottom**, mirroring the app's vertical (TB)
+conversation tree.
 
-1. **Brain** — particles assemble into a mind (rounded top-profile, central
-   fissure). "One Question. Every Direction."
-2. **Line** — the brain compresses into one vertical row. "Chat Is A Straight Line."
-3. **Fork** — the line branches into three downward streams. "Branch Any Reply."
+1. **Brain** — a LATERAL (side) profile: frontal lobe left, occiput/cerebellum
+   right, brain stem / medulla descending lower-right. "One Question. Every Direction."
+2. **Spinal cord** — the medulla extends into one straight, segmented vertical
+   thread. "Chat Is A Straight Line."
+3. **Spinal nerves** — paired nerve branches fan off the cord, each ending in a
+   glowing ganglion nodule (plum/amber/lichen). "Branch Any Reply."
 4. **Tree** — a top-down conversation tree, root above. "See The Whole Map."
 5. **Pulse** — pathways converge into one plum flash. "Smart Merge."
 6. **Brain, networked** — a legible network of conversation nodes + edges inside
-   the brain silhouette. "A Mind, Mapped."
+   the lateral silhouette. "A Mind, Mapped."
 7. **Explosion** — the brain bursts outward into a full-screen starfield; the
    center clears and the CTA lands. "Start Exploring." → Start free.
 
