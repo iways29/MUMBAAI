@@ -52,11 +52,27 @@ function setColor(
 
 // ---------- Lateral brain silhouette ----------
 // Frontal lobe left, occipital/cerebellum right, stem descending lower-right.
+// Fine sinuous gyri — higher frequency so the folds read as brain folds, not
+// big bands. Two octaves keep them organic.
 function brainFold(x: number, y: number): number {
+  const warp = Math.sin(x * 6.0 - y * 3.2) * 0.35;
   return (
-    Math.sin(x * 13 + Math.sin(y * 9) * 1.7) *
-    Math.sin(y * 11 + Math.sin(x * 7) * 1.5)
+    Math.sin(y * 16.0 + x * 6.0 + warp * 3.0) * 0.6 +
+    Math.sin(x * 18.0 + y * 5.0) * 0.4
   );
+}
+
+// Surface sampling: the silhouette stays SOLID (sulci keep ~half density so the
+// shape reads), but ridges are bright and grooves are dark — deep, distinct folds.
+function brainSurface(
+  x: number,
+  y: number,
+  rand: () => number
+): { accept: boolean; bright: number } {
+  const ridge = Math.min(1, Math.max(0, (brainFold(x, y) + 1) * 0.5));
+  const accept = rand() < 0.5 + 0.5 * ridge; // continuous silhouette
+  const bright = 0.1 + 0.62 * Math.pow(ridge, 1.4); // dark grooves, bright ridges
+  return { accept, bright };
 }
 
 function inStem(x: number, y: number): boolean {
@@ -126,14 +142,15 @@ export function brainFormation(count: number, lit: boolean): Formation {
       const x = rand() * 2 - 1;
       const y = rand() * 2 - 1;
       if (!insideBrain(x, y)) continue;
-      const fold = brainFold(x, y);
-      if (rand() > 0.4 + 0.6 * Math.abs(fold)) continue;
-      set3(positions, i, x, y, (rand() - 0.5) * 0.1);
+      const { accept, bright } = brainSurface(x, y, rand);
+      if (!accept) continue;
+      set3(positions, i, x, y, (rand() - 0.5) * 0.08);
       const r = rand();
-      if (r < 0.06) setColor(colors, i, PLUM, 0.7);
-      else if (r < 0.1) setColor(colors, i, AMBER, 0.6);
-      else if (r < 0.14) setColor(colors, i, LICHEN, 0.65);
-      else setColor(colors, i, BONE, 0.18 + rand() * 0.28);
+      // chromatic specks only on the bright ridges
+      if (bright > 0.45 && r < 0.05) setColor(colors, i, PLUM, 0.7);
+      else if (bright > 0.45 && r < 0.08) setColor(colors, i, AMBER, 0.6);
+      else if (bright > 0.45 && r < 0.11) setColor(colors, i, LICHEN, 0.65);
+      else setColor(colors, i, BONE, bright);
       i++;
     }
     return { positions, colors };
@@ -166,6 +183,7 @@ export function brainFormation(count: number, lit: boolean): Formation {
     } else {
       let x = 0,
         y = 0,
+        bright = 0.1,
         ok = false,
         guard = 0;
       while (!ok && guard < 24) {
@@ -173,12 +191,13 @@ export function brainFormation(count: number, lit: boolean): Formation {
         x = rand() * 2 - 1;
         y = rand() * 2 - 1;
         if (!insideBrain(x, y)) continue;
-        const fold = brainFold(x, y);
-        if (rand() > 0.35 + 0.65 * Math.abs(fold)) continue;
+        const s = brainSurface(x, y, rand);
+        if (!s.accept) continue;
+        bright = s.bright * 0.55; // surface fill stays quiet behind the network
         ok = true;
       }
-      set3(positions, i, x, y, (rand() - 0.5) * 0.1);
-      setColor(colors, i, BONE, 0.12 + rand() * 0.16);
+      set3(positions, i, x, y, (rand() - 0.5) * 0.08);
+      setColor(colors, i, BONE, bright);
     }
   }
   return { positions, colors };

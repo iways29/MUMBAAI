@@ -63,13 +63,13 @@ const BEATS: Beat[] = [
 // Wide screens: figure pushed right, text in the left column.
 // ox, oy, scale
 const SCENES_WIDE: [number, number, number][] = [
-  [0.46, 0.0, 1.0], // brain dim
-  [0.46, 0.0, 1.15], // line
-  [0.46, 0.0, 1.15], // fork
-  [0.46, 0.0, 1.1], // tree
-  [0.46, 0.0, 1.05], // pulse
-  [0.46, 0.0, 1.1], // brain lit (network)
-  [0.06, 0.0, 1.4], // explode — center + big
+  [0.66, 0.0, 1.14], // brain dim — pushed right + bigger
+  [0.66, 0.0, 1.22], // spine
+  [0.66, 0.0, 1.22], // nerves
+  [0.64, 0.0, 1.16], // tree
+  [0.64, 0.0, 1.1], // pulse
+  [0.66, 0.0, 1.16], // brain lit (network)
+  [0.05, 0.0, 1.5], // explode — center + big
 ];
 // Narrow screens: figure pushed up, text below at... we put text at TOP and
 // figure lower, so figure oy is negative (down).
@@ -234,7 +234,7 @@ export const BrainStoryHero: React.FC<BrainStoryHeroProps> = ({ onGetStarted }) 
     }
 
     const isMobile = window.innerWidth < 768;
-    const COUNT = isMobile ? 7000 : 16000;
+    const COUNT = isMobile ? 6500 : 20000;
     const formations = buildFormations(COUNT);
 
     const scene = new THREE.Scene();
@@ -304,7 +304,7 @@ export const BrainStoryHero: React.FC<BrainStoryHeroProps> = ({ onGetStarted }) 
       aspect = w / h;
       camera.aspect = aspect;
       camera.updateProjectionMatrix();
-      baseSize = (isMobile ? 4 : 5) * dpr * (h / 800);
+      baseSize = (isMobile ? 2.9 : 6) * dpr * (h / 800);
     };
     resize();
     window.addEventListener('resize', resize);
@@ -468,7 +468,13 @@ export const BrainStoryHero: React.FC<BrainStoryHeroProps> = ({ onGetStarted }) 
             }
             style={{ opacity: i === 0 ? 1 : 0, pointerEvents: i === 0 ? 'auto' : 'none' }}
           >
-            <div className="max-w-page mx-auto w-full px-6 md:px-12">
+            <div
+              className={
+                beat.align === 'burst'
+                  ? 'max-w-page mx-auto w-full px-6 md:px-12'
+                  : 'w-full px-6 md:px-12 lg:px-24'
+              }
+            >
               {beat.align === 'burst' ? (
                 <div className="mx-auto max-w-[680px]">
                   <h2
@@ -480,7 +486,7 @@ export const BrainStoryHero: React.FC<BrainStoryHeroProps> = ({ onGetStarted }) 
                   {beat.cta && <Cta onGetStarted={onGetStarted} centered />}
                 </div>
               ) : (
-                <div className="max-w-[520px] text-center md:text-left">
+                <div className="max-w-[440px] text-center md:text-left">
                   {beat.kicker && (
                     <p className="text-[13px] font-semibold uppercase tracking-kicker text-plum mb-6">
                       {beat.kicker}
