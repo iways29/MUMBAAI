@@ -14,14 +14,12 @@ brand imagery — and write Mumba's own copy, formations, scenes, and components
 We do not reproduce the source's artwork, copy, or typeface. Tokens below are
 the Mumba adaptation, not a verbatim copy.
 
-**Second reference (2026-06-12):** a Refero extraction of `adaline.ai`
-("botanical journal at dawn"), also user-supplied. We adopt its *imagery
-pattern* — a painted atmospheric landscape as full-bleed backdrop with the
-product demo floating in front — translated to night: Adaline's ink tones
-(`#0a1d08` forest, `#31200b` bark, `#203b14` forest-floor, eucalyptus sage)
-become scenery-silhouette tints on the void. Its light cream surfaces are NOT
-adopted; the system stays dark. Scenery tints are imagery-only tokens
-(`--scenery-*`), never interface chrome.
+**Second reference (2026-06-12, partially adopted then narrowed):** a Refero
+extraction of `adaline.ai`. Only its *structural pattern* survives — the
+product demo video rising into the foreground over an atmospheric backdrop.
+Its landscape imagery and earth/sage colors were dropped at the owner's
+request on the same day; the backdrop is pure void with sparse constellation
+drift, strictly the Dala-DNA palette.
 
 ## Genre
 
@@ -40,9 +38,15 @@ field on the landing hero, scrubbed by native scroll:
 6. **Brain, again** — the field settles back into the brain, organized and lit.
    "A conversation shaped like your mind." → Start free.
 
-After the story, the page opens onto a **night landscape** (painted hills in
-scenery tints, mist, sparse star-particles) and the real demo video rises into
-the foreground over it as you scroll — scenery in back, product in front.
+After the story, the real demo video rises into the foreground over a sparse
+constellation drift on the void as you scroll — atmosphere in back, product
+in front. The hero is interactive: an intro burst assembles the brain on
+load, scroll progress is damped (never 1:1 with the wheel), and particles
+part gently around the cursor.
+
+Display headlines are short Title Case statements at 52–113px, weight 200,
+line-height ≤0.96. Scene copy after the fold is centered under the formation,
+never tucked in a corner.
 
 ## Macrostructure family
 
@@ -70,10 +74,6 @@ the foreground over it as you scroll — scenery in back, product in front.
 | `--color-amber` | `#FFB829` | Outlined emphasis + constellation only. NEVER a filled CTA. |
 | `--color-lichen` | `#15846E` | Constellation/decorative marks only. Never interface chrome. |
 | `--color-danger` | `#F0594E` | Destructive actions only (delete). Text/outline, not floods. |
-| `--scenery-forest` | `#0A1D08` | Night-landscape silhouettes (imagery only). |
-| `--scenery-bark` | `#31200B` | Night-landscape near-ground layer (imagery only). |
-| `--scenery-floor` | `#203B14` | Night-landscape mid hills (imagery only). |
-| `--scenery-mist` | `rgba(197,204,182,0.07)` | Atmospheric mist washes over scenery (imagery only). |
 
 Light variant (app opt-in later, `[data-theme="light"]`): paper `#FAFAF8`,
 panel `#FFFFFF`, ink `#101012`, ash→`#55534F`, smoke→`#7A776F`, hairline

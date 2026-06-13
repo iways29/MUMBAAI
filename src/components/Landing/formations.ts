@@ -74,7 +74,8 @@ export function brainFormation(count: number, lit: boolean): Formation {
     const fold = brainFold(x, y);
     // folds carve density: ridges dense, sulci sparse
     if (rand() > 0.42 + 0.58 * Math.abs(fold)) continue;
-    const z = (rand() - 0.5) * 0.22;
+    // shallow depth keeps the silhouette crisp
+    const z = (rand() - 0.5) * 0.1;
     set3(positions, i, x, y, z);
 
     const r = rand();
