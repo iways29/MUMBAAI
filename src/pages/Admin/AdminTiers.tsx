@@ -286,11 +286,11 @@ const AdminTiers: React.FC = () => {
     return (
       <div className="p-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-stone-200 rounded"></div>
-          <div className="h-4 w-64 bg-stone-200 rounded"></div>
+          <div className="h-8 w-48 bg-panel-2 rounded"></div>
+          <div className="h-4 w-64 bg-panel-2 rounded"></div>
           <div className="space-y-3 mt-8">
             {[1, 2, 3].map(i => (
-              <div key={i} className="h-24 bg-stone-200 rounded-xl"></div>
+              <div key={i} className="h-24 bg-panel-2 rounded-node"></div>
             ))}
           </div>
         </div>
@@ -304,18 +304,18 @@ const AdminTiers: React.FC = () => {
       <div className="mb-8 flex items-start justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-violet-500 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-plum rounded-node flex items-center justify-center">
               <Layers className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-stone-800">User Tiers</h1>
+            <h1 className="text-[28px] font-extralight text-bone tracking-display">User Tiers</h1>
           </div>
-          <p className="text-stone-600">
+          <p className="text-ash">
             Configure user tiers with limits for tokens, merges, rate limiting, and model access
           </p>
         </div>
         <button
           onClick={openAddModal}
-          className="px-4 py-2 bg-[#FF8811] text-white rounded-xl hover:bg-[#e67a0f] transition-colors flex items-center gap-2 font-medium"
+          className="px-4 py-2 bg-plum text-white rounded-node hover:bg-plum-hover transition-colors flex items-center gap-2 font-medium"
         >
           <Plus className="w-5 h-5" />
           Add Tier
@@ -323,13 +323,13 @@ const AdminTiers: React.FC = () => {
       </div>
 
       {/* Legend */}
-      <div className="mb-6 flex items-center gap-6 text-sm text-stone-600">
+      <div className="mb-6 flex items-center gap-6 text-sm text-ash">
         <div className="flex items-center gap-2">
-          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+          <Star className="w-4 h-4 text-amber fill-[var(--color-amber)]" />
           <span>Default tier for new users</span>
         </div>
         <div className="flex items-center gap-2">
-          <Infinity className="w-4 h-4 text-stone-400" />
+          <Infinity className="w-4 h-4 text-smoke" />
           <span>Unlimited</span>
         </div>
       </div>
@@ -339,13 +339,13 @@ const AdminTiers: React.FC = () => {
         {tiers.map((tier) => (
           <div
             key={tier.id}
-            className="bg-white rounded-xl border border-stone-200 shadow-sm p-5"
+            className="bg-panel rounded-node border border-hairline p-5"
           >
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-4">
                 {/* Color Badge */}
                 <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg"
+                  className="w-12 h-12 rounded-node flex items-center justify-center text-white font-bold text-lg"
                   style={{ backgroundColor: tier.color }}
                 >
                   {tier.display_name.charAt(0).toUpperCase()}
@@ -353,45 +353,45 @@ const AdminTiers: React.FC = () => {
 
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-lg font-semibold text-stone-800">
+                    <h3 className="text-lg font-semibold text-bone">
                       {tier.display_name}
                     </h3>
                     {tier.is_default && (
-                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                      <Star className="w-4 h-4 text-amber fill-[var(--color-amber)]" />
                     )}
-                    <span className="text-xs text-stone-400 font-mono bg-stone-100 px-2 py-0.5 rounded">
+                    <span className="text-xs text-smoke font-mono bg-panel-2 px-2 py-0.5 rounded">
                       {tier.name}
                     </span>
                   </div>
                   {tier.description && (
-                    <p className="text-sm text-stone-500 mb-3">{tier.description}</p>
+                    <p className="text-sm text-smoke mb-3">{tier.description}</p>
                   )}
 
                   {/* Limits Grid */}
                   <div className="flex flex-wrap gap-4 text-sm">
-                    <div className="flex items-center gap-1.5 text-stone-600">
-                      <Zap className="w-4 h-4 text-amber-500" />
-                      <span className="text-stone-500">Daily:</span>
+                    <div className="flex items-center gap-1.5 text-ash">
+                      <Zap className="w-4 h-4 text-amber" />
+                      <span className="text-smoke">Daily:</span>
                       <span className="font-medium">{formatLimit(tier.daily_token_limit)}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-stone-600">
-                      <Zap className="w-4 h-4 text-blue-500" />
-                      <span className="text-stone-500">Monthly:</span>
+                    <div className="flex items-center gap-1.5 text-ash">
+                      <Zap className="w-4 h-4 text-ash" />
+                      <span className="text-smoke">Monthly:</span>
                       <span className="font-medium">{formatLimit(tier.monthly_token_limit)}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-stone-600">
-                      <GitMerge className="w-4 h-4 text-purple-500" />
-                      <span className="text-stone-500">Merges/day:</span>
+                    <div className="flex items-center gap-1.5 text-ash">
+                      <GitMerge className="w-4 h-4 text-plum" />
+                      <span className="text-smoke">Merges/day:</span>
                       <span className="font-medium">{formatLimit(tier.daily_merge_limit)}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-stone-600">
-                      <Clock className="w-4 h-4 text-green-500" />
-                      <span className="text-stone-500">Rate:</span>
+                    <div className="flex items-center gap-1.5 text-ash">
+                      <Clock className="w-4 h-4 text-plum" />
+                      <span className="text-smoke">Rate:</span>
                       <span className="font-medium">{tier.requests_per_minute}/min</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-stone-600">
-                      <Bot className="w-4 h-4 text-stone-500" />
-                      <span className="text-stone-500">Models:</span>
+                    <div className="flex items-center gap-1.5 text-ash">
+                      <Bot className="w-4 h-4 text-smoke" />
+                      <span className="text-smoke">Models:</span>
                       <span className="font-medium">
                         {tier.allowed_model_ids ? `${tier.allowed_model_ids.length} selected` : 'All'}
                       </span>
@@ -405,7 +405,7 @@ const AdminTiers: React.FC = () => {
                 {!tier.is_default && (
                   <button
                     onClick={() => setDefault(tier.id)}
-                    className="px-3 py-1 text-sm text-stone-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
+                    className="px-3 py-1 text-sm text-smoke hover:text-amber hover:bg-panel-2 rounded-[8px] transition-colors"
                     title="Set as default"
                   >
                     <Star className="w-4 h-4" />
@@ -414,7 +414,7 @@ const AdminTiers: React.FC = () => {
 
                 <button
                   onClick={() => openEditModal(tier)}
-                  className="p-2 text-stone-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  className="p-2 text-smoke hover:text-bone hover:bg-panel-2 rounded-[8px] transition-colors"
                   title="Edit tier"
                 >
                   <Pencil className="w-4 h-4" />
@@ -424,13 +424,13 @@ const AdminTiers: React.FC = () => {
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => deleteTier(tier.id)}
-                      className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
+                      className="px-2 py-1 bg-transparent border border-danger text-white rounded text-xs hover:bg-[rgba(240,89,78,0.12)]"
                     >
                       Confirm
                     </button>
                     <button
                       onClick={() => setDeleteConfirm(null)}
-                      className="px-2 py-1 bg-stone-200 text-stone-700 rounded text-xs hover:bg-stone-300"
+                      className="px-2 py-1 bg-panel-2 text-ash rounded text-xs hover:bg-panel-2"
                     >
                       Cancel
                     </button>
@@ -438,7 +438,7 @@ const AdminTiers: React.FC = () => {
                 ) : (
                   <button
                     onClick={() => setDeleteConfirm(tier.id)}
-                    className="p-2 text-stone-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-2 text-smoke hover:text-danger hover:bg-[rgba(240,89,78,0.08)] rounded-[8px] transition-colors"
                     title="Delete tier"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -450,12 +450,12 @@ const AdminTiers: React.FC = () => {
         ))}
 
         {tiers.length === 0 && (
-          <div className="text-center py-12 bg-white rounded-xl border border-stone-200">
-            <Layers className="w-12 h-12 text-stone-300 mx-auto mb-4" />
-            <p className="text-stone-500">No tiers configured yet.</p>
+          <div className="text-center py-12 bg-panel rounded-node border border-hairline">
+            <Layers className="w-12 h-12 text-smoke mx-auto mb-4" />
+            <p className="text-smoke">No tiers configured yet.</p>
             <button
               onClick={openAddModal}
-              className="mt-4 px-4 py-2 bg-[#FF8811] text-white rounded-xl hover:bg-[#e67a0f] transition-colors"
+              className="mt-4 px-4 py-2 bg-plum text-white rounded-node hover:bg-plum-hover transition-colors"
             >
               Create Your First Tier
             </button>
@@ -464,8 +464,8 @@ const AdminTiers: React.FC = () => {
       </div>
 
       {/* Info */}
-      <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200">
-        <p className="text-sm text-blue-700">
+      <div className="mt-8 p-4 bg-panel-2 rounded-node border border-hairline">
+        <p className="text-sm text-ash">
           <strong>Note:</strong> Changes to tiers take effect immediately for all users on that tier.
           Admins are exempt from all limits.
         </p>
@@ -474,9 +474,9 @@ const AdminTiers: React.FC = () => {
       {/* Add/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto py-8">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4">
-            <div className="p-6 border-b border-stone-200">
-              <h2 className="text-xl font-bold text-stone-800">
+          <div className="bg-panel rounded-node w-full max-w-2xl mx-4">
+            <div className="p-6 border-b border-hairline">
+              <h2 className="text-[17px] font-semibold text-bone">
                 {editingTier ? 'Edit Tier' : 'Create New Tier'}
               </h2>
             </div>
@@ -485,7 +485,7 @@ const AdminTiers: React.FC = () => {
               {/* Basic Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">
+                  <label className="block text-sm font-medium text-ash mb-2">
                     Display Name
                   </label>
                   <input
@@ -493,12 +493,12 @@ const AdminTiers: React.FC = () => {
                     value={formData.display_name}
                     onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
                     placeholder="e.g., Pro"
-                    className="w-full px-4 py-2 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8811] focus:border-transparent"
+                    className="w-full px-4 py-2 border border-hairline rounded-node focus:outline-none focus:border-plum"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">
+                  <label className="block text-sm font-medium text-ash mb-2">
                     Color
                   </label>
                   <div className="flex gap-2">
@@ -507,8 +507,8 @@ const AdminTiers: React.FC = () => {
                         key={color.value}
                         type="button"
                         onClick={() => setFormData({ ...formData, color: color.value })}
-                        className={`w-8 h-8 rounded-lg transition-all ${
-                          formData.color === color.value ? 'ring-2 ring-offset-2 ring-stone-400' : ''
+                        className={`w-8 h-8 rounded-[8px] transition-all ${
+                          formData.color === color.value ? 'ring-2 ring-offset-2 ring-hairline-strong' : ''
                         }`}
                         style={{ backgroundColor: color.value }}
                         title={color.label}
@@ -519,27 +519,27 @@ const AdminTiers: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">
-                  Description <span className="text-stone-400 font-normal">(optional)</span>
+                <label className="block text-sm font-medium text-ash mb-2">
+                  Description <span className="text-smoke font-normal">(optional)</span>
                 </label>
                 <input
                   type="text"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="e.g., Best for power users"
-                  className="w-full px-4 py-2 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8811] focus:border-transparent"
+                  className="w-full px-4 py-2 border border-hairline rounded-node focus:outline-none focus:border-plum"
                 />
               </div>
 
               {/* Token Limits */}
               <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-stone-800 flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-amber-500" />
+                <h3 className="text-sm font-semibold text-bone flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-amber" />
                   Token Limits
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-stone-600 mb-2">
+                    <label className="block text-sm text-ash mb-2">
                       Daily Token Limit
                     </label>
                     <div className="flex items-center gap-2">
@@ -549,9 +549,9 @@ const AdminTiers: React.FC = () => {
                         onChange={(e) => setFormData({ ...formData, daily_token_limit: e.target.value ? parseInt(e.target.value) : null })}
                         disabled={unlimitedFields.daily_token_limit}
                         placeholder="e.g., 10000"
-                        className="flex-1 px-4 py-2 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8811] focus:border-transparent disabled:bg-stone-100 disabled:text-stone-400"
+                        className="flex-1 px-4 py-2 border border-hairline rounded-node focus:outline-none focus:border-plum disabled:bg-panel-2 disabled:text-smoke"
                       />
-                      <label className="flex items-center gap-1.5 text-sm text-stone-600 cursor-pointer whitespace-nowrap">
+                      <label className="flex items-center gap-1.5 text-sm text-ash cursor-pointer whitespace-nowrap">
                         <input
                           type="checkbox"
                           checked={unlimitedFields.daily_token_limit}
@@ -559,14 +559,14 @@ const AdminTiers: React.FC = () => {
                             setUnlimitedFields({ ...unlimitedFields, daily_token_limit: e.target.checked })
                             if (e.target.checked) setFormData({ ...formData, daily_token_limit: null })
                           }}
-                          className="w-4 h-4 rounded border-stone-300 text-[#FF8811] focus:ring-[#FF8811]"
+                          className="w-4 h-4 rounded border-hairline text-plum focus:ring-0"
                         />
                         <Infinity className="w-4 h-4" />
                       </label>
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm text-stone-600 mb-2">
+                    <label className="block text-sm text-ash mb-2">
                       Monthly Token Limit
                     </label>
                     <div className="flex items-center gap-2">
@@ -576,9 +576,9 @@ const AdminTiers: React.FC = () => {
                         onChange={(e) => setFormData({ ...formData, monthly_token_limit: e.target.value ? parseInt(e.target.value) : null })}
                         disabled={unlimitedFields.monthly_token_limit}
                         placeholder="e.g., 100000"
-                        className="flex-1 px-4 py-2 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8811] focus:border-transparent disabled:bg-stone-100 disabled:text-stone-400"
+                        className="flex-1 px-4 py-2 border border-hairline rounded-node focus:outline-none focus:border-plum disabled:bg-panel-2 disabled:text-smoke"
                       />
-                      <label className="flex items-center gap-1.5 text-sm text-stone-600 cursor-pointer whitespace-nowrap">
+                      <label className="flex items-center gap-1.5 text-sm text-ash cursor-pointer whitespace-nowrap">
                         <input
                           type="checkbox"
                           checked={unlimitedFields.monthly_token_limit}
@@ -586,7 +586,7 @@ const AdminTiers: React.FC = () => {
                             setUnlimitedFields({ ...unlimitedFields, monthly_token_limit: e.target.checked })
                             if (e.target.checked) setFormData({ ...formData, monthly_token_limit: null })
                           }}
-                          className="w-4 h-4 rounded border-stone-300 text-[#FF8811] focus:ring-[#FF8811]"
+                          className="w-4 h-4 rounded border-hairline text-plum focus:ring-0"
                         />
                         <Infinity className="w-4 h-4" />
                       </label>
@@ -597,13 +597,13 @@ const AdminTiers: React.FC = () => {
 
               {/* Merge & Rate Limits */}
               <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-stone-800 flex items-center gap-2">
-                  <GitMerge className="w-4 h-4 text-purple-500" />
+                <h3 className="text-sm font-semibold text-bone flex items-center gap-2">
+                  <GitMerge className="w-4 h-4 text-plum" />
                   Merge & Rate Limits
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-stone-600 mb-2">
+                    <label className="block text-sm text-ash mb-2">
                       Daily Merge Limit
                     </label>
                     <div className="flex items-center gap-2">
@@ -613,9 +613,9 @@ const AdminTiers: React.FC = () => {
                         onChange={(e) => setFormData({ ...formData, daily_merge_limit: e.target.value ? parseInt(e.target.value) : null })}
                         disabled={unlimitedFields.daily_merge_limit}
                         placeholder="e.g., 5"
-                        className="flex-1 px-4 py-2 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8811] focus:border-transparent disabled:bg-stone-100 disabled:text-stone-400"
+                        className="flex-1 px-4 py-2 border border-hairline rounded-node focus:outline-none focus:border-plum disabled:bg-panel-2 disabled:text-smoke"
                       />
-                      <label className="flex items-center gap-1.5 text-sm text-stone-600 cursor-pointer whitespace-nowrap">
+                      <label className="flex items-center gap-1.5 text-sm text-ash cursor-pointer whitespace-nowrap">
                         <input
                           type="checkbox"
                           checked={unlimitedFields.daily_merge_limit}
@@ -623,14 +623,14 @@ const AdminTiers: React.FC = () => {
                             setUnlimitedFields({ ...unlimitedFields, daily_merge_limit: e.target.checked })
                             if (e.target.checked) setFormData({ ...formData, daily_merge_limit: null })
                           }}
-                          className="w-4 h-4 rounded border-stone-300 text-[#FF8811] focus:ring-[#FF8811]"
+                          className="w-4 h-4 rounded border-hairline text-plum focus:ring-0"
                         />
                         <Infinity className="w-4 h-4" />
                       </label>
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm text-stone-600 mb-2">
+                    <label className="block text-sm text-ash mb-2">
                       Requests per Minute
                     </label>
                     <input
@@ -638,7 +638,7 @@ const AdminTiers: React.FC = () => {
                       value={formData.requests_per_minute}
                       onChange={(e) => setFormData({ ...formData, requests_per_minute: parseInt(e.target.value) || 20 })}
                       min={1}
-                      className="w-full px-4 py-2 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8811] focus:border-transparent"
+                      className="w-full px-4 py-2 border border-hairline rounded-node focus:outline-none focus:border-plum"
                     />
                   </div>
                 </div>
@@ -646,28 +646,28 @@ const AdminTiers: React.FC = () => {
 
               {/* Model Access */}
               <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-stone-800 flex items-center gap-2">
-                  <Bot className="w-4 h-4 text-stone-500" />
+                <h3 className="text-sm font-semibold text-bone flex items-center gap-2">
+                  <Bot className="w-4 h-4 text-smoke" />
                   Model Access
-                  <span className="text-stone-400 font-normal text-xs">
+                  <span className="text-smoke font-normal text-xs">
                     (leave empty for all models)
                   </span>
                 </h3>
-                <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 bg-stone-50 rounded-xl">
+                <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 bg-panel-2 rounded-node">
                   {models.map((model) => (
                     <label
                       key={model.id}
-                      className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
+                      className={`flex items-center gap-2 p-2 rounded-[8px] cursor-pointer transition-colors ${
                         formData.allowed_model_ids.includes(model.model_id)
-                          ? 'bg-violet-100 text-violet-700'
-                          : 'hover:bg-stone-100'
+                          ? 'bg-plum-soft text-plum'
+                          : 'hover:bg-panel-2'
                       }`}
                     >
                       <input
                         type="checkbox"
                         checked={formData.allowed_model_ids.includes(model.model_id)}
                         onChange={() => toggleModelSelection(model.model_id)}
-                        className="w-4 h-4 rounded border-stone-300 text-violet-600 focus:ring-violet-500"
+                        className="w-4 h-4 rounded border-hairline text-plum focus:border-plum"
                       />
                       <span className="text-sm">{model.display_name}</span>
                     </label>
@@ -677,7 +677,7 @@ const AdminTiers: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, allowed_model_ids: [] })}
-                    className="text-xs text-stone-500 hover:text-stone-700"
+                    className="text-xs text-smoke hover:text-bone"
                   >
                     Clear selection (allow all models)
                   </button>
@@ -691,28 +691,28 @@ const AdminTiers: React.FC = () => {
                     type="checkbox"
                     checked={formData.is_default}
                     onChange={(e) => setFormData({ ...formData, is_default: e.target.checked })}
-                    className="w-4 h-4 rounded border-stone-300 text-[#FF8811] focus:ring-[#FF8811]"
+                    className="w-4 h-4 rounded border-hairline text-plum focus:ring-0"
                   />
-                  <span className="text-sm text-stone-700">Default tier for new users</span>
+                  <span className="text-sm text-ash">Default tier for new users</span>
                 </label>
 
                 <div className="flex items-center gap-2">
-                  <label className="text-sm text-stone-700">Sort Order:</label>
+                  <label className="text-sm text-ash">Sort Order:</label>
                   <input
                     type="number"
                     value={formData.sort_order}
                     onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })}
-                    className="w-20 px-3 py-1 border border-stone-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF8811]"
+                    className="w-20 px-3 py-1 border border-hairline rounded-[8px] text-sm focus:outline-none focus:ring-0"
                   />
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3 pt-4 border-t border-stone-200">
+              <div className="flex gap-3 pt-4 border-t border-hairline">
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 px-4 py-2 bg-[#FF8811] text-white rounded-xl hover:bg-[#e67a0f] transition-colors flex items-center justify-center gap-2 font-medium disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-plum text-white rounded-node hover:bg-plum-hover transition-colors flex items-center justify-center gap-2 font-medium disabled:opacity-50"
                 >
                   <Save className="w-4 h-4" />
                   {saving ? 'Saving...' : editingTier ? 'Save Changes' : 'Create Tier'}
@@ -720,7 +720,7 @@ const AdminTiers: React.FC = () => {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 bg-stone-200 text-stone-700 rounded-xl hover:bg-stone-300 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-panel-2 text-ash rounded-node hover:bg-panel-2 transition-colors flex items-center gap-2"
                 >
                   <RotateCcw className="w-4 h-4" />
                   Cancel

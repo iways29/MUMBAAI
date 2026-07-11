@@ -20,6 +20,8 @@ interface ChatInputProps {
   mergeCount?: number;
   // New tree prop
   onStartNewTree?: () => void;
+  // Full-width mode: constrain to a readable centered measure
+  centered?: boolean;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
@@ -35,7 +37,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   isMultiSelectMode = false,
   onPerformMerge,
   mergeCount = 0,
-  onStartNewTree
+  onStartNewTree,
+  centered = false
 }) => {
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const isInMergeMode = isMultiSelectMode;
@@ -87,9 +90,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="bg-void p-5 border-t border-hairline">
+    <div className={`bg-void p-5 border-t border-hairline ${centered ? '[&>*]:max-w-3xl [&>*]:mx-auto' : ''}`}>
       {/* Input Container */}
       <div
+        data-tutorial-input
         className={`relative rounded-node border p-4 transition-colors duration-fast bg-panel ${
           isInMergeMode
             ? 'border-plum'

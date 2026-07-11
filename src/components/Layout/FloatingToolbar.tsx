@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ArrowLeft, Edit3, User, Plus } from 'lucide-react';
+import { ArrowLeft, Edit3, User, Plus, HelpCircle } from 'lucide-react';
 import { ProInterestButton } from '../UI/ProInterestButton.tsx';
 
 // Updated interface to include profile button props
@@ -18,6 +18,8 @@ interface FloatingToolbarProps {
   isConversationsPage?: boolean;
   showProfileButton?: boolean;
   onProfileClick?: () => void;
+  // Always-available tutorial replay (ONBOARDING_PRD §6)
+  onReplayTutorial?: () => void;
 }
 
 export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
@@ -34,7 +36,8 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
   onViewModeChange,
   isConversationsPage = false,
   showProfileButton = false,
-  onProfileClick
+  onProfileClick,
+  onReplayTutorial
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingName, setEditingName] = useState(conversationName);
@@ -164,7 +167,8 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
                 </button>
               )}
 
-              {/* View Toggle */}
+              {/* Panel toggle — canvas is always the base surface; this only
+                  controls whether the chat panel sits beside it */}
               {showViewToggle && onViewModeChange && (
                 <div className="flex items-center gap-1 border border-hairline rounded-pill p-1">
                   <button
@@ -174,8 +178,9 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
                         ? 'bg-panel-2 text-bone'
                         : 'text-smoke hover:text-bone'
                     }`}
+                    title="Chat panel beside the canvas"
                   >
-                    Combined
+                    Panel
                   </button>
                   <button
                     onClick={() => onViewModeChange('flow')}
@@ -184,8 +189,9 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
                         ? 'bg-panel-2 text-bone'
                         : 'text-smoke hover:text-bone'
                     }`}
+                    title="Canvas only — chat panel hidden"
                   >
-                    Canvas
+                    Canvas only
                   </button>
                 </div>
               )}
@@ -194,6 +200,17 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
 
           {/* Pro Interest Button */}
           <ProInterestButton large={isConversationsPage} />
+
+          {/* Replay tutorial — visible everywhere, every session */}
+          {onReplayTutorial && (
+            <button
+              onClick={onReplayTutorial}
+              className="p-2 text-smoke hover:text-bone hover:bg-panel rounded-[8px] transition-colors duration-fast"
+              title="Replay tutorial"
+            >
+              <HelpCircle size={18} />
+            </button>
+          )}
 
           {/* User Profile Button - Show when enabled */}
           {showProfileButton && onProfileClick && (

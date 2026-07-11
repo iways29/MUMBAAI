@@ -210,12 +210,12 @@ export const useFlowElements = (
               type: 'smoothstep',
               animated: child.mergedFrom && child.mergedFrom.includes(message.id),
               style: {
-                stroke: child.mergedFrom && child.mergedFrom.includes(message.id) ? '#a855f7' : '#6b7280',
+                stroke: child.mergedFrom && child.mergedFrom.includes(message.id) ? 'var(--color-plum)' : 'rgba(255,255,255,0.18)',
                 strokeWidth: 2,
               },
               markerEnd: {
                 type: MarkerType.ArrowClosed,
-                color: child.mergedFrom && child.mergedFrom.includes(message.id) ? '#a855f7' : '#6b7280',
+                color: child.mergedFrom && child.mergedFrom.includes(message.id) ? '#8052FF' : 'rgba(255,255,255,0.18)',
               }
             });
           }
@@ -235,16 +235,19 @@ export const useFlowElements = (
               type: 'smoothstep',
               animated: true,
               style: {
-                stroke: '#a855f7',
-                strokeWidth: 3,
+                stroke: 'var(--color-plum)',
+                strokeWidth: 2,
                 strokeDasharray: '8,4',
               },
               markerEnd: {
                 type: MarkerType.ArrowClosed,
-                color: '#a855f7',
+                color: '#8052FF',
               },
-              label: '✨ Merge',
-              labelStyle: { fontSize: 11, fill: '#a855f7', fontWeight: 'bold' }
+              label: 'Merge',
+              labelStyle: { fontSize: 11, fill: '#8052FF', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' },
+              labelBgStyle: { fill: '#0A0A0B', fillOpacity: 1 },
+              labelBgPadding: [6, 3] as [number, number],
+              labelBgBorderRadius: 8
             });
           }
         });

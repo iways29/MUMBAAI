@@ -23,10 +23,10 @@ interface Prompt {
 }
 
 const categoryColors: Record<string, string> = {
-  merge_template: 'bg-blue-100 text-blue-700',
-  context: 'bg-purple-100 text-purple-700',
-  system: 'bg-orange-100 text-orange-700',
-  fallback: 'bg-stone-100 text-stone-700',
+  merge_template: 'bg-panel-2 text-ash',
+  context: 'bg-plum-soft text-plum',
+  system: 'bg-plum-soft text-plum',
+  fallback: 'bg-panel-2 text-ash',
 }
 
 const AdminPrompts: React.FC = () => {
@@ -127,11 +127,11 @@ const AdminPrompts: React.FC = () => {
     return (
       <div className="p-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-stone-200 rounded"></div>
-          <div className="h-4 w-64 bg-stone-200 rounded"></div>
+          <div className="h-8 w-48 bg-panel-2 rounded"></div>
+          <div className="h-4 w-64 bg-panel-2 rounded"></div>
           <div className="space-y-3 mt-8">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="h-20 bg-stone-200 rounded-xl"></div>
+              <div key={i} className="h-20 bg-panel-2 rounded-node"></div>
             ))}
           </div>
         </div>
@@ -144,12 +144,12 @@ const AdminPrompts: React.FC = () => {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-plum rounded-node flex items-center justify-center">
             <MessageSquareText className="w-5 h-5 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-stone-800">Prompts</h1>
+          <h1 className="text-[28px] font-extralight text-bone tracking-display">Prompts</h1>
         </div>
-        <p className="text-stone-600">
+        <p className="text-ash">
           Manage system prompts, merge templates, and fallback messages
         </p>
       </div>
@@ -158,18 +158,18 @@ const AdminPrompts: React.FC = () => {
       <div className="space-y-8">
         {Object.entries(groupedPrompts).map(([category, categoryPrompts]) => (
           <div key={category}>
-            <h2 className="text-lg font-semibold text-stone-700 mb-4">
+            <h2 className="text-lg font-semibold text-ash mb-4">
               {categoryLabels[category] || category}
             </h2>
             <div className="space-y-3">
               {categoryPrompts.map((prompt) => (
                 <div
                   key={prompt.id}
-                  className="bg-white rounded-xl border border-stone-200 overflow-hidden"
+                  className="bg-panel rounded-node border border-hairline overflow-hidden"
                 >
                   {/* Header */}
                   <div
-                    className="p-4 flex items-center justify-between cursor-pointer hover:bg-stone-50"
+                    className="p-4 flex items-center justify-between cursor-pointer hover:bg-panel-2"
                     onClick={() => setExpandedId(expandedId === prompt.id ? null : prompt.id)}
                   >
                     <div className="flex items-center gap-4">
@@ -177,9 +177,9 @@ const AdminPrompts: React.FC = () => {
                         {prompt.key}
                       </span>
                       <div>
-                        <div className="font-medium text-stone-800">{prompt.name}</div>
+                        <div className="font-medium text-bone">{prompt.name}</div>
                         {prompt.description && (
-                          <div className="text-sm text-stone-500">{prompt.description}</div>
+                          <div className="text-sm text-smoke">{prompt.description}</div>
                         )}
                       </div>
                     </div>
@@ -190,10 +190,10 @@ const AdminPrompts: React.FC = () => {
                           e.stopPropagation()
                           toggleActive(prompt.id, prompt.is_active)
                         }}
-                        className={`px-3 py-1 rounded-lg text-sm font-medium flex items-center gap-1 transition-colors ${
+                        className={`px-3 py-1 rounded-[8px] text-sm font-medium flex items-center gap-1 transition-colors ${
                           prompt.is_active
-                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                            : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
+                            ? 'bg-plum-soft text-plum hover:bg-plum-soft'
+                            : 'bg-panel-2 text-smoke hover:bg-panel-2'
                         }`}
                       >
                         {prompt.is_active ? (
@@ -210,23 +210,23 @@ const AdminPrompts: React.FC = () => {
                       </button>
                       {/* Expand/Collapse */}
                       {expandedId === prompt.id ? (
-                        <ChevronUp className="w-5 h-5 text-stone-400" />
+                        <ChevronUp className="w-5 h-5 text-smoke" />
                       ) : (
-                        <ChevronDown className="w-5 h-5 text-stone-400" />
+                        <ChevronDown className="w-5 h-5 text-smoke" />
                       )}
                     </div>
                   </div>
 
                   {/* Expanded Content */}
                   {expandedId === prompt.id && (
-                    <div className="border-t border-stone-200 p-4 bg-stone-50">
+                    <div className="border-t border-hairline p-4 bg-panel-2">
                       {/* Variables */}
                       {prompt.variables && prompt.variables.length > 0 && (
                         <div className="mb-4">
-                          <div className="text-xs font-medium text-stone-500 mb-2">VARIABLES</div>
+                          <div className="text-xs font-medium text-smoke mb-2">VARIABLES</div>
                           <div className="flex flex-wrap gap-2">
                             {prompt.variables.map((v) => (
-                              <code key={v} className="px-2 py-1 bg-stone-200 rounded text-xs text-stone-700">
+                              <code key={v} className="px-2 py-1 bg-panel-2 rounded text-xs text-ash">
                                 ${'{'}
                                 {v}
                                 {'}'}
@@ -237,26 +237,26 @@ const AdminPrompts: React.FC = () => {
                       )}
 
                       {/* Content */}
-                      <div className="text-xs font-medium text-stone-500 mb-2">CONTENT</div>
+                      <div className="text-xs font-medium text-smoke mb-2">CONTENT</div>
                       {editingId === prompt.id ? (
                         <div className="space-y-3">
                           <textarea
                             value={editContent}
                             onChange={(e) => setEditContent(e.target.value)}
-                            className="w-full h-48 p-3 bg-white border border-stone-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#FF8811] focus:border-transparent"
+                            className="w-full h-48 p-3 bg-panel border border-hairline rounded-[8px] text-sm font-mono focus:outline-none focus:border-plum"
                           />
                           <div className="flex gap-2">
                             <button
                               onClick={() => saveContent(prompt.id)}
                               disabled={saving}
-                              className="px-4 py-2 bg-[#FF8811] text-white rounded-lg hover:bg-[#e67a0f] transition-colors flex items-center gap-2 disabled:opacity-50"
+                              className="px-4 py-2 bg-plum text-white rounded-[8px] hover:bg-plum-hover transition-colors flex items-center gap-2 disabled:opacity-50"
                             >
                               <Save className="w-4 h-4" />
                               {saving ? 'Saving...' : 'Save Changes'}
                             </button>
                             <button
                               onClick={cancelEditing}
-                              className="px-4 py-2 bg-stone-200 text-stone-700 rounded-lg hover:bg-stone-300 transition-colors flex items-center gap-2"
+                              className="px-4 py-2 bg-panel-2 text-ash rounded-[8px] hover:bg-panel-2 transition-colors flex items-center gap-2"
                             >
                               <RotateCcw className="w-4 h-4" />
                               Cancel
@@ -265,12 +265,12 @@ const AdminPrompts: React.FC = () => {
                         </div>
                       ) : (
                         <div>
-                          <pre className="p-3 bg-white border border-stone-200 rounded-lg text-sm whitespace-pre-wrap font-mono text-stone-700">
+                          <pre className="p-3 bg-panel border border-hairline rounded-[8px] text-sm whitespace-pre-wrap font-mono text-ash">
                             {prompt.content}
                           </pre>
                           <button
                             onClick={() => startEditing(prompt)}
-                            className="mt-3 px-4 py-2 bg-stone-200 text-stone-700 rounded-lg hover:bg-stone-300 transition-colors text-sm"
+                            className="mt-3 px-4 py-2 bg-panel-2 text-ash rounded-[8px] hover:bg-panel-2 transition-colors text-sm"
                           >
                             Edit Content
                           </button>

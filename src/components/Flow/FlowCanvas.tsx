@@ -3,6 +3,7 @@ import {
   ReactFlow,
   Background,
   Controls,
+  MiniMap,
   ConnectionLineType,
   useReactFlow,
   BackgroundVariant,
@@ -157,8 +158,25 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
         }}
       >
         <Controls showInteractive={false} position="top-left" />
-        
-        
+
+        {/* Minimap — trees get large and directionless without one */}
+        <MiniMap
+          position="bottom-right"
+          pannable
+          zoomable
+          nodeColor="#121214"
+          nodeStrokeColor="rgba(255,255,255,0.22)"
+          nodeBorderRadius={4}
+          maskColor="rgba(0,0,0,0.7)"
+          style={{
+            background: 'var(--color-void)',
+            border: '1px solid var(--color-hairline)',
+            borderRadius: 16,
+            width: 180,
+            height: 120
+          }}
+        />
+
         <Background
           variant={BackgroundVariant.Dots}
           gap={24}
@@ -168,7 +186,6 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
 
         {/* Flow Controls */}
         <FlowControls
-          chatPanelCollapsed={chatPanelCollapsed}
           searchTerm={searchTerm}
           onSearchChange={onSearchChange}
           filterType={filterType}

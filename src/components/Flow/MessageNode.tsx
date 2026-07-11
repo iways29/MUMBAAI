@@ -97,6 +97,8 @@ export const MessageNode: React.FC<MessageNodeProps> = ({ data, selected }) => {
 
   return (
     <div
+      data-tutorial-node={message.id}
+      data-node-type={message.type}
       className={`group relative rounded-node border transition-colors duration-fast cursor-pointer min-w-[280px] max-w-[340px] ${borderClass}`}
       style={{
         background: isCurrentlySelected || isInMergeSet ? 'var(--color-plum-soft)' : 'var(--color-panel)',
@@ -172,13 +174,15 @@ export const MessageNode: React.FC<MessageNodeProps> = ({ data, selected }) => {
             )}
           </div>
 
-          {/* Branch affordance — appears on hover/selection */}
+          {/* Branch affordance — persistently visible at low emphasis,
+              brightens on hover. Discoverability > minimalism here. */}
           <button
+            data-tutorial-branch
             onClick={handleClick}
-            className={`inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-kicker rounded-pill border px-2.5 py-1 transition-opacity duration-fast ${
+            className={`inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-kicker rounded-pill border px-2.5 py-1 transition-colors duration-fast ${
               isCurrentlySelected
-                ? 'border-plum text-bone opacity-100'
-                : 'border-hairline text-ash opacity-0 group-hover:opacity-100'
+                ? 'border-plum text-bone'
+                : 'border-hairline text-smoke group-hover:text-ash group-hover:border-hairline-strong'
             }`}
             title="Reply from this point — your next message branches here"
           >
@@ -188,13 +192,15 @@ export const MessageNode: React.FC<MessageNodeProps> = ({ data, selected }) => {
         </div>
       </div>
 
-      {/* Merge-set affordance — circular toggle, top-right */}
+      {/* Merge-set affordance — circular toggle, top-right. Persistently
+          visible at low emphasis so first-time users can find it. */}
       <button
+        data-tutorial-merge
         onClick={handleMergeToggle}
         className={`absolute -top-2.5 -right-2.5 w-6 h-6 rounded-full border flex items-center justify-center transition-opacity duration-fast ${
           isInMergeSet
             ? 'bg-plum border-plum opacity-100'
-            : 'bg-panel border-hairline-strong opacity-0 group-hover:opacity-100'
+            : 'bg-panel border-hairline-strong opacity-50 group-hover:opacity-100'
         }`}
         title={isInMergeSet ? 'Remove from merge selection' : 'Add to merge selection (Ctrl+click)'}
       >

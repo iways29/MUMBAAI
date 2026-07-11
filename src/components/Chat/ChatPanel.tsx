@@ -27,6 +27,10 @@ interface ChatPanelProps {
   streamingContent?: string;
   // New tree prop
   onStartNewTree?: () => void;
+  // Full-width mode: pre-reveal single-pane state (no canvas yet)
+  fullWidth?: boolean;
+  // Branch from a specific message bubble in the linear thread
+  onBranchFrom?: (messageId: string) => void;
 }
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({
@@ -48,9 +52,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   onPerformMerge,
   mergeCount = 0,
   streamingContent = '',
-  onStartNewTree
+  onStartNewTree,
+  fullWidth = false,
+  onBranchFrom
 }) => {
-  if (collapsed) {
+  if (collapsed && !fullWidth) {
     return (
       <div className="w-12 bg-void border-r border-hairline flex flex-col items-center justify-center">
         <button
@@ -65,7 +71,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   }
 
   return (
-    <div className="w-2/5 bg-void border-r border-hairline flex flex-col transition-all duration-med">
+    <div
+      className={`${
+        fullWidth ? 'w-full' : 'w-2/5 border-r border-hairline'
+      } bg-void flex flex-col transition-all duration-med`}
+    >
       {/* Message Thread */}
       <MessageThread
         messages={messageThread}
@@ -74,6 +84,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         bookmarkedNodes={bookmarkedNodes}
         onToggleBookmark={onToggleBookmark}
         streamingContent={streamingContent}
+        onBranchFrom={onBranchFrom}
+        centered={fullWidth}
       />
 
       {/* Chat Input */}
@@ -91,6 +103,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         onPerformMerge={onPerformMerge}
         mergeCount={mergeCount}
         onStartNewTree={onStartNewTree}
+        centered={fullWidth}
       />
     </div>
   );

@@ -165,3 +165,31 @@ body {
 *::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* Canvas reveal — first exchange completes and the tree slides in beside the
+   chat (transform/opacity only, per design.md motion rules) */
+@keyframes canvas-reveal {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.canvas-reveal {
+  animation: canvas-reveal var(--dur-med) var(--ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas-reveal {
+    animation-duration: 120ms;
+    animation-name: canvas-reveal-fade;
+  }
+  @keyframes canvas-reveal-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}

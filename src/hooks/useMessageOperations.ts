@@ -63,8 +63,14 @@ export const useMessageOperations = ({
   const [streamingContent, setStreamingContent] = useState<string>('');
   const [limitError, setLimitError] = useState<string | null>(null);
 
-  const sendMessage = useCallback(async () => {
-    if (!inputText.trim() || !activeConversation) return;
+  // conversationIdOverride lets the home composer send into a conversation
+  // created in the same tick (state hasn't propagated yet).
+  const sendMessage = useCallback(async (conversationIdOverride?: string) => {
+    const targetConversation =
+      typeof conversationIdOverride === 'string' && conversationIdOverride
+        ? conversationIdOverride
+        : activeConversation;
+    if (!inputText.trim() || !targetConversation) return;
 
     // Clear any previous limit error
     setLimitError(null);
@@ -73,7 +79,7 @@ export const useMessageOperations = ({
 
     // Add user message - use null as parent for first message in conversation
     const parentId = selectedMessageId || null;
-    addMessage(activeConversation, parentId, userMessage);
+    addMessage(targetConversation, parentId, userMessage);
     onMessageSent?.(userMessage.id);
 
     const userInput = inputText;
@@ -109,13 +115,13 @@ export const useMessageOperations = ({
       const assistantMessage = MessageHelpers.createMessage('assistant', result.response, { model: selectedModel });
 
       // Add AI response to tree ONLY after stream completes
-      addMessage(activeConversation, userMessage.id, assistantMessage);
+      addMessage(targetConversation, userMessage.id, assistantMessage);
       onMessageSent?.(assistantMessage.id);
 
       // Save token usage to database if available
       if (result.usage && result.provider) {
         DatabaseService.saveTokenUsage(
-          activeConversation,
+          targetConversation,
           assistantMessage.id,
           result.usage,
           result.model || selectedModel,
@@ -138,7 +144,7 @@ export const useMessageOperations = ({
         'assistant',
         errorContent
       );
-      addMessage(activeConversation, userMessage.id, errorMessage);
+      addMessage(targetConversation, userMessage.id, errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -249,6 +255,9 @@ export const useMessageOperations = ({
 
     } catch (error) {
       console.error('Intelligent merge failed:', error);
+      if (!isLimitError(error)) {
+        DatabaseService.logClientError('merge', String(error), { conversationId: activeConversation });
+      }
 
       // Handle limit exceeded errors
       if (isLimitError(error)) {
@@ -327,13 +336,6 @@ export const useMessageOperations = ({
     if (selectedMessageId && !selectedNodes.has(selectedMessageId)) {
       count += 1;
     }
-    console.log('Effective merge count:', {
-      selectedNodesSize: selectedNodes.size,
-      selectedMessageId,
-      hasSelectedMessage: !!selectedMessageId,
-      isSelectedMessageInNodes: selectedNodes.has(selectedMessageId || ''),
-      finalCount: count
-    });
     return count;
   }, [selectedNodes, selectedMessageId]);
 

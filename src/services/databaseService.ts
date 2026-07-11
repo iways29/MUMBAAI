@@ -686,6 +686,102 @@ export class DatabaseService {
     }
   }
 
+  // ===== ACTIVATION FUNNEL / RETENTION / ERROR FEED =====
+  // These call RPCs from supabase/migrations/20260711_admin_funnel_analytics.sql.
+  // Until that migration is applied, they return null/[] and the admin UI
+  // shows a "not wired yet" state instead of numbers.
+
+  static async getActivationFunnel(): Promise<{
+    signed_up: number;
+    email_verified: number;
+    created_conversation: number;
+    sent_message: number;
+    created_branch: number;
+    performed_merge: number;
+  } | null> {
+    try {
+      const { data, error } = await supabase.rpc('get_activation_funnel');
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching activation funnel (migration applied?):', error);
+      return null;
+    }
+  }
+
+  static async getRetentionCohorts(weeksBack: number = 8): Promise<Array<{
+    cohort_week: string;
+    cohort_size: number;
+    retained_d1: number;
+    retained_d7: number;
+    retained_d30: number;
+  }> | null> {
+    try {
+      const { data, error } = await supabase.rpc('get_retention_cohorts', { weeks_back: weeksBack });
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching retention cohorts (migration applied?):', error);
+      return null;
+    }
+  }
+
+  static async getRecentClientErrors(limitCount: number = 50): Promise<Array<{
+    id: string;
+    user_email: string | null;
+    error_type: string;
+    message: string;
+    context: Record<string, unknown>;
+    created_at: string;
+  }> | null> {
+    try {
+      const { data, error } = await supabase.rpc('get_recent_client_errors', { limit_count: limitCount });
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching client errors (migration applied?):', error);
+      return null;
+    }
+  }
+
+  // Fire-and-forget error reporting from client catch blocks. Never throws.
+  static async logClientError(
+    errorType: string,
+    message: string,
+    context?: Record<string, unknown>
+  ): Promise<void> {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      await supabase.from('client_errors').insert({
+        user_id: user.user?.id || null,
+        error_type: errorType,
+        message: message.slice(0, 2000),
+        context: context || {}
+      });
+    } catch {
+      // Error reporting must never cascade
+    }
+  }
+
+  // All app_config rows — powers the generalized feature-flag panel
+  static async getAllAppConfig(): Promise<Array<{
+    key: string;
+    value: any;
+    updated_at: string | null;
+  }>> {
+    try {
+      const { data, error } = await supabase
+        .from('app_config')
+        .select('key, value, updated_at')
+        .order('key');
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching app config list:', error);
+      return [];
+    }
+  }
+
   // ===== WAITLIST ANALYTICS & CONFIG =====
 
   /**

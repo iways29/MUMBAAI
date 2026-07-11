@@ -10,6 +10,7 @@ import {
   MainApp,
   AdminLayout,
   AdminDashboard,
+  AdminActivation,
   AdminPrompts,
   AdminModels,
   AdminTiers,
@@ -106,6 +107,7 @@ const AppRoutes: React.FC = () => {
       {/* Admin Routes */}
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<AdminDashboard />} />
+        <Route path="activation" element={<AdminActivation />} />
         <Route path="prompts" element={<AdminPrompts />} />
         <Route path="models" element={<AdminModels />} />
         <Route path="tiers" element={<AdminTiers />} />

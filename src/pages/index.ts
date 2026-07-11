@@ -6,6 +6,7 @@ export { MainApp } from './MainApp.tsx';
 export {
   AdminLayout,
   AdminDashboard,
+  AdminActivation,
   AdminPrompts,
   AdminModels,
   AdminTiers,

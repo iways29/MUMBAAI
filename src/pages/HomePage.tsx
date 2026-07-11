@@ -89,7 +89,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
       </nav>
 
       {/* The brain story */}
-      <BrainStoryHero onGetStarted={handleGetStartedClick} />
+      <BrainStoryHero onGetStarted={handleGetStartedClick} waitlistEnabled={waitlistEnabled} />
 
       {/* Night scenery + demo video in front */}
       <DemoSceneSection />
@@ -137,7 +137,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
             </p>
             <span className="hidden sm:inline text-smoke">·</span>
             <p className="text-[14px] text-smoke tracking-body">
-              Free during beta. No credit card.
+              {waitlistEnabled
+                ? 'In private beta — join the waitlist for access.'
+                : 'Free during beta. No credit card.'}
             </p>
           </div>
         </div>

@@ -97,6 +97,7 @@ export const useConversations = (initialConversations: Conversation[] = []) => {
         await DatabaseService.renameConversation(id, trimmedName);
       } catch (error) {
         console.error('Failed to rename conversation in database:', error);
+        DatabaseService.logClientError('rename_conversation', String(error), { conversationId: id });
         // Optionally revert the local change if database update fails
       }
     }
@@ -121,6 +122,7 @@ export const useConversations = (initialConversations: Conversation[] = []) => {
         await DatabaseService.deleteConversation(id);
       } catch (error) {
         console.error('Failed to delete conversation from database:', error);
+        DatabaseService.logClientError('delete_conversation', String(error), { conversationId: id });
       }
     }
   }, [activeConversation, user]);
@@ -168,6 +170,7 @@ export const useConversations = (initialConversations: Conversation[] = []) => {
         await DatabaseService.saveMessage(conversationId, parentMessageId, newMessage);
       } catch (error) {
         console.error('Failed to save message to database:', error);
+        DatabaseService.logClientError('save_message', String(error), { conversationId });
         // Message is already in local state, so we continue gracefully
       }
     }

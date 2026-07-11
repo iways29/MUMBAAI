@@ -23,32 +23,39 @@ export const LLMSelector: React.FC<LLMSelectorProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [models, setModels] = useState<AppModel[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchFailed, setFetchFailed] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('');
   const popupRef = useRef<HTMLDivElement>(null);
 
   // Fetch models from database
-  useEffect(() => {
-    const fetchModels = async () => {
-      try {
-        const dbModels = await getAllModels();
-        setModels(dbModels);
-
-        // Set initial active tab to selected model's provider, or default model's provider
-        if (dbModels.length > 0) {
-          const selectedModelData = dbModels.find(m => m.model_id === selectedModel);
-          const defaultModel = dbModels.find(m => m.is_default);
-          const initialProvider = selectedModelData?.provider || defaultModel?.provider || dbModels[0].provider;
-          setActiveTab(initialProvider);
-        }
-      } catch (error) {
-        console.error('Error fetching models:', error);
-      } finally {
-        setLoading(false);
+  const fetchModels = React.useCallback(async () => {
+    setLoading(true);
+    setFetchFailed(false);
+    try {
+      const dbModels = await getAllModels();
+      setModels(dbModels);
+      // An empty list from a successful call still blocks sending — treat it
+      // as a retryable state rather than a dead wall.
+      if (dbModels.length === 0) {
+        setFetchFailed(true);
+      } else {
+        const selectedModelData = dbModels.find(m => m.model_id === selectedModel);
+        const defaultModel = dbModels.find(m => m.is_default);
+        const initialProvider = selectedModelData?.provider || defaultModel?.provider || dbModels[0].provider;
+        setActiveTab(initialProvider);
       }
-    };
-
-    fetchModels();
+    } catch (error) {
+      console.error('Error fetching models:', error);
+      setFetchFailed(true);
+    } finally {
+      setLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedModel]);
+
+  useEffect(() => {
+    fetchModels();
+  }, [fetchModels]);
 
   // Group models by provider
   const modelsByProvider = models.reduce((acc, model) => {
@@ -97,11 +104,20 @@ export const LLMSelector: React.FC<LLMSelectorProps> = ({
     );
   }
 
-  // No enabled models available
-  if (enabledModels.length === 0) {
+  // Fetch failed or nothing enabled — real error state with a retry, not a
+  // dead wall that silently blocks sending.
+  if (fetchFailed || enabledModels.length === 0) {
     return (
-      <div className="flex items-center gap-3 px-4 py-2.5 text-sm text-danger border border-danger rounded-pill">
-        <span>No models enabled</span>
+      <div className="flex items-center gap-3 px-4 py-2 text-[13px] border border-danger rounded-pill">
+        <span className="text-danger">
+          {fetchFailed ? "Couldn't load models" : 'No models enabled'}
+        </span>
+        <button
+          onClick={fetchModels}
+          className="text-bone underline underline-offset-2 hover:text-ash transition-colors duration-fast"
+        >
+          Retry
+        </button>
       </div>
     );
   }
