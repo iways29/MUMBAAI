@@ -276,7 +276,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ user, onBack }) => {
           <h2 className="text-[12px] font-semibold uppercase tracking-kicker text-smoke mb-4">
             Account
           </h2>
-          <div className="border border-hairline rounded-node divide-y divide-[rgba(255,255,255,0.1)]">
+          <div className="border border-hairline rounded-node divide-y divide-hairline">
             <div className="flex items-center justify-between px-5 py-3.5">
               <span className="text-[13px] text-ash">Member since</span>
               <span className="text-[13px] text-bone">{formatDate(user.created_at)}</span>

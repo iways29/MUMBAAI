@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Search, GitBranch, Sparkles, MoreHorizontal, Trash2, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { Conversation } from '../../types/conversation.ts';
 import { MessageHelpers } from '../../utils/messageHelpers.ts';
@@ -25,6 +25,20 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  // Close the row overflow menu on any outside click
+  useEffect(() => {
+    if (!menuOpenId) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (listRef.current && !listRef.current.contains(event.target as Node)) {
+        setMenuOpenId(null);
+        setConfirmDeleteId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [menuOpenId]);
 
   const filteredConversations = conversations
     .filter(conv =>
@@ -108,7 +122,7 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
       </div>
 
       {/* Conversation rows — generated title + tree stats, no message preview */}
-      <div className="flex-1 overflow-y-auto px-2 pb-4">
+      <div className="flex-1 overflow-y-auto px-2 pb-4" ref={listRef}>
         {filteredConversations.length === 0 ? (
           <div className="px-4 py-10 text-center">
             {searchTerm ? (

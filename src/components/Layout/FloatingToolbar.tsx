@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Edit3, User, HelpCircle } from 'lucide-react';
+import { Edit3, User, HelpCircle, Moon, Sun, Monitor, Check } from 'lucide-react';
 import { ProInterestButton } from '../UI/ProInterestButton.tsx';
+import type { ThemePreference } from '../../hooks/useTheme.ts';
 
 export type AppViewMode = 'chat' | 'split' | 'canvas';
 
@@ -18,7 +19,16 @@ interface FloatingToolbarProps {
   onProfileClick?: () => void;
   // Always-available tutorial replay (ONBOARDING_PRD §6)
   onReplayTutorial?: () => void;
+  // Theme preference (dark / light / system)
+  themePreference?: ThemePreference;
+  onThemeChange?: (preference: ThemePreference) => void;
 }
+
+const THEME_OPTIONS: Array<{ value: ThemePreference; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }> = [
+  { value: 'dark', label: 'Dark', icon: Moon },
+  { value: 'light', label: 'Light', icon: Sun },
+  { value: 'system', label: 'System', icon: Monitor },
+];
 
 const VIEW_OPTIONS: Array<{ mode: AppViewMode; label: string; title: string }> = [
   { mode: 'chat', label: 'Chat', title: 'Traditional chat view' },
@@ -36,11 +46,26 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
   onViewModeChange,
   showProfileButton = false,
   onProfileClick,
-  onReplayTutorial
+  onReplayTutorial,
+  themePreference = 'dark',
+  onThemeChange
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingName, setEditingName] = useState(conversationName);
+  const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const themeMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!themeMenuOpen) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (themeMenuRef.current && !themeMenuRef.current.contains(event.target as Node)) {
+        setThemeMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [themeMenuOpen]);
 
   const handleSaveEdit = useCallback(() => {
     if (editingName.trim() && editingName !== conversationName) {
@@ -164,6 +189,39 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
 
           {/* Pro Interest Button */}
           <ProInterestButton />
+
+          {/* Theme: dark / light / system */}
+          {onThemeChange && (
+            <div className="relative" ref={themeMenuRef}>
+              <button
+                onClick={() => setThemeMenuOpen(prev => !prev)}
+                className="p-2 text-smoke hover:text-bone hover:bg-panel rounded-[8px] transition-colors duration-fast"
+                title="Appearance"
+              >
+                {themePreference === 'light' ? <Sun size={18} /> : themePreference === 'system' ? <Monitor size={18} /> : <Moon size={18} />}
+              </button>
+              {themeMenuOpen && (
+                <div className="absolute right-0 top-full mt-1.5 z-50 bg-panel border border-hairline rounded-node overflow-hidden min-w-[140px]">
+                  {THEME_OPTIONS.map(({ value, label, icon: Icon }) => (
+                    <button
+                      key={value}
+                      onClick={() => {
+                        onThemeChange(value);
+                        setThemeMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[13px] hover:bg-panel-2 transition-colors duration-fast ${
+                        themePreference === value ? 'text-bone' : 'text-ash'
+                      }`}
+                    >
+                      <Icon size={14} />
+                      {label}
+                      {themePreference === value && <Check size={12} className="ml-auto text-plum" />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Replay tutorial — visible everywhere, every session */}
           {onReplayTutorial && (

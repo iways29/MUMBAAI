@@ -218,12 +218,14 @@ export const useFlowElements = (
               type: 'smoothstep',
               animated: child.mergedFrom && child.mergedFrom.includes(message.id),
               style: {
-                stroke: child.mergedFrom && child.mergedFrom.includes(message.id) ? 'var(--color-plum)' : 'rgba(255,255,255,0.18)',
+                // hairline-strong flips with the theme; markers can't take
+                // CSS vars, so use a mid-gray that reads on both.
+                stroke: child.mergedFrom && child.mergedFrom.includes(message.id) ? 'var(--color-plum)' : 'var(--color-hairline-strong)',
                 strokeWidth: 2,
               },
               markerEnd: {
                 type: MarkerType.ArrowClosed,
-                color: child.mergedFrom && child.mergedFrom.includes(message.id) ? '#8052FF' : 'rgba(255,255,255,0.18)',
+                color: child.mergedFrom && child.mergedFrom.includes(message.id) ? '#8052FF' : '#8A8A8A',
               }
             });
           }

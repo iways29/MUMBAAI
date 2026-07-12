@@ -41,23 +41,19 @@ export const useOnboarding = (user: User | null) => {
     }
   }, [hasSeenTour, markSeen]);
 
-  // Auto-trigger: only on the account's genuinely first conversation.
-  const maybeStartFirstRunTour = useCallback((conversationCountBeforeCreate: number, newConversationId: string) => {
-    if (conversationCountBeforeCreate === 0 && !hasSeenTour()) {
-      isReplayRef.current = false;
-      setTourConversationId(newConversationId);
-      setStep(1);
-      return true;
-    }
-    return false;
-  }, [hasSeenTour]);
-
-  // Explicit user-initiated replay — bypasses the once-per-account gate and
-  // never writes the flag in either direction (ONBOARDING_PRD §6).
-  const startReplay = useCallback((newConversationId: string) => {
-    isReplayRef.current = true;
-    setTourConversationId(newConversationId);
+  // Start the tour in a "pending" state: step 1 shows at the composer, but
+  // the tour isn't bound to a conversation yet — conversations are only
+  // created when the first message is sent. `bindConversation` attaches the
+  // tour to that conversation at send time. Replays bypass the
+  // once-per-account gate and never write the flag (ONBOARDING_PRD §6).
+  const startPending = useCallback((isReplay: boolean) => {
+    isReplayRef.current = isReplay;
+    setTourConversationId('');
     setStep(1);
+  }, []);
+
+  const bindConversation = useCallback((conversationId: string) => {
+    setTourConversationId(prev => prev || conversationId);
   }, []);
 
   const advance = useCallback(() => {
@@ -89,8 +85,8 @@ export const useOnboarding = (user: User | null) => {
     tourConversationId,
     hasSeenTour,
     grandfatherIfExistingUser,
-    maybeStartFirstRunTour,
-    startReplay,
+    startPending,
+    bindConversation,
     advance,
     skip,
     finish

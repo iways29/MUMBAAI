@@ -193,3 +193,12 @@ body {
     to { opacity: 1; }
   }
 }
+
+/* Light theme: scrollbars flip to ink-on-paper */
+[data-theme='light'] * {
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+[data-theme='light'] *::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+}

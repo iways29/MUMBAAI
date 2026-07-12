@@ -226,7 +226,7 @@ const AdminUsers: React.FC = () => {
               <th className="text-right px-6 py-4 text-sm font-semibold text-ash">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[rgba(255,255,255,0.1)]">
+          <tbody className="divide-y divide-hairline">
             {filteredUsers.map((user) => {
               const tier = getTierForUser(user)
               const tokenLimit = getEffectiveLimit(user, 'token')
