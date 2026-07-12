@@ -1,21 +1,31 @@
 import { LLMService } from './services/llm-service.mjs';
 import { createClient } from '@supabase/supabase-js';
 
-// Create Supabase client for server-side operations
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
+// Create Supabase client for server-side operations.
+// The Vercel project carries these under REACT_APP_* (CRA frontend naming)
+// and NEXT_PUBLIC_* (Vercel-Supabase integration) — accept any variant so a
+// missing VITE_* alias can't silently disable limit checks again.
+const supabaseUrl =
+  process.env.VITE_SUPABASE_URL ||
+  process.env.REACT_APP_SUPABASE_URL ||
+  process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey =
+  process.env.VITE_SUPABASE_ANON_KEY ||
+  process.env.REACT_APP_SUPABASE_ANON_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // Helper to create authenticated Supabase client
 function createAuthenticatedClient(authHeader) {
-  if (!supabaseUrl) {
-    console.warn('VITE_SUPABASE_URL not set');
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.warn('Supabase URL/anon key not set (checked VITE_/REACT_APP_/NEXT_PUBLIC_ variants) — limit checks disabled');
     return null;
   }
 
   // If we have service key and auth header, use the user's token
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.replace('Bearer ', '');
-    return createClient(supabaseUrl, process.env.VITE_SUPABASE_ANON_KEY, {
+    return createClient(supabaseUrl, supabaseAnonKey, {
       global: {
         headers: {
           Authorization: `Bearer ${token}`

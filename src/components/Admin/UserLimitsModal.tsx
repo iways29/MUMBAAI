@@ -364,7 +364,7 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
                               daily_token_limit_override: e.target.value ? parseInt(e.target.value) : null
                             })}
                             placeholder={selectedTier ? formatLimit(selectedTier.daily_token_limit) : 'Unlimited'}
-                            className="flex-1 px-3 py-2 border border-hairline rounded-[8px] focus:outline-none focus:ring-0"
+                            className="flex-1 px-3 py-2 bg-void text-bone placeholder:text-smoke border border-hairline rounded-[8px] focus:outline-none focus:border-plum"
                           />
                           <button
                             onClick={() => setLimits({ ...limits, daily_token_limit_override: null })}
@@ -387,7 +387,7 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
                               monthly_token_limit_override: e.target.value ? parseInt(e.target.value) : null
                             })}
                             placeholder={selectedTier ? formatLimit(selectedTier.monthly_token_limit) : 'Unlimited'}
-                            className="flex-1 px-3 py-2 border border-hairline rounded-[8px] focus:outline-none focus:ring-0"
+                            className="flex-1 px-3 py-2 bg-void text-bone placeholder:text-smoke border border-hairline rounded-[8px] focus:outline-none focus:border-plum"
                           />
                           <button
                             onClick={() => setLimits({ ...limits, monthly_token_limit_override: null })}
@@ -419,7 +419,7 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
                             daily_merge_limit_override: e.target.value ? parseInt(e.target.value) : null
                           })}
                           placeholder={selectedTier ? formatLimit(selectedTier.daily_merge_limit) : 'Unlimited'}
-                          className="flex-1 px-3 py-2 border border-hairline rounded-[8px] focus:outline-none focus:ring-0"
+                          className="flex-1 px-3 py-2 bg-void text-bone placeholder:text-smoke border border-hairline rounded-[8px] focus:outline-none focus:border-plum"
                         />
                         <button
                           onClick={() => setLimits({ ...limits, daily_merge_limit_override: null })}
@@ -450,7 +450,7 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
                             requests_per_minute_override: e.target.value ? parseInt(e.target.value) : null
                           })}
                           placeholder={selectedTier ? String(selectedTier.requests_per_minute) : '20'}
-                          className="flex-1 px-3 py-2 border border-hairline rounded-[8px] focus:outline-none focus:ring-0"
+                          className="flex-1 px-3 py-2 bg-void text-bone placeholder:text-smoke border border-hairline rounded-[8px] focus:outline-none focus:border-plum"
                         />
                         <button
                           onClick={() => setLimits({ ...limits, requests_per_minute_override: null })}
@@ -563,7 +563,7 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
                           value={limits.suspension_reason ?? ''}
                           onChange={e => setLimits({ ...limits, suspension_reason: e.target.value || null })}
                           placeholder="Optional: Enter reason for suspension"
-                          className="w-full px-3 py-2 border border-danger rounded-[8px] focus:outline-none focus:border-danger bg-panel"
+                          className="w-full px-3 py-2 text-bone placeholder:text-smoke border border-danger rounded-[8px] focus:outline-none focus:border-danger bg-panel"
                           rows={3}
                         />
                       </div>

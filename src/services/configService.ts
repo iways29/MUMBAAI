@@ -81,7 +81,8 @@ export const getDefaultModel = async (): Promise<AppModel | null> => {
 // Get default model ID
 export const getDefaultModelId = async (): Promise<string> => {
   const defaultModel = await getDefaultModel()
-  return defaultModel?.model_id || 'claude-sonnet-4-20250514'
+  // Fallback only — claude-sonnet-4-20250514 was retired by Anthropic 2026-06-15
+  return defaultModel?.model_id || 'claude-sonnet-5'
 }
 
 // Fetch all active prompts

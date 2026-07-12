@@ -60,7 +60,9 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
   const [viewMode, setViewMode] = useState<AppViewMode>('chat');
 
   // Selected AI model state
-  const [selectedModel, setSelectedModel] = useState<string>('claude-sonnet-4-20250514');
+  // Fallback only — the DB default from available_models wins once loaded.
+  // claude-sonnet-4-20250514 was retired by Anthropic on 2026-06-15.
+  const [selectedModel, setSelectedModel] = useState<string>('claude-sonnet-5');
 
   // Greeting for the centered composer — re-rolled per conversation change
   const greeting = useMemo(

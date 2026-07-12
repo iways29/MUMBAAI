@@ -446,7 +446,7 @@ const AdminModels: React.FC = () => {
                 <select
                   value={formData.provider}
                   onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
-                  className="w-full px-4 py-2 border border-hairline rounded-node focus:outline-none focus:border-plum"
+                  className="w-full px-4 py-2 bg-void text-bone placeholder:text-smoke border border-hairline rounded-node focus:outline-none focus:border-plum"
                 >
                   {PROVIDERS.map((p) => (
                     <option key={p.value} value={p.value}>
@@ -467,7 +467,7 @@ const AdminModels: React.FC = () => {
                   value={formData.model_id}
                   onChange={(e) => setFormData({ ...formData, model_id: e.target.value })}
                   placeholder="e.g., claude-3-opus-20240229"
-                  className="w-full px-4 py-2 border border-hairline rounded-node focus:outline-none focus:border-plum font-mono text-sm"
+                  className="w-full px-4 py-2 bg-void text-bone placeholder:text-smoke border border-hairline rounded-node focus:outline-none focus:border-plum font-mono text-sm"
                   required
                 />
               </div>
@@ -483,7 +483,7 @@ const AdminModels: React.FC = () => {
                   value={formData.display_name}
                   onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
                   placeholder="e.g., Claude 3 Opus"
-                  className="w-full px-4 py-2 border border-hairline rounded-node focus:outline-none focus:border-plum"
+                  className="w-full px-4 py-2 bg-void text-bone placeholder:text-smoke border border-hairline rounded-node focus:outline-none focus:border-plum"
                   required
                 />
               </div>
@@ -498,7 +498,7 @@ const AdminModels: React.FC = () => {
                   type="number"
                   value={formData.sort_order}
                   onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })}
-                  className="w-full px-4 py-2 border border-hairline rounded-node focus:outline-none focus:border-plum"
+                  className="w-full px-4 py-2 bg-void text-bone placeholder:text-smoke border border-hairline rounded-node focus:outline-none focus:border-plum"
                 />
               </div>
 
