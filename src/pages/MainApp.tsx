@@ -77,10 +77,32 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
     handleNodeDoubleClick
   );
 
-  // Clear selections when conversation changes
+  // Clear selections when conversation changes. Skipped exactly once when a
+  // send creates the conversation it's sending into — React batches the
+  // "conversation changed" and "first message selected" updates into one
+  // commit there, and clearing would wipe the fresh selection (leaving the
+  // thread empty and the streaming reply invisible).
+  const skipSelectionClearRef = useRef(false);
   useEffect(() => {
-    setSelectedMessageId('');
+    if (skipSelectionClearRef.current) {
+      skipSelectionClearRef.current = false;
+      return;
+    }
     setSelectedNodes(new Set());
+    // Land on the conversation's latest message (covers row clicks, page
+    // refresh, and deletion fallback) so the linear thread never opens empty.
+    // "Start new tree" clears selection separately and stays cleared.
+    const conv = conversationHook.currentConversation;
+    if (conv && conv.messages.length > 0) {
+      const all = MessageHelpers.getAllMessages(conv.messages);
+      const latest = all.reduce((a, b) =>
+        new Date(a.timestamp).getTime() >= new Date(b.timestamp).getTime() ? a : b
+      );
+      setSelectedMessageId(latest.id);
+    } else {
+      setSelectedMessageId('');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationHook.activeConversation]);
 
   // Message operations
@@ -218,26 +240,13 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
     if (id === conversationHook.activeConversation) return;
 
     conversationHook.setActiveConversation(id);
-    setSelectedMessageId('');
-    setSelectedNodes(new Set());
 
     // Conversations with content open straight into split view — the
     // differentiator stays visible; empty ones start as plain chat.
+    // (Selection lands on the latest message via the conversation-change
+    // effect above.)
     const conv = conversationHook.conversations.find(c => c.id === id);
     setViewMode(conv && conv.messages.length > 0 ? 'split' : 'chat');
-
-    setTimeout(() => {
-      const newConv = conversationHook.conversations.find(c => c.id === id);
-      if (newConv && newConv.messages.length > 0) {
-        // Select the most recent message so the linear thread shows the
-        // full latest path, not just the root.
-        const all = MessageHelpers.getAllMessages(newConv.messages);
-        const latest = all.reduce((a, b) =>
-          new Date(a.timestamp).getTime() >= new Date(b.timestamp).getTime() ? a : b
-        );
-        setSelectedMessageId(latest.id);
-      }
-    }, 50);
   }, [conversationHook]);
 
   const handleCreateNewConversation = useCallback(async () => {
@@ -292,6 +301,12 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
       if (!newId) return;
       convId = newId;
       onboarding.maybeStartFirstRunTour(countBefore, newId);
+      // Creation and first send land in one batched commit here: seed the
+      // reveal tracker so the 0→1 message transition is still detected
+      // (split view + animation), and keep the first-message selection so
+      // the streaming reply renders live in the thread.
+      prevMsgStateRef.current = { id: newId, hadMessages: false };
+      skipSelectionClearRef.current = true;
     }
     messageOps.sendMessage(convId);
   }, [conversationHook, messageOps, onboarding]);
