@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { ReactFlowProvider } from 'reactflow';
 import 'reactflow/dist/style.css';
 
@@ -6,7 +6,7 @@ import 'reactflow/dist/style.css';
 import { ChatPanel } from '../components/Chat/ChatPanel.tsx';
 import { FlowCanvas } from '../components/Flow/FlowCanvas.tsx';
 import { ConversationSidebar } from '../components/Conversations/ConversationSidebar.tsx';
-import { FloatingToolbar } from '../components/Layout/FloatingToolbar.tsx';
+import { FloatingToolbar, AppViewMode } from '../components/Layout/FloatingToolbar.tsx';
 import { ErrorBoundary } from '../components/UI/ErrorBoundary.tsx';
 import { OnboardingTour } from '../components/Onboarding/OnboardingTour.tsx';
 import UserProfile from './UserProfile.tsx';
@@ -20,10 +20,22 @@ import { usePanelManager } from '../components/Layout/PanelManager.tsx';
 
 // Helpers
 import { MessageHelpers } from '../utils/messageHelpers.ts';
+import { generateConversationTitle } from '../utils/titleGenerator.ts';
 
 interface MainAppProps {
   user: any;
 }
+
+// Short, time-aware greetings for the centered composer. One per new chat.
+const GREETINGS_MORNING = ['Morning. What’s first?', 'What’s on your mind today?', 'Where should we start?'];
+const GREETINGS_DAY = ['What’s on your mind?', 'One question. Every direction.', 'What are we exploring today?', 'Ask anything.'];
+const GREETINGS_NIGHT = ['Working late? Let’s think.', 'Night thoughts welcome.', 'What’s keeping you up?'];
+
+const pickGreeting = () => {
+  const hour = new Date().getHours();
+  const pool = hour < 6 ? GREETINGS_NIGHT : hour < 12 ? GREETINGS_MORNING : hour < 22 ? GREETINGS_DAY : GREETINGS_NIGHT;
+  return pool[Math.floor(Math.random() * pool.length)];
+};
 
 export const MainApp: React.FC<MainAppProps> = ({ user }) => {
   // Core state management
@@ -37,17 +49,23 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
   const [bookmarkedNodes, setBookmarkedNodes] = useState(new Set<string>());
   const [isAnimating, setIsAnimating] = useState(false);
   const [showTourClosing, setShowTourClosing] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const animationRef = useRef<NodeJS.Timeout | null>(null);
 
-  // View state — 'home' is the sidebar + chat shell (the default screen),
-  // 'chat' is the focused conversation view, 'profile' the account page.
-  const [currentView, setCurrentView] = useState<'home' | 'chat' | 'profile'>('home');
-
-  // Chat view mode state (panel+canvas vs canvas only)
-  const [chatViewMode, setChatViewMode] = useState<'combined' | 'flow'>('combined');
+  // View mode: traditional chat / split / canvas-only. Empty conversations
+  // are always effectively 'chat' — there's no tree to show yet.
+  const [viewMode, setViewMode] = useState<AppViewMode>('chat');
 
   // Selected AI model state
   const [selectedModel, setSelectedModel] = useState<string>('claude-sonnet-4-20250514');
+
+  // Greeting for the centered composer — re-rolled per conversation change
+  const greeting = useMemo(
+    () => pickGreeting(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [conversationHook.activeConversation]
+  );
 
   // Flow elements with proper change handling
   const flowElements = useFlowElements(
@@ -78,11 +96,14 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
     selectedModel
   });
 
-  // ----- The reveal: single pane → split (ONBOARDING_PRD §4) -----
+  // ----- View gating & the reveal (ONBOARDING_PRD §4) -----
   const currentMessages = conversationHook.currentConversation?.messages || [];
   const hasMessages = currentMessages.length > 0;
-  // Animate the canvas in only when this conversation's count goes 0 → 1+ in
-  // this session; conversations opened with messages skip the animation.
+  const hasActiveConversation = !!conversationHook.currentConversation;
+  const effectiveView: AppViewMode = hasMessages ? viewMode : 'chat';
+
+  // Animate the canvas in when this conversation's count goes 0 → 1+ in this
+  // session (the discovery moment): auto-switch to split with the reveal.
   const [revealAnimate, setRevealAnimate] = useState(false);
   const prevMsgStateRef = useRef<{ id: string; hadMessages: boolean }>({ id: '', hadMessages: false });
   useEffect(() => {
@@ -90,11 +111,28 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
     const id = conversationHook.activeConversation;
     if (prev.id === id && !prev.hadMessages && hasMessages) {
       setRevealAnimate(true);
+      setViewMode('split');
     } else if (prev.id !== id) {
       setRevealAnimate(false);
     }
     prevMsgStateRef.current = { id, hadMessages: hasMessages };
   }, [conversationHook.activeConversation, hasMessages]);
+
+  // ----- Auto-title: replace "New Chat N" with a generated title -----
+  const titledRef = useRef(new Set<string>());
+  useEffect(() => {
+    const conv = conversationHook.currentConversation;
+    if (!conv || conv.messages.length === 0) return;
+    if (!/^New Chat \d+$/.test(conv.name)) return;
+    if (titledRef.current.has(conv.id)) return;
+    const firstUserMessage = MessageHelpers.getAllMessages(conv.messages).find(m => m.type === 'user');
+    if (!firstUserMessage) return;
+    titledRef.current.add(conv.id);
+    generateConversationTitle(firstUserMessage.content, selectedModel).then(title => {
+      conversationHook.renameConversation(conv.id, title);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationHook.currentConversation, selectedModel]);
 
   // ----- Onboarding: grandfather pre-existing accounts once loaded -----
   const grandfatheredRef = useRef(false);
@@ -158,6 +196,14 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
     }
   }
 
+  // Branch from the linear thread: select that message AND make sure the
+  // canvas is on screen — the stat/pill is a doorway, not a dead label.
+  const handleBranchFromThread = useCallback((messageId: string) => {
+    handleNodeClick(messageId);
+    setViewMode(prev => (prev === 'chat' ? 'split' : prev));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedNodes]);
+
   const handleLayoutApplied = useCallback((layoutedNodes: any[], _layoutedEdges: any[]) => {
     flowElements.handleNodesChange(
       layoutedNodes.map(node => ({
@@ -175,11 +221,21 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
     setSelectedMessageId('');
     setSelectedNodes(new Set());
 
-    // Set the first message as selected if the conversation has messages
+    // Conversations with content open straight into split view — the
+    // differentiator stays visible; empty ones start as plain chat.
+    const conv = conversationHook.conversations.find(c => c.id === id);
+    setViewMode(conv && conv.messages.length > 0 ? 'split' : 'chat');
+
     setTimeout(() => {
       const newConv = conversationHook.conversations.find(c => c.id === id);
       if (newConv && newConv.messages.length > 0) {
-        setSelectedMessageId(newConv.messages[0].id);
+        // Select the most recent message so the linear thread shows the
+        // full latest path, not just the root.
+        const all = MessageHelpers.getAllMessages(newConv.messages);
+        const latest = all.reduce((a, b) =>
+          new Date(a.timestamp).getTime() >= new Date(b.timestamp).getTime() ? a : b
+        );
+        setSelectedMessageId(latest.id);
       }
     }, 50);
   }, [conversationHook]);
@@ -189,8 +245,8 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
     const newId = await conversationHook.createNewConversation();
     setSelectedMessageId('');
     setSelectedNodes(new Set());
-    setCurrentView('chat');
-    // First-ever conversation on a fresh account → auto-start the tour
+    setViewMode('chat');
+    setShowProfile(false);
     if (newId) {
       onboarding.maybeStartFirstRunTour(countBefore, newId);
     }
@@ -204,25 +260,21 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
     setSelectedMessageId('');
     setSelectedNodes(new Set());
     setShowTourClosing(false);
-    setCurrentView('chat');
+    setViewMode('chat');
+    setShowProfile(false);
     if (newId) {
       onboarding.startReplay(newId);
     }
   }, [conversationHook, onboarding]);
 
-  // Navigation handlers
-  const handleNavigateToHome = useCallback(() => {
-    setCurrentView('home');
-  }, []);
-
-  const handleNavigateToProfile = useCallback(() => {
-    setCurrentView('profile');
-  }, []);
-
-  const handleSelectConversationFromList = useCallback((id: string) => {
-    handleConversationChange(id);
-    setCurrentView('chat');
-  }, [handleConversationChange]);
+  // Brand click: back to a fresh start state (no active conversation)
+  const handleBrandClick = useCallback(() => {
+    conversationHook.setActiveConversation('');
+    setSelectedMessageId('');
+    setSelectedNodes(new Set());
+    setViewMode('chat');
+    setShowProfile(false);
+  }, [conversationHook]);
 
   const handleConversationNameChange = useCallback((newName: string) => {
     if (conversationHook.activeConversation) {
@@ -230,21 +282,17 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
     }
   }, [conversationHook]);
 
-  // Send from the home composer: create a conversation on the fly when none
-  // is active, then hand off to the focused chat view where the canvas
-  // reveal will fire after the first exchange.
-  const handleHomeSend = useCallback(async () => {
+  // Send that also creates the conversation when none is active (the
+  // centered composer on a fresh start).
+  const handleSend = useCallback(async () => {
     let convId = conversationHook.activeConversation;
     if (!convId || !conversationHook.currentConversation) {
       const countBefore = conversationHook.conversations.length;
       const newId = await conversationHook.createNewConversation();
       if (!newId) return;
       convId = newId;
-      if (newId) {
-        onboarding.maybeStartFirstRunTour(countBefore, newId);
-      }
+      onboarding.maybeStartFirstRunTour(countBefore, newId);
     }
-    setCurrentView('chat');
     messageOps.sendMessage(convId);
   }, [conversationHook, messageOps, onboarding]);
 
@@ -295,50 +343,94 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
     );
   }
 
-  if (currentView === 'profile') {
-    return <UserProfile user={user} onBack={handleNavigateToHome} />;
+  if (showProfile) {
+    return <UserProfile user={user} onBack={() => setShowProfile(false)} />;
   }
 
-  // ----- Home shell: sidebar + full-width linear chat (ONBOARDING_PRD §3) -----
-  if (currentView === 'home') {
-    return (
-      <ReactFlowProvider>
-        <FloatingToolbar
-          brandName="MUMBAAI"
-          conversationName=""
-          onBrandClick={handleNavigateToHome}
-          onConversationNameChange={() => { }}
-          showBackButton={false}
-          isConversationsPage={true}
-          showProfileButton={true}
-          onProfileClick={handleNavigateToProfile}
-          onReplayTutorial={handleReplayTutorial}
-        />
-        <div className="flex bg-void" style={{ marginTop: '56px', height: 'calc(100vh - 56px)', overflow: 'hidden' }}>
-          <ErrorBoundary
-            fallback={
-              <div className="w-[280px] border-r border-hairline flex items-center justify-center">
-                <p className="text-ash text-sm p-4 text-center">Couldn't load your conversations — refresh to retry.</p>
-              </div>
-            }
-          >
-            <ConversationSidebar
-              conversations={conversationHook.conversations}
-              activeConversationId={conversationHook.activeConversation}
-              onSelectConversation={handleSelectConversationFromList}
-              onCreateConversation={handleCreateNewConversation}
-              onDeleteConversation={conversationHook.deleteConversation}
-            />
-          </ErrorBoundary>
+  const showChatPane = effectiveView === 'chat' || effectiveView === 'split';
+  const showCanvasPane = (effectiveView === 'split' || effectiveView === 'canvas') && hasMessages;
 
-          {/* Main pane: a plain, familiar chat surface — no second half until
-              there's something to show in it */}
+  const chatPanel = (
+    <ChatPanel
+      fullWidth={effectiveView === 'chat'}
+      collapsed={effectiveView === 'split' ? panelManager.isChatCollapsed : false}
+      onToggleCollapse={panelManager.toggleChatPanel}
+      messageThread={conversationHook.getMessageThread(selectedMessageId)}
+      selectedMessageId={selectedMessageId}
+      isLoading={messageOps.isLoading}
+      inputText={messageOps.inputText}
+      onInputChange={messageOps.setInputText}
+      onSendMessage={handleSend}
+      canSendMessage={messageOps.canSendMessage}
+      currentMessage={messageOps.getCurrentMessage()}
+      bookmarkedNodes={bookmarkedNodes}
+      onToggleBookmark={(nodeId) => {
+        const newBookmarks = new Set(bookmarkedNodes);
+        if (newBookmarks.has(nodeId)) {
+          newBookmarks.delete(nodeId);
+        } else {
+          newBookmarks.add(nodeId);
+        }
+        setBookmarkedNodes(newBookmarks);
+      }}
+      selectedModel={selectedModel}
+      onModelChange={setSelectedModel}
+      isMultiSelectMode={messageOps.getEffectiveMergeCount() > 1}
+      onPerformMerge={messageOps.performCustomMerge}
+      mergeCount={messageOps.getEffectiveMergeCount()}
+      streamingContent={messageOps.streamingContent}
+      onStartNewTree={() => {
+        setSelectedMessageId('');
+        setSelectedNodes(new Set());
+      }}
+      onBranchFrom={handleBranchFromThread}
+      isEmpty={!hasMessages}
+      greeting={greeting}
+    />
+  );
+
+  return (
+    <ReactFlowProvider>
+      <FloatingToolbar
+        brandName="MUMBAAI"
+        conversationName={hasActiveConversation ? (conversationHook.currentConversation?.name || '') : ''}
+        onBrandClick={handleBrandClick}
+        onConversationNameChange={handleConversationNameChange}
+        showViewToggle={hasMessages}
+        viewMode={effectiveView}
+        onViewModeChange={setViewMode}
+        showProfileButton={true}
+        onProfileClick={() => setShowProfile(true)}
+        onReplayTutorial={handleReplayTutorial}
+      />
+      <div className="flex bg-void" style={{ marginTop: '56px', height: 'calc(100vh - 56px)', overflow: 'hidden' }}>
+        {/* Conversations sidebar — always present, collapsible to a rail */}
+        <ErrorBoundary
+          fallback={
+            <div className="w-[320px] border-r border-hairline flex items-center justify-center">
+              <p className="text-ash text-sm p-4 text-center">Couldn't load your conversations — refresh to retry.</p>
+            </div>
+          }
+        >
+          <ConversationSidebar
+            conversations={conversationHook.conversations}
+            activeConversationId={conversationHook.activeConversation}
+            onSelectConversation={handleConversationChange}
+            onCreateConversation={handleCreateNewConversation}
+            onDeleteConversation={conversationHook.deleteConversation}
+            collapsed={sidebarCollapsed}
+            onToggleCollapse={() => setSidebarCollapsed(prev => !prev)}
+          />
+        </ErrorBoundary>
+
+        {/* Chat pane (full-width traditional, or 2/5 beside the canvas) */}
+        {showChatPane && (
           <ErrorBoundary
             fallback={
               <div className="flex-1 bg-void flex items-center justify-center">
                 <div className="text-center p-8 max-w-sm">
-                  <p className="text-bone font-medium text-lg mb-2">Something went wrong</p>
-                  <p className="text-ash text-sm mb-6">A refresh usually fixes it.</p>
+                  <p className="text-bone font-medium text-lg mb-2">Chat hit an error</p>
+                  <p className="text-ash text-sm mb-6">Your conversation is safe — refresh to restore it.</p>
                   <button
                     onClick={() => window.location.reload()}
                     className="px-5 py-2.5 rounded-pill border border-hairline hover:border-hairline-strong text-bone text-[12px] font-semibold uppercase tracking-kicker transition-colors duration-fast"
@@ -349,111 +441,12 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
               </div>
             }
           >
-            <ChatPanel
-              fullWidth
-              collapsed={false}
-              onToggleCollapse={() => { }}
-              messageThread={conversationHook.getMessageThread(selectedMessageId)}
-              selectedMessageId={selectedMessageId}
-              isLoading={messageOps.isLoading}
-              inputText={messageOps.inputText}
-              onInputChange={messageOps.setInputText}
-              onSendMessage={handleHomeSend}
-              canSendMessage={messageOps.canSendMessage}
-              currentMessage={messageOps.getCurrentMessage()}
-              bookmarkedNodes={bookmarkedNodes}
-              onToggleBookmark={(nodeId) => {
-                const newBookmarks = new Set(bookmarkedNodes);
-                if (newBookmarks.has(nodeId)) {
-                  newBookmarks.delete(nodeId);
-                } else {
-                  newBookmarks.add(nodeId);
-                }
-                setBookmarkedNodes(newBookmarks);
-              }}
-              selectedModel={selectedModel}
-              onModelChange={setSelectedModel}
-              streamingContent={messageOps.streamingContent}
-              onBranchFrom={handleNodeClick}
-            />
-          </ErrorBoundary>
-        </div>
-      </ReactFlowProvider>
-    );
-  }
-
-  // ----- Focused conversation view -----
-  const showCanvas = hasMessages || chatViewMode === 'flow';
-  const showPanel = chatViewMode === 'combined';
-
-  return (
-    <ReactFlowProvider>
-      <FloatingToolbar
-        brandName="MUMBAAI"
-        conversationName={conversationHook.currentConversation?.name || 'New Conversation'}
-        onBrandClick={handleNavigateToHome}
-        onConversationNameChange={handleConversationNameChange}
-        showBackButton={true}
-        onBackClick={handleNavigateToHome}
-        showNewChatButton={true}
-        onNewChat={handleCreateNewConversation}
-        showViewToggle={true}
-        viewMode={chatViewMode}
-        onViewModeChange={setChatViewMode}
-        onReplayTutorial={handleReplayTutorial}
-      />
-      <div className="flex bg-void" style={{ marginTop: '56px', height: 'calc(100vh - 56px)', overflow: 'hidden' }}>
-        {/* Chat Panel — full width until the first exchange completes */}
-        {showPanel && (
-          <ErrorBoundary
-            fallback={
-              <div className="w-96 bg-void border-r border-hairline flex items-center justify-center">
-                <div className="text-center p-4">
-                  <p className="text-bone font-medium">Chat panel hit an error</p>
-                  <p className="text-ash text-sm mt-1">Refresh the page to restore it</p>
-                </div>
-              </div>
-            }
-          >
-            <ChatPanel
-              fullWidth={!hasMessages}
-              collapsed={panelManager.isChatCollapsed}
-              onToggleCollapse={panelManager.toggleChatPanel}
-              messageThread={conversationHook.getMessageThread(selectedMessageId)}
-              selectedMessageId={selectedMessageId}
-              isLoading={messageOps.isLoading}
-              inputText={messageOps.inputText}
-              onInputChange={messageOps.setInputText}
-              onSendMessage={messageOps.sendMessage}
-              canSendMessage={messageOps.canSendMessage}
-              currentMessage={messageOps.getCurrentMessage()}
-              bookmarkedNodes={bookmarkedNodes}
-              onToggleBookmark={(nodeId) => {
-                const newBookmarks = new Set(bookmarkedNodes);
-                if (newBookmarks.has(nodeId)) {
-                  newBookmarks.delete(nodeId);
-                } else {
-                  newBookmarks.add(nodeId);
-                }
-                setBookmarkedNodes(newBookmarks);
-              }}
-              selectedModel={selectedModel}
-              onModelChange={setSelectedModel}
-              isMultiSelectMode={messageOps.getEffectiveMergeCount() > 1}
-              onPerformMerge={messageOps.performCustomMerge}
-              mergeCount={messageOps.getEffectiveMergeCount()}
-              streamingContent={messageOps.streamingContent}
-              onStartNewTree={() => {
-                setSelectedMessageId('');
-                setSelectedNodes(new Set());
-              }}
-              onBranchFrom={handleNodeClick}
-            />
+            {chatPanel}
           </ErrorBoundary>
         )}
 
-        {/* Flow Canvas — mounts only once there's a tree to show */}
-        {showCanvas && (
+        {/* Flow Canvas */}
+        {showCanvasPane && (
           <ErrorBoundary
             fallback={
               <div className="flex-1 bg-void flex items-center justify-center">
@@ -476,7 +469,7 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
                 edges={flowElements.edges}
                 onNodesChange={flowElements.handleNodesChange}
                 onEdgesChange={flowElements.handleEdgesChange}
-                chatPanelCollapsed={chatViewMode === 'flow'}
+                chatPanelCollapsed={effectiveView === 'canvas'}
                 selectedNodes={selectedNodes}
                 onClearSelection={() => setSelectedNodes(new Set())}
                 onFitView={() => { }}

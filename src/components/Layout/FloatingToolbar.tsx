@@ -1,40 +1,39 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ArrowLeft, Edit3, User, Plus, HelpCircle } from 'lucide-react';
+import { Edit3, User, HelpCircle } from 'lucide-react';
 import { ProInterestButton } from '../UI/ProInterestButton.tsx';
 
-// Updated interface to include profile button props
+export type AppViewMode = 'chat' | 'split' | 'canvas';
+
 interface FloatingToolbarProps {
   brandName: string;
+  // Empty string hides the conversation-name segment
   conversationName: string;
   onBrandClick: () => void;
   onConversationNameChange: (newName: string) => void;
-  showBackButton?: boolean;
-  onBackClick?: () => void;
-  onNewChat?: () => void;
-  showNewChatButton?: boolean;
+  // Three-way view control; hidden until the conversation has messages
   showViewToggle?: boolean;
-  viewMode?: 'combined' | 'flow';
-  onViewModeChange?: (mode: 'combined' | 'flow') => void;
-  isConversationsPage?: boolean;
+  viewMode?: AppViewMode;
+  onViewModeChange?: (mode: AppViewMode) => void;
   showProfileButton?: boolean;
   onProfileClick?: () => void;
   // Always-available tutorial replay (ONBOARDING_PRD §6)
   onReplayTutorial?: () => void;
 }
 
+const VIEW_OPTIONS: Array<{ mode: AppViewMode; label: string; title: string }> = [
+  { mode: 'chat', label: 'Chat', title: 'Traditional chat view' },
+  { mode: 'split', label: 'Split', title: 'Chat beside the canvas' },
+  { mode: 'canvas', label: 'Canvas', title: 'Canvas only' },
+];
+
 export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
   brandName,
   conversationName,
   onBrandClick,
   onConversationNameChange,
-  showBackButton = false,
-  onBackClick,
-  onNewChat,
-  showNewChatButton = false,
   showViewToggle = false,
-  viewMode = 'combined',
+  viewMode = 'chat',
   onViewModeChange,
-  isConversationsPage = false,
   showProfileButton = false,
   onProfileClick,
   onReplayTutorial
@@ -102,26 +101,17 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
       <div className="px-5 h-14 flex items-center justify-between">
         {/* Left Section */}
         <div className="flex items-center gap-3 min-w-0">
-          {showBackButton && onBackClick && (
-            <button
-              onClick={onBackClick}
-              className="p-2 text-smoke hover:text-bone hover:bg-panel rounded-[8px] transition-colors duration-fast"
-              title="Back to conversations"
-            >
-              <ArrowLeft size={18} />
-            </button>
-          )}
-
           {/* Brand Name */}
           <button
             onClick={onBrandClick}
             className="text-[15px] font-semibold text-bone hover:text-ash transition-colors duration-fast tracking-body"
+            title="Start fresh"
           >
             {brandName}
           </button>
 
-          {/* Conversation Name - Only show if not on conversations page */}
-          {!isConversationsPage && (
+          {/* Conversation Name */}
+          {conversationName && (
             <>
               <div className="w-px h-5" style={{ background: 'var(--color-hairline)' }} />
               <div className="flex items-center gap-2 min-w-0">
@@ -152,54 +142,28 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
 
         {/* Right Section */}
         <div className="flex items-center gap-2.5">
-          {/* Only show other buttons if not on conversations page */}
-          {!isConversationsPage && (
-            <>
-              {/* New Chat Button */}
-              {showNewChatButton && onNewChat && (
+          {/* View toggle — chat / split / canvas */}
+          {showViewToggle && onViewModeChange && (
+            <div className="flex items-center gap-1 border border-hairline rounded-pill p-1">
+              {VIEW_OPTIONS.map(({ mode, label, title }) => (
                 <button
-                  onClick={onNewChat}
-                  className="flex items-center gap-1.5 px-4 py-1.5 bg-plum hover:bg-plum-hover text-bone rounded-pill transition-colors duration-fast text-[12px] font-semibold uppercase tracking-kicker"
-                  title="New Chat"
+                  key={mode}
+                  onClick={() => onViewModeChange(mode)}
+                  className={`px-3 py-1 text-[12px] font-medium rounded-pill transition-colors duration-fast ${
+                    viewMode === mode
+                      ? 'bg-panel-2 text-bone'
+                      : 'text-smoke hover:text-bone'
+                  }`}
+                  title={title}
                 >
-                  <Plus size={14} />
-                  New chat
+                  {label}
                 </button>
-              )}
-
-              {/* Panel toggle — canvas is always the base surface; this only
-                  controls whether the chat panel sits beside it */}
-              {showViewToggle && onViewModeChange && (
-                <div className="flex items-center gap-1 border border-hairline rounded-pill p-1">
-                  <button
-                    onClick={() => onViewModeChange('combined')}
-                    className={`px-3 py-1 text-[12px] font-medium rounded-pill transition-colors duration-fast ${
-                      viewMode === 'combined'
-                        ? 'bg-panel-2 text-bone'
-                        : 'text-smoke hover:text-bone'
-                    }`}
-                    title="Chat panel beside the canvas"
-                  >
-                    Panel
-                  </button>
-                  <button
-                    onClick={() => onViewModeChange('flow')}
-                    className={`px-3 py-1 text-[12px] font-medium rounded-pill transition-colors duration-fast ${
-                      viewMode === 'flow'
-                        ? 'bg-panel-2 text-bone'
-                        : 'text-smoke hover:text-bone'
-                    }`}
-                    title="Canvas only — chat panel hidden"
-                  >
-                    Canvas only
-                  </button>
-                </div>
-              )}
-            </>
+              ))}
+            </div>
           )}
 
           {/* Pro Interest Button */}
-          <ProInterestButton large={isConversationsPage} />
+          <ProInterestButton />
 
           {/* Replay tutorial — visible everywhere, every session */}
           {onReplayTutorial && (
@@ -212,7 +176,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
             </button>
           )}
 
-          {/* User Profile Button - Show when enabled */}
+          {/* User Profile Button */}
           {showProfileButton && onProfileClick && (
             <button
               onClick={onProfileClick}

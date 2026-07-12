@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, GitBranch, Sparkles, MoreHorizontal, Trash2 } from 'lucide-react';
+import { Plus, Search, GitBranch, Sparkles, MoreHorizontal, Trash2, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { Conversation } from '../../types/conversation.ts';
 import { MessageHelpers } from '../../utils/messageHelpers.ts';
 
@@ -9,6 +9,8 @@ interface ConversationSidebarProps {
   onSelectConversation: (id: string) => void;
   onCreateConversation: () => void;
   onDeleteConversation?: (id: string) => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
 export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
@@ -16,10 +18,11 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
   activeConversationId,
   onSelectConversation,
   onCreateConversation,
-  onDeleteConversation
+  onDeleteConversation,
+  collapsed,
+  onToggleCollapse
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  // id of the row whose overflow menu is open; 'confirm' phase per row
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
@@ -37,14 +40,6 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
       return new Date(bLast.timestamp).getTime() - new Date(aLast.timestamp).getTime();
     });
 
-  const getPreview = (conversation: Conversation) => {
-    const lastMessage = conversation.messages[conversation.messages.length - 1];
-    if (!lastMessage) return 'No messages yet';
-    return lastMessage.content.length > 64
-      ? lastMessage.content.substring(0, 64) + '…'
-      : lastMessage.content;
-  };
-
   const getLastActiveTime = (conversation: Conversation) => {
     const lastMessage = conversation.messages[conversation.messages.length - 1];
     if (!lastMessage) return '';
@@ -56,16 +51,45 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
     setConfirmDeleteId(null);
   };
 
-  return (
-    <aside className="w-[280px] shrink-0 h-full bg-void border-r border-hairline flex flex-col">
-      {/* New chat */}
-      <div className="p-4 pb-3">
+  // Collapsed: a thin rail — expand + new chat, nothing else
+  if (collapsed) {
+    return (
+      <aside className="w-12 shrink-0 h-full bg-void border-r border-hairline flex flex-col items-center py-3 gap-1">
+        <button
+          onClick={onToggleCollapse}
+          className="p-2 text-smoke hover:text-bone hover:bg-panel rounded-[8px] transition-colors duration-fast"
+          title="Show conversations"
+        >
+          <PanelLeftOpen size={17} />
+        </button>
         <button
           onClick={onCreateConversation}
-          className="w-full flex items-center justify-center gap-1.5 bg-plum hover:bg-plum-hover text-bone px-4 py-2.5 rounded-pill transition-colors duration-fast text-[12px] font-semibold uppercase tracking-kicker"
+          className="p-2 text-smoke hover:text-bone hover:bg-panel rounded-[8px] transition-colors duration-fast"
+          title="New chat"
+        >
+          <Plus size={17} />
+        </button>
+      </aside>
+    );
+  }
+
+  return (
+    <aside className="w-[320px] shrink-0 h-full bg-void border-r border-hairline flex flex-col">
+      {/* New chat + collapse */}
+      <div className="p-4 pb-3 flex items-center gap-2">
+        <button
+          onClick={onCreateConversation}
+          className="flex-1 flex items-center justify-center gap-1.5 bg-plum hover:bg-plum-hover text-bone px-4 py-2.5 rounded-pill transition-colors duration-fast text-[12px] font-semibold uppercase tracking-kicker"
         >
           <Plus size={14} />
           New chat
+        </button>
+        <button
+          onClick={onToggleCollapse}
+          className="p-2 text-smoke hover:text-bone hover:bg-panel rounded-[8px] transition-colors duration-fast shrink-0"
+          title="Hide conversations"
+        >
+          <PanelLeftClose size={17} />
         </button>
       </div>
 
@@ -83,7 +107,7 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
         </div>
       </div>
 
-      {/* Conversation rows */}
+      {/* Conversation rows — generated title + tree stats, no message preview */}
       <div className="flex-1 overflow-y-auto px-2 pb-4">
         {filteredConversations.length === 0 ? (
           <div className="px-4 py-10 text-center">
@@ -91,7 +115,7 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
               <p className="text-smoke text-[13px]">Nothing matches.</p>
             ) : (
               <p className="text-smoke text-[13px] leading-relaxed">
-                No conversations yet — ask anything below to start your first.
+                No conversations yet — ask anything to start your first.
               </p>
             )}
           </div>
@@ -100,7 +124,7 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
             {filteredConversations.map((conversation) => {
               const isActive = conversation.id === activeConversationId;
               const hasMerge = conversation.messages.some(m => MessageHelpers.isMergedMessage(m));
-              const branchCount = MessageHelpers.getAllMessages(conversation.messages).length;
+              const messageCount = MessageHelpers.getAllMessages(conversation.messages).length;
               return (
                 <li key={conversation.id} className="relative group">
                   <button
@@ -120,14 +144,11 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
                         {conversation.name}
                       </span>
                     </div>
-                    <p className="text-[12px] text-smoke truncate mt-0.5 pr-6">
-                      {getPreview(conversation)}
-                    </p>
-                    <div className="flex items-center gap-3 mt-1 text-[11px] text-smoke">
-                      {branchCount > 0 && (
+                    <div className="flex items-center gap-3 mt-1.5 text-[11px] text-smoke">
+                      {messageCount > 0 && (
                         <span className="inline-flex items-center gap-1">
                           <GitBranch size={10} />
-                          {branchCount}
+                          {messageCount}
                         </span>
                       )}
                       {hasMerge && (

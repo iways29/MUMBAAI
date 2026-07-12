@@ -8,7 +8,7 @@ const STEP_CONTENT: Record<number, { text: string; targetSelector: string; actio
     targetSelector: '[data-tutorial-input]',
   },
   2: {
-    text: "That's your conversation, mapped. Every reply can branch into its own direction — nothing gets lost or scrolled away.",
+    text: "That's your conversation, mapped. This is Split view — chat on the left, your map on the right. Every reply can branch into its own direction.",
     targetSelector: '[data-node-type="assistant"]',
     actionLabel: 'Got it',
   },
@@ -26,7 +26,8 @@ const STEP_CONTENT: Record<number, { text: string; targetSelector: string; actio
   },
 };
 
-const DONE_TEXT = "That's the whole loop — branch, explore, merge. Tour complete.";
+const DONE_TEXT =
+  "That's the whole loop — branch, explore, merge. Switch between Chat, Split, and Canvas any time from the top bar.";
 
 interface OnboardingTourProps {
   step: TutorialStep;
@@ -107,7 +108,12 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
       };
 
   return (
-    <div style={style} className="bg-panel border border-hairline rounded-node p-4">
+    // Panel-2 surface + plum-tinted border so callouts read as guidance,
+    // not as another node on the canvas.
+    <div
+      style={{ ...style, borderColor: 'rgba(128,82,255,0.5)' }}
+      className="bg-panel-2 border rounded-node p-4"
+    >
       <div className="flex items-center gap-2 mb-2">
         <span className="w-1.5 h-1.5 rounded-full bg-plum shrink-0" />
         <span className="text-[11px] font-semibold uppercase tracking-kicker text-smoke">

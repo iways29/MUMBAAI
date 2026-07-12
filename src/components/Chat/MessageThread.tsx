@@ -201,12 +201,23 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
 
               {/* Message Actions and Info */}
               <div className="flex items-center gap-3 pt-1.5 border-t border-hairline">
-                {/* Response count */}
+                {/* Response count — a doorway to the canvas, not just a stat */}
                 {message.children && message.children.length > 0 && (
-                  <div className="text-[11px] text-smoke flex items-center gap-1">
-                    <GitBranch size={10} />
-                    {message.children.length} {message.children.length > 1 ? 'branches' : 'branch'}
-                  </div>
+                  onBranchFrom ? (
+                    <button
+                      onClick={() => onBranchFrom(message.id)}
+                      className="text-[11px] text-smoke hover:text-plum flex items-center gap-1 transition-colors duration-fast"
+                      title="See this message's branches on the canvas"
+                    >
+                      <GitBranch size={10} />
+                      {message.children.length} {message.children.length > 1 ? 'branches' : 'branch'}
+                    </button>
+                  ) : (
+                    <div className="text-[11px] text-smoke flex items-center gap-1">
+                      <GitBranch size={10} />
+                      {message.children.length} {message.children.length > 1 ? 'branches' : 'branch'}
+                    </div>
+                  )
                 )}
 
                 {/* Merged info */}

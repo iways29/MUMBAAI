@@ -22,6 +22,9 @@ interface ChatInputProps {
   onStartNewTree?: () => void;
   // Full-width mode: constrain to a readable centered measure
   centered?: boolean;
+  // Bare mode: no top border / outer padding — used by the centered
+  // empty-state composer, which supplies its own layout
+  bare?: boolean;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
@@ -38,7 +41,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   onPerformMerge,
   mergeCount = 0,
   onStartNewTree,
-  centered = false
+  centered = false,
+  bare = false
 }) => {
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const isInMergeMode = isMultiSelectMode;
@@ -90,7 +94,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className={`bg-void p-5 border-t border-hairline ${centered ? '[&>*]:max-w-3xl [&>*]:mx-auto' : ''}`}>
+    <div className={`${bare ? 'w-full' : 'bg-void p-5 border-t border-hairline'} ${centered && !bare ? '[&>*]:max-w-3xl [&>*]:mx-auto' : ''}`}>
       {/* Input Container */}
       <div
         data-tutorial-input
