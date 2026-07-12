@@ -255,7 +255,7 @@ const AdminActivation: React.FC = () => {
         </div>
 
         {configs.length > 0 ? (
-          <div className="divide-y divide-[rgba(255,255,255,0.1)]">
+          <div className="divide-y divide-hairline">
             {configs.map((config) => {
               const isBoolean = typeof config.value?.enabled === 'boolean'
               return (

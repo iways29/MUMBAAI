@@ -53,10 +53,14 @@ export class LLMService {
   static getSupportedModels() {
     return {
       google: ['gemini-1.5-flash', 'gemini-1.5-pro'],
+      // Informational only — routing is by prefix in getProviderForModel.
+      // Old ids retired by Anthropic: claude-sonnet-4-20250514 (2026-06-15),
+      // claude-opus-4-20250514 (2026-06-15), claude-opus-4-1-20250805 (2026-08-05).
       anthropic: [
-        'claude-sonnet-4-20250514',
-        'claude-opus-4-20250514',
-        'claude-opus-4-1-20250805'
+        'claude-sonnet-5',
+        'claude-sonnet-4-5',
+        'claude-opus-4-8',
+        'claude-haiku-4-5'
       ],
       openai: ['gpt-5-mini', 'gpt-4.1-mini', 'gpt-4o-mini', 'gpt-5', 'gpt-4.1', 'gpt-4o']
     };

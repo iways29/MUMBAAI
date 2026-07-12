@@ -209,7 +209,7 @@ const AdminUsers: React.FC = () => {
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search users by email or name..."
-            className="w-full pl-10 pr-4 py-2 border border-hairline rounded-node focus:outline-none focus:border-plum"
+            className="w-full pl-10 pr-4 py-2 bg-void text-bone placeholder:text-smoke border border-hairline rounded-node focus:outline-none focus:border-plum"
           />
         </div>
       </div>
@@ -226,7 +226,7 @@ const AdminUsers: React.FC = () => {
               <th className="text-right px-6 py-4 text-sm font-semibold text-ash">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[rgba(255,255,255,0.1)]">
+          <tbody className="divide-y divide-hairline">
             {filteredUsers.map((user) => {
               const tier = getTierForUser(user)
               const tokenLimit = getEffectiveLimit(user, 'token')

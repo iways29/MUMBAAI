@@ -16,6 +16,7 @@ import { useConversations } from '../hooks/useConversations.ts';
 import { useFlowElements } from '../hooks/useFlowElements.ts';
 import { useMessageOperations } from '../hooks/useMessageOperations.ts';
 import { useOnboarding } from '../hooks/useOnboarding.ts';
+import { useTheme } from '../hooks/useTheme.ts';
 import { usePanelManager } from '../components/Layout/PanelManager.tsx';
 
 // Helpers
@@ -42,6 +43,7 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
   const conversationHook = useConversations([]);
   const panelManager = usePanelManager();
   const onboarding = useOnboarding(user);
+  const theme = useTheme();
 
   // UI state
   const [selectedMessageId, setSelectedMessageId] = useState('');
@@ -58,7 +60,9 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
   const [viewMode, setViewMode] = useState<AppViewMode>('chat');
 
   // Selected AI model state
-  const [selectedModel, setSelectedModel] = useState<string>('claude-sonnet-4-20250514');
+  // Fallback only — the DB default from available_models wins once loaded.
+  // claude-sonnet-4-20250514 was retired by Anthropic on 2026-06-15.
+  const [selectedModel, setSelectedModel] = useState<string>('claude-sonnet-5');
 
   // Greeting for the centered composer — re-rolled per conversation change
   const greeting = useMemo(
@@ -156,19 +160,28 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationHook.currentConversation, selectedModel]);
 
-  // ----- Onboarding: grandfather pre-existing accounts once loaded -----
+  // ----- Onboarding: grandfather pre-existing accounts once loaded; a
+  // brand-new account gets the tour in pending state right at the composer.
   const grandfatheredRef = useRef(false);
   useEffect(() => {
     if (!conversationHook.loading && !grandfatheredRef.current) {
       grandfatheredRef.current = true;
       onboarding.grandfatherIfExistingUser(conversationHook.conversations.length);
+      if (conversationHook.conversations.length === 0 && !onboarding.hasSeenTour()) {
+        onboarding.startPending(false);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationHook.loading]);
 
   // ----- Onboarding: step completion watchers (ONBOARDING_PRD §5) -----
+  // A pending tour (no bound conversation yet) shows at the fresh composer;
+  // once bound at first send, it follows that conversation only.
   const tourIsHere =
-    onboarding.isActive && conversationHook.activeConversation === onboarding.tourConversationId;
+    onboarding.isActive &&
+    (onboarding.tourConversationId
+      ? conversationHook.activeConversation === onboarding.tourConversationId
+      : !hasActiveConversation || !hasMessages);
   const allTourMessages = tourIsHere ? MessageHelpers.getAllMessages(currentMessages) : [];
   const assistantCount = allTourMessages.filter(m => m.type === 'assistant' && !m.isMergeRoot).length;
   const hasMergeRoot = allTourMessages.some(m => m.isMergeRoot);
@@ -249,41 +262,27 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
     setViewMode(conv && conv.messages.length > 0 ? 'split' : 'chat');
   }, [conversationHook]);
 
-  const handleCreateNewConversation = useCallback(async () => {
-    const countBefore = conversationHook.conversations.length;
-    const newId = await conversationHook.createNewConversation();
-    setSelectedMessageId('');
-    setSelectedNodes(new Set());
-    setViewMode('chat');
-    setShowProfile(false);
-    if (newId) {
-      onboarding.maybeStartFirstRunTour(countBefore, newId);
-    }
-    return newId;
-  }, [conversationHook, onboarding]);
-
-  // Explicit "show me that demo again" — always a fresh conversation,
-  // never touches the once-per-account flag (ONBOARDING_PRD §6).
-  const handleReplayTutorial = useCallback(async () => {
-    const newId = await conversationHook.createNewConversation();
-    setSelectedMessageId('');
-    setSelectedNodes(new Set());
-    setShowTourClosing(false);
-    setViewMode('chat');
-    setShowProfile(false);
-    if (newId) {
-      onboarding.startReplay(newId);
-    }
-  }, [conversationHook, onboarding]);
-
-  // Brand click: back to a fresh start state (no active conversation)
-  const handleBrandClick = useCallback(() => {
+  // "New chat" shows a fresh composer — no conversation row exists until the
+  // first message is actually sent (so mashing the button creates nothing).
+  const handleNewChat = useCallback(() => {
     conversationHook.setActiveConversation('');
     setSelectedMessageId('');
     setSelectedNodes(new Set());
     setViewMode('chat');
     setShowProfile(false);
   }, [conversationHook]);
+
+  // Explicit "show me that demo again" — a fresh composer with the tour
+  // pending; the conversation is created (and the tour bound to it) on the
+  // first send. Never touches the once-per-account flag (ONBOARDING_PRD §6).
+  const handleReplayTutorial = useCallback(() => {
+    handleNewChat();
+    setShowTourClosing(false);
+    onboarding.startPending(true);
+  }, [handleNewChat, onboarding]);
+
+  // Brand click: back to a fresh start state (no active conversation)
+  const handleBrandClick = handleNewChat;
 
   const handleConversationNameChange = useCallback((newName: string) => {
     if (conversationHook.activeConversation) {
@@ -296,17 +295,20 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
   const handleSend = useCallback(async () => {
     let convId = conversationHook.activeConversation;
     if (!convId || !conversationHook.currentConversation) {
-      const countBefore = conversationHook.conversations.length;
       const newId = await conversationHook.createNewConversation();
       if (!newId) return;
       convId = newId;
-      onboarding.maybeStartFirstRunTour(countBefore, newId);
       // Creation and first send land in one batched commit here: seed the
       // reveal tracker so the 0→1 message transition is still detected
       // (split view + animation), and keep the first-message selection so
       // the streaming reply renders live in the thread.
       prevMsgStateRef.current = { id: newId, hadMessages: false };
       skipSelectionClearRef.current = true;
+    }
+    // A pending tour (first-run or replay) attaches to whichever
+    // conversation receives its first message.
+    if (onboarding.isActive && !onboarding.tourConversationId) {
+      onboarding.bindConversation(convId);
     }
     messageOps.sendMessage(convId);
   }, [conversationHook, messageOps, onboarding]);
@@ -417,6 +419,8 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
         showProfileButton={true}
         onProfileClick={() => setShowProfile(true)}
         onReplayTutorial={handleReplayTutorial}
+        themePreference={theme.preference}
+        onThemeChange={theme.setPreference}
       />
       <div className="flex bg-void" style={{ marginTop: '56px', height: 'calc(100vh - 56px)', overflow: 'hidden' }}>
         {/* Conversations sidebar — always present, collapsible to a rail */}
@@ -431,7 +435,7 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
             conversations={conversationHook.conversations}
             activeConversationId={conversationHook.activeConversation}
             onSelectConversation={handleConversationChange}
-            onCreateConversation={handleCreateNewConversation}
+            onCreateConversation={handleNewChat}
             onDeleteConversation={conversationHook.deleteConversation}
             collapsed={sidebarCollapsed}
             onToggleCollapse={() => setSidebarCollapsed(prev => !prev)}
@@ -506,6 +510,7 @@ export const MainApp: React.FC<MainAppProps> = ({ user }) => {
                 allMessagesCount={conversationHook.getAllMessages().length}
                 conversationName={conversationHook.currentConversation?.name}
                 onLayoutApplied={handleLayoutApplied}
+                lightMode={theme.effective === 'light'}
               />
             </div>
           </ErrorBoundary>

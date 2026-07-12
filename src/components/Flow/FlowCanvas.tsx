@@ -52,6 +52,9 @@ interface FlowCanvasProps {
   conversationName?: string;
   // Add callback for layout
   onLayoutApplied?: (nodes: any[], edges: any[]) => void;
+  // Light theme: dot grid / minimap need concrete colors (SVG attrs can't
+  // resolve CSS vars reliably)
+  lightMode?: boolean;
 }
 
 export const FlowCanvas: React.FC<FlowCanvasProps> = ({
@@ -80,7 +83,8 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
   mergeTemplate,
   onMergeTemplateChange,
   conversationName,
-  onLayoutApplied
+  onLayoutApplied,
+  lightMode = false
 }) => {
   const { fitView } = useReactFlow();
 
@@ -164,10 +168,10 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
           position="bottom-right"
           pannable
           zoomable
-          nodeColor="#121214"
-          nodeStrokeColor="rgba(255,255,255,0.22)"
+          nodeColor={lightMode ? '#FFFFFF' : '#121214'}
+          nodeStrokeColor={lightMode ? 'rgba(0,0,0,0.24)' : 'rgba(255,255,255,0.22)'}
           nodeBorderRadius={4}
-          maskColor="rgba(0,0,0,0.7)"
+          maskColor={lightMode ? 'rgba(250,250,248,0.75)' : 'rgba(0,0,0,0.7)'}
           style={{
             background: 'var(--color-void)',
             border: '1px solid var(--color-hairline)',
@@ -181,7 +185,7 @@ export const FlowCanvas: React.FC<FlowCanvasProps> = ({
           variant={BackgroundVariant.Dots}
           gap={24}
           size={1}
-          color="rgba(255, 255, 255, 0.07)"
+          color={lightMode ? 'rgba(0, 0, 0, 0.09)' : 'rgba(255, 255, 255, 0.07)'}
         />
 
         {/* Flow Controls */}

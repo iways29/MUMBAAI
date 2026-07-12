@@ -243,7 +243,7 @@ const AdminPrompts: React.FC = () => {
                           <textarea
                             value={editContent}
                             onChange={(e) => setEditContent(e.target.value)}
-                            className="w-full h-48 p-3 bg-panel border border-hairline rounded-[8px] text-sm font-mono focus:outline-none focus:border-plum"
+                            className="w-full h-48 p-3 bg-panel text-bone placeholder:text-smoke border border-hairline rounded-[8px] text-sm font-mono focus:outline-none focus:border-plum"
                           />
                           <div className="flex gap-2">
                             <button

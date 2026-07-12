@@ -493,7 +493,7 @@ const AdminTiers: React.FC = () => {
                     value={formData.display_name}
                     onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
                     placeholder="e.g., Pro"
-                    className="w-full px-4 py-2 border border-hairline rounded-node focus:outline-none focus:border-plum"
+                    className="w-full px-4 py-2 bg-void text-bone placeholder:text-smoke border border-hairline rounded-node focus:outline-none focus:border-plum"
                     required
                   />
                 </div>
@@ -527,7 +527,7 @@ const AdminTiers: React.FC = () => {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="e.g., Best for power users"
-                  className="w-full px-4 py-2 border border-hairline rounded-node focus:outline-none focus:border-plum"
+                  className="w-full px-4 py-2 bg-void text-bone placeholder:text-smoke border border-hairline rounded-node focus:outline-none focus:border-plum"
                 />
               </div>
 
@@ -638,7 +638,7 @@ const AdminTiers: React.FC = () => {
                       value={formData.requests_per_minute}
                       onChange={(e) => setFormData({ ...formData, requests_per_minute: parseInt(e.target.value) || 20 })}
                       min={1}
-                      className="w-full px-4 py-2 border border-hairline rounded-node focus:outline-none focus:border-plum"
+                      className="w-full px-4 py-2 bg-void text-bone placeholder:text-smoke border border-hairline rounded-node focus:outline-none focus:border-plum"
                     />
                   </div>
                 </div>
