@@ -164,11 +164,11 @@ const AdminUsers: React.FC = () => {
     return (
       <div className="p-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-stone-200 rounded"></div>
-          <div className="h-4 w-64 bg-stone-200 rounded"></div>
+          <div className="h-8 w-48 bg-panel-2 rounded"></div>
+          <div className="h-4 w-64 bg-panel-2 rounded"></div>
           <div className="space-y-3 mt-8">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="h-16 bg-stone-200 rounded-xl"></div>
+              <div key={i} className="h-16 bg-panel-2 rounded-node"></div>
             ))}
           </div>
         </div>
@@ -185,15 +185,15 @@ const AdminUsers: React.FC = () => {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-plum rounded-node flex items-center justify-center">
             <Users className="w-5 h-5 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-stone-800">Users</h1>
+          <h1 className="text-[28px] font-extralight text-bone tracking-display">Users</h1>
         </div>
-        <p className="text-stone-600">
+        <p className="text-ash">
           {totalCount} users total, {adminCount} admin{adminCount !== 1 ? 's' : ''}
           {suspendedCount > 0 && (
-            <span className="text-red-500 ml-2">
+            <span className="text-danger ml-2">
               ({suspendedCount} suspended)
             </span>
           )}
@@ -203,30 +203,30 @@ const AdminUsers: React.FC = () => {
       {/* Search */}
       <div className="mb-6">
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-smoke" />
           <input
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search users by email or name..."
-            className="w-full pl-10 pr-4 py-2 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8811]/20 focus:border-[#FF8811]"
+            className="w-full pl-10 pr-4 py-2 border border-hairline rounded-node focus:outline-none focus:border-plum"
           />
         </div>
       </div>
 
       {/* Users List */}
-      <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden">
+      <div className="bg-panel rounded-node border border-hairline overflow-hidden">
         <table className="w-full">
-          <thead className="bg-stone-50 border-b border-stone-200">
+          <thead className="bg-panel-2 border-b border-hairline">
             <tr>
-              <th className="text-left px-6 py-4 text-sm font-semibold text-stone-600">User</th>
-              <th className="text-left px-6 py-4 text-sm font-semibold text-stone-600">Tier</th>
-              <th className="text-left px-6 py-4 text-sm font-semibold text-stone-600">Today's Usage</th>
-              <th className="text-left px-6 py-4 text-sm font-semibold text-stone-600">Role</th>
-              <th className="text-right px-6 py-4 text-sm font-semibold text-stone-600">Actions</th>
+              <th className="text-left px-6 py-4 text-sm font-semibold text-ash">User</th>
+              <th className="text-left px-6 py-4 text-sm font-semibold text-ash">Tier</th>
+              <th className="text-left px-6 py-4 text-sm font-semibold text-ash">Today's Usage</th>
+              <th className="text-left px-6 py-4 text-sm font-semibold text-ash">Role</th>
+              <th className="text-right px-6 py-4 text-sm font-semibold text-ash">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone-100">
+          <tbody className="divide-y divide-[rgba(255,255,255,0.1)]">
             {filteredUsers.map((user) => {
               const tier = getTierForUser(user)
               const tokenLimit = getEffectiveLimit(user, 'token')
@@ -235,30 +235,30 @@ const AdminUsers: React.FC = () => {
               const mergePercent = getUsagePercent(user.usage?.merges_performed ?? 0, mergeLimit)
 
               return (
-                <tr key={user.id} className={`hover:bg-stone-50 ${user.user_limits?.is_suspended ? 'bg-red-50/50' : ''}`}>
+                <tr key={user.id} className={`hover:bg-panel-2 ${user.user_limits?.is_suspended ? 'bg-panel-2/50' : ''}`}>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        user.user_limits?.is_suspended ? 'bg-red-200' : 'bg-stone-200'
+                        user.user_limits?.is_suspended ? 'bg-panel-2' : 'bg-panel-2'
                       }`}>
                         {user.user_limits?.is_suspended ? (
-                          <Ban className="w-5 h-5 text-red-500" />
+                          <Ban className="w-5 h-5 text-danger" />
                         ) : (
-                          <span className="text-stone-600 font-medium">
+                          <span className="text-ash font-medium">
                             {user.email[0].toUpperCase()}
                           </span>
                         )}
                       </div>
                       <div>
-                        <div className="font-medium text-stone-800 flex items-center gap-2">
+                        <div className="font-medium text-bone flex items-center gap-2">
                           {user.display_name || 'No name'}
                           {user.user_limits?.is_suspended && (
-                            <span className="px-1.5 py-0.5 bg-red-100 text-red-600 text-xs rounded">
+                            <span className="px-1.5 py-0.5 bg-panel-2 text-danger text-xs rounded">
                               Suspended
                             </span>
                           )}
                         </div>
-                        <div className="text-sm text-stone-500 flex items-center gap-1">
+                        <div className="text-sm text-smoke flex items-center gap-1">
                           <Mail className="w-3 h-3" />
                           {user.email}
                         </div>
@@ -281,30 +281,30 @@ const AdminUsers: React.FC = () => {
                         {tier.display_name}
                       </span>
                     ) : (
-                      <span className="text-stone-400 text-sm">No tier</span>
+                      <span className="text-smoke text-sm">No tier</span>
                     )}
                   </td>
                   <td className="px-6 py-4">
                     {user.is_admin ? (
-                      <span className="text-sm text-stone-400 italic">Unlimited</span>
+                      <span className="text-sm text-smoke italic">Unlimited</span>
                     ) : (
                       <div className="space-y-2 min-w-[180px]">
                         {/* Token Usage */}
                         <div>
                           <div className="flex items-center justify-between text-xs mb-1">
-                            <span className="text-stone-500 flex items-center gap-1">
+                            <span className="text-smoke flex items-center gap-1">
                               <Zap className="w-3 h-3" />
                               Tokens
                             </span>
-                            <span className="text-stone-600">
+                            <span className="text-ash">
                               {formatLimit(user.usage?.tokens_used ?? 0, tokenLimit)}
                             </span>
                           </div>
-                          <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
+                          <div className="h-1.5 bg-panel-2 rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all ${
-                                tokenPercent >= 90 ? 'bg-red-500' :
-                                tokenPercent >= 70 ? 'bg-yellow-500' : 'bg-green-500'
+                                tokenPercent >= 90 ? 'bg-transparent border border-danger' :
+                                tokenPercent >= 70 ? 'bg-panel-2' : 'bg-plum'
                               }`}
                               style={{ width: `${tokenPercent}%` }}
                             />
@@ -313,19 +313,19 @@ const AdminUsers: React.FC = () => {
                         {/* Merge Usage */}
                         <div>
                           <div className="flex items-center justify-between text-xs mb-1">
-                            <span className="text-stone-500 flex items-center gap-1">
+                            <span className="text-smoke flex items-center gap-1">
                               <GitMerge className="w-3 h-3" />
                               Merges
                             </span>
-                            <span className="text-stone-600">
+                            <span className="text-ash">
                               {formatLimit(user.usage?.merges_performed ?? 0, mergeLimit)}
                             </span>
                           </div>
-                          <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
+                          <div className="h-1.5 bg-panel-2 rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all ${
-                                mergePercent >= 90 ? 'bg-red-500' :
-                                mergePercent >= 70 ? 'bg-yellow-500' : 'bg-purple-500'
+                                mergePercent >= 90 ? 'bg-transparent border border-danger' :
+                                mergePercent >= 70 ? 'bg-panel-2' : 'bg-plum'
                               }`}
                               style={{ width: `${mergePercent}%` }}
                             />
@@ -336,12 +336,12 @@ const AdminUsers: React.FC = () => {
                   </td>
                   <td className="px-6 py-4">
                     {user.is_admin ? (
-                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-plum-soft text-plum rounded-full text-sm font-medium">
                         <Shield className="w-3 h-3" />
                         Admin
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-stone-100 text-stone-600 rounded-full text-sm font-medium">
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-panel-2 text-ash rounded-full text-sm font-medium">
                         User
                       </span>
                     )}
@@ -350,17 +350,17 @@ const AdminUsers: React.FC = () => {
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => setSelectedUserId(user.id)}
-                        className="p-2 text-stone-500 hover:bg-stone-100 rounded-lg transition-colors"
+                        className="p-2 text-smoke hover:bg-panel-2 rounded-[8px] transition-colors"
                         title="Configure limits"
                       >
                         <Settings className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => toggleAdmin(user.id, user.is_admin)}
-                        className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                        className={`px-3 py-1 rounded-[8px] text-sm font-medium transition-colors ${
                           user.is_admin
-                            ? 'text-red-600 hover:bg-red-50'
-                            : 'text-green-600 hover:bg-green-50'
+                            ? 'text-danger hover:bg-[rgba(240,89,78,0.08)]'
+                            : 'text-plum hover:bg-panel-2'
                         }`}
                       >
                         {user.is_admin ? (
@@ -385,8 +385,8 @@ const AdminUsers: React.FC = () => {
       </div>
 
       {/* Warning */}
-      <div className="mt-6 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
-        <p className="text-sm text-yellow-700">
+      <div className="mt-6 p-4 bg-panel-2 rounded-node border border-hairline">
+        <p className="text-sm text-amber">
           <strong>Note:</strong> Admins are exempt from all usage limits. Click the <Settings className="w-3 h-3 inline" /> icon to configure user tiers, limits, and suspension status.
         </p>
       </div>

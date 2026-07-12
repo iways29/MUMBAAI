@@ -14,7 +14,6 @@ const imageWidth = 1920;
 const imageHeight = 1080;
 
 interface FlowControlsProps {
-  chatPanelCollapsed: boolean;
   searchTerm: string;
   onSearchChange: (term: string) => void;
   filterType: string;
@@ -29,7 +28,6 @@ interface FlowControlsProps {
 }
 
 export const FlowControls: React.FC<FlowControlsProps> = ({
-  chatPanelCollapsed,
   searchTerm,
   onSearchChange,
   filterType,
@@ -121,9 +119,9 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
 
   return (
     <>
-      {/* Timeline Controls - Show when chat collapsed */}
-      {chatPanelCollapsed && (
-        <Panel position="top-center">
+      {/* Timeline Controls — always visible; a genuine differentiator, don't bury it.
+          Bottom-center keeps it clear of the top-right search cluster. */}
+      <Panel position="bottom-center">
           <div className="flex items-center gap-3 bg-panel rounded-node border border-hairline p-3">
             <button
               onClick={onStartAnimation}
@@ -158,8 +156,7 @@ export const FlowControls: React.FC<FlowControlsProps> = ({
               </span>
             </div>
           </div>
-        </Panel>
-      )}
+      </Panel>
 
       {/* Search and Filter Controls */}
       <Panel position="top-right">

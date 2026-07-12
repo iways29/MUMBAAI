@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GitBranch, ArrowLeft, Mail, Lock } from 'lucide-react';
+import { GitBranch, ArrowLeft, Mail, Lock, MailCheck } from 'lucide-react';
 import { supabase } from '../lib/supabase.ts';
 
 interface AuthPageProps {
@@ -12,6 +12,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onBack }) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  // 'form' → the auth form; 'verify' → the post-signup "check your email" screen
+  const [stage, setStage] = useState<'form' | 'verify'>('form');
+  const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +25,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onBack }) => {
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        setMessage('Account created successfully! Please check your email to verify your account.');
+        setStage('verify');
+        setResendState('idle');
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -35,10 +39,22 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onBack }) => {
     }
   };
 
+  const handleResendVerification = async () => {
+    setResendState('sending');
+    try {
+      const { error } = await supabase.auth.resend({ type: 'signup', email });
+      if (error) throw error;
+      setResendState('sent');
+    } catch (error) {
+      console.error('Failed to resend verification email:', error);
+      setResendState('error');
+    }
+  };
+
   const handleGoogleAuth = async () => {
     setLoading(true);
     setMessage('');
-    
+
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -46,7 +62,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onBack }) => {
           redirectTo: `${window.location.origin}/`
         }
       });
-      
+
       if (error) throw error;
       // User will be redirected to Google for authentication
     } catch (error: any) {
@@ -54,6 +70,60 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onBack }) => {
       setLoading(false);
     }
   };
+
+  // Post-signup: a real "check your email" screen with a resend action,
+  // instead of a static line of text under the form.
+  if (stage === 'verify') {
+    return (
+      <div className="min-h-screen bg-void flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
+          <div className="w-14 h-14 mx-auto mb-8 rounded-full border border-hairline flex items-center justify-center">
+            <MailCheck size={24} className="text-plum" />
+          </div>
+          <h2 className="text-[28px] font-extralight text-bone tracking-display mb-3">
+            Check your email
+          </h2>
+          <p className="text-ash text-[15px] leading-relaxed tracking-body mb-2">
+            We sent a verification link to
+          </p>
+          <p className="text-bone text-[15px] font-semibold mb-8">{email}</p>
+          <p className="text-smoke text-[13px] leading-relaxed max-w-[38ch] mx-auto mb-10">
+            Click the link in that email to activate your account, then come back
+            and sign in. It can take a minute to arrive — check spam too.
+          </p>
+
+          <div className="flex flex-col items-center gap-4">
+            <button
+              onClick={handleResendVerification}
+              disabled={resendState === 'sending' || resendState === 'sent'}
+              className="px-6 py-3 rounded-pill border border-hairline hover:border-hairline-strong text-bone text-[12px] font-semibold uppercase tracking-kicker transition-colors duration-fast disabled:opacity-50"
+            >
+              {resendState === 'sending'
+                ? 'Sending…'
+                : resendState === 'sent'
+                ? 'Email sent again'
+                : 'Resend verification email'}
+            </button>
+            {resendState === 'error' && (
+              <p className="text-danger text-[13px]">
+                Couldn't resend — wait a moment and try again.
+              </p>
+            )}
+            <button
+              onClick={() => {
+                setStage('form');
+                setIsSignUp(false);
+                setMessage('');
+              }}
+              className="text-[13px] text-smoke hover:text-bone transition-colors duration-fast"
+            >
+              Already verified? Sign in
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-void flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 overflow-y-auto">
@@ -79,10 +149,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onBack }) => {
           {isSignUp ? 'Create your account' : 'Sign in to your account'}
         </h2>
         <p className="text-center text-ash text-[14px] mb-8">
-          {isSignUp 
-            ? 'Start your journey with branching conversations' 
-            : 'Welcome back to your conversation trees'
-          }
+          Chat is a straight line — here, every reply can branch, and the best
+          branches merge back into one answer.
         </p>
       </div>
 
@@ -156,12 +224,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onBack }) => {
               </div>
             </div>
 
+            {/* Pre-submit heads-up so email verification isn't a surprise */}
+            {isSignUp && (
+              <p className="text-[13px] text-smoke leading-relaxed flex items-start gap-2">
+                <MailCheck size={14} className="shrink-0 mt-0.5 text-smoke" />
+                We'll send a verification link to this address — you'll need to
+                click it before your first sign-in.
+              </p>
+            )}
+
             {message && (
-              <div className={`text-sm p-3 rounded-node border ${
-                message.includes('successfully')
-                  ? 'border-plum text-bone'
-                  : 'border-danger text-danger'
-              }`}>
+              <div className="text-sm p-3 rounded-node border border-danger text-danger">
                 {message}
               </div>
             )}
@@ -184,8 +257,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onBack }) => {
                 onClick={() => setIsSignUp(!isSignUp)}
                 className="text-[13px] text-smoke hover:text-bone transition-colors duration-fast"
               >
-                {isSignUp 
-                  ? 'Already have an account? Sign in' 
+                {isSignUp
+                  ? 'Already have an account? Sign in'
                   : "Don't have an account? Sign up"
                 }
               </button>

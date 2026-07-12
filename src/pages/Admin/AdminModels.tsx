@@ -33,15 +33,15 @@ interface ModelFormData {
 }
 
 const PROVIDERS = [
-  { value: 'anthropic', label: 'Anthropic (Claude)', color: 'bg-orange-500' },
-  { value: 'openai', label: 'OpenAI (GPT)', color: 'bg-green-500' },
-  { value: 'google', label: 'Google (Gemini)', color: 'bg-blue-500' },
+  { value: 'anthropic', label: 'Anthropic (Claude)', color: 'bg-plum' },
+  { value: 'openai', label: 'OpenAI (GPT)', color: 'bg-plum' },
+  { value: 'google', label: 'Google (Gemini)', color: 'bg-plum' },
 ]
 
 const providerColors: Record<string, { bg: string; text: string; icon: string }> = {
-  anthropic: { bg: 'bg-orange-100', text: 'text-orange-700', icon: 'bg-orange-500' },
-  openai: { bg: 'bg-green-100', text: 'text-green-700', icon: 'bg-green-500' },
-  google: { bg: 'bg-blue-100', text: 'text-blue-700', icon: 'bg-blue-500' },
+  anthropic: { bg: 'bg-plum-soft', text: 'text-plum', icon: 'bg-plum' },
+  openai: { bg: 'bg-plum-soft', text: 'text-plum', icon: 'bg-plum' },
+  google: { bg: 'bg-panel-2', text: 'text-ash', icon: 'bg-plum' },
 }
 
 const emptyFormData: ModelFormData = {
@@ -252,11 +252,11 @@ const AdminModels: React.FC = () => {
     return (
       <div className="p-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-stone-200 rounded"></div>
-          <div className="h-4 w-64 bg-stone-200 rounded"></div>
+          <div className="h-8 w-48 bg-panel-2 rounded"></div>
+          <div className="h-4 w-64 bg-panel-2 rounded"></div>
           <div className="space-y-3 mt-8">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="h-16 bg-stone-200 rounded-xl"></div>
+              <div key={i} className="h-16 bg-panel-2 rounded-node"></div>
             ))}
           </div>
         </div>
@@ -270,18 +270,18 @@ const AdminModels: React.FC = () => {
       <div className="mb-8 flex items-start justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-purple-500 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-plum rounded-node flex items-center justify-center">
               <Bot className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-stone-800">Models</h1>
+            <h1 className="text-[28px] font-extralight text-bone tracking-display">Models</h1>
           </div>
-          <p className="text-stone-600">
+          <p className="text-ash">
             Configure which LLM models are available in the app
           </p>
         </div>
         <button
           onClick={openAddModal}
-          className="px-4 py-2 bg-[#FF8811] text-white rounded-xl hover:bg-[#e67a0f] transition-colors flex items-center gap-2 font-medium"
+          className="px-4 py-2 bg-plum text-white rounded-node hover:bg-plum-hover transition-colors flex items-center gap-2 font-medium"
         >
           <Plus className="w-5 h-5" />
           Add Model
@@ -289,13 +289,13 @@ const AdminModels: React.FC = () => {
       </div>
 
       {/* Legend */}
-      <div className="mb-6 flex items-center gap-6 text-sm text-stone-600">
+      <div className="mb-6 flex items-center gap-6 text-sm text-ash">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-green-500"></div>
+          <div className="w-3 h-3 rounded-full bg-plum"></div>
           <span>Enabled (shown to users)</span>
         </div>
         <div className="flex items-center gap-2">
-          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+          <Star className="w-4 h-4 text-amber fill-[var(--color-amber)]" />
           <span>Default model</span>
         </div>
       </div>
@@ -304,10 +304,10 @@ const AdminModels: React.FC = () => {
       <div className="space-y-8">
         {Object.entries(groupedModels).map(([provider, providerModels]) => (
           <div key={provider}>
-            <h2 className="text-lg font-semibold text-stone-700 mb-4 flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${providerColors[provider]?.icon || 'bg-stone-500'}`}></div>
+            <h2 className="text-lg font-semibold text-ash mb-4 flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${providerColors[provider]?.icon || 'bg-panel-2'}`}></div>
               {providerLabels[provider] || provider}
-              <span className="text-sm font-normal text-stone-400">
+              <span className="text-sm font-normal text-smoke">
                 ({providerModels.length} model{providerModels.length !== 1 ? 's' : ''})
               </span>
             </h2>
@@ -315,23 +315,23 @@ const AdminModels: React.FC = () => {
               {providerModels.map((model) => (
                 <div
                   key={model.id}
-                  className={`bg-white rounded-xl border p-4 flex items-center justify-between transition-all ${
+                  className={`bg-panel rounded-node border p-4 flex items-center justify-between transition-all ${
                     model.is_enabled
-                      ? 'border-stone-200 shadow-sm'
-                      : 'border-stone-100 opacity-60'
+                      ? 'border-hairline'
+                      : 'border-hairline opacity-60'
                   }`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`px-3 py-1 rounded-lg text-xs font-mono ${providerColors[provider]?.bg || 'bg-stone-100'} ${providerColors[provider]?.text || 'text-stone-700'}`}>
+                    <div className={`px-3 py-1 rounded-[8px] text-xs font-mono ${providerColors[provider]?.bg || 'bg-panel-2'} ${providerColors[provider]?.text || 'text-ash'}`}>
                       {model.model_id}
                     </div>
-                    <div className="font-medium text-stone-800">
+                    <div className="font-medium text-bone">
                       {model.display_name}
                     </div>
                     {model.is_default && (
-                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                      <Star className="w-4 h-4 text-amber fill-[var(--color-amber)]" />
                     )}
-                    <span className="text-xs text-stone-400">
+                    <span className="text-xs text-smoke">
                       Order: {model.sort_order}
                     </span>
                   </div>
@@ -341,7 +341,7 @@ const AdminModels: React.FC = () => {
                     {!model.is_default && (
                       <button
                         onClick={() => setDefault(model.id)}
-                        className="px-3 py-1 text-sm text-stone-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
+                        className="px-3 py-1 text-sm text-smoke hover:text-amber hover:bg-panel-2 rounded-[8px] transition-colors"
                         title="Set as default"
                       >
                         <Star className="w-4 h-4" />
@@ -351,10 +351,10 @@ const AdminModels: React.FC = () => {
                     {/* Enable/Disable Toggle */}
                     <button
                       onClick={() => toggleEnabled(model.id, model.is_enabled)}
-                      className={`px-3 py-1 rounded-lg text-sm font-medium flex items-center gap-1 transition-colors ${
+                      className={`px-3 py-1 rounded-[8px] text-sm font-medium flex items-center gap-1 transition-colors ${
                         model.is_enabled
-                          ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                          : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
+                          ? 'bg-plum-soft text-plum hover:bg-plum-soft'
+                          : 'bg-panel-2 text-smoke hover:bg-panel-2'
                       }`}
                     >
                       {model.is_enabled ? (
@@ -367,7 +367,7 @@ const AdminModels: React.FC = () => {
                     {/* Edit */}
                     <button
                       onClick={() => openEditModal(model)}
-                      className="p-2 text-stone-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      className="p-2 text-smoke hover:text-bone hover:bg-panel-2 rounded-[8px] transition-colors"
                       title="Edit model"
                     >
                       <Pencil className="w-4 h-4" />
@@ -378,13 +378,13 @@ const AdminModels: React.FC = () => {
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => deleteModel(model.id)}
-                          className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
+                          className="px-2 py-1 bg-transparent border border-danger text-white rounded text-xs hover:bg-[rgba(240,89,78,0.12)]"
                         >
                           Confirm
                         </button>
                         <button
                           onClick={() => setDeleteConfirm(null)}
-                          className="px-2 py-1 bg-stone-200 text-stone-700 rounded text-xs hover:bg-stone-300"
+                          className="px-2 py-1 bg-panel-2 text-ash rounded text-xs hover:bg-panel-2"
                         >
                           Cancel
                         </button>
@@ -392,7 +392,7 @@ const AdminModels: React.FC = () => {
                     ) : (
                       <button
                         onClick={() => setDeleteConfirm(model.id)}
-                        className="p-2 text-stone-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-2 text-smoke hover:text-danger hover:bg-[rgba(240,89,78,0.08)] rounded-[8px] transition-colors"
                         title="Delete model"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -406,12 +406,12 @@ const AdminModels: React.FC = () => {
         ))}
 
         {models.length === 0 && (
-          <div className="text-center py-12 bg-white rounded-xl border border-stone-200">
-            <Bot className="w-12 h-12 text-stone-300 mx-auto mb-4" />
-            <p className="text-stone-500">No models configured yet.</p>
+          <div className="text-center py-12 bg-panel rounded-node border border-hairline">
+            <Bot className="w-12 h-12 text-smoke mx-auto mb-4" />
+            <p className="text-smoke">No models configured yet.</p>
             <button
               onClick={openAddModal}
-              className="mt-4 px-4 py-2 bg-[#FF8811] text-white rounded-xl hover:bg-[#e67a0f] transition-colors"
+              className="mt-4 px-4 py-2 bg-plum text-white rounded-node hover:bg-plum-hover transition-colors"
             >
               Add Your First Model
             </button>
@@ -420,8 +420,8 @@ const AdminModels: React.FC = () => {
       </div>
 
       {/* Info */}
-      <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200">
-        <p className="text-sm text-blue-700">
+      <div className="mt-8 p-4 bg-panel-2 rounded-node border border-hairline">
+        <p className="text-sm text-ash">
           <strong>Note:</strong> Changes take effect immediately. Enabled models appear in the model selector.
           The default model is pre-selected for new conversations.
         </p>
@@ -430,9 +430,9 @@ const AdminModels: React.FC = () => {
       {/* Add/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4">
-            <div className="p-6 border-b border-stone-200">
-              <h2 className="text-xl font-bold text-stone-800">
+          <div className="bg-panel rounded-node w-full max-w-lg mx-4">
+            <div className="p-6 border-b border-hairline">
+              <h2 className="text-[17px] font-semibold text-bone">
                 {editingModel ? 'Edit Model' : 'Add New Model'}
               </h2>
             </div>
@@ -440,13 +440,13 @@ const AdminModels: React.FC = () => {
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {/* Provider */}
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">
+                <label className="block text-sm font-medium text-ash mb-2">
                   Provider
                 </label>
                 <select
                   value={formData.provider}
                   onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
-                  className="w-full px-4 py-2 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8811] focus:border-transparent"
+                  className="w-full px-4 py-2 border border-hairline rounded-node focus:outline-none focus:border-plum"
                 >
                   {PROVIDERS.map((p) => (
                     <option key={p.value} value={p.value}>
@@ -458,47 +458,47 @@ const AdminModels: React.FC = () => {
 
               {/* Model ID */}
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">
+                <label className="block text-sm font-medium text-ash mb-2">
                   Model ID
-                  <span className="text-stone-400 font-normal ml-1">(API identifier)</span>
+                  <span className="text-smoke font-normal ml-1">(API identifier)</span>
                 </label>
                 <input
                   type="text"
                   value={formData.model_id}
                   onChange={(e) => setFormData({ ...formData, model_id: e.target.value })}
                   placeholder="e.g., claude-3-opus-20240229"
-                  className="w-full px-4 py-2 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8811] focus:border-transparent font-mono text-sm"
+                  className="w-full px-4 py-2 border border-hairline rounded-node focus:outline-none focus:border-plum font-mono text-sm"
                   required
                 />
               </div>
 
               {/* Display Name */}
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">
+                <label className="block text-sm font-medium text-ash mb-2">
                   Display Name
-                  <span className="text-stone-400 font-normal ml-1">(shown to users)</span>
+                  <span className="text-smoke font-normal ml-1">(shown to users)</span>
                 </label>
                 <input
                   type="text"
                   value={formData.display_name}
                   onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
                   placeholder="e.g., Claude 3 Opus"
-                  className="w-full px-4 py-2 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8811] focus:border-transparent"
+                  className="w-full px-4 py-2 border border-hairline rounded-node focus:outline-none focus:border-plum"
                   required
                 />
               </div>
 
               {/* Sort Order */}
               <div>
-                <label className="block text-sm font-medium text-stone-700 mb-2">
+                <label className="block text-sm font-medium text-ash mb-2">
                   Sort Order
-                  <span className="text-stone-400 font-normal ml-1">(lower = higher in list)</span>
+                  <span className="text-smoke font-normal ml-1">(lower = higher in list)</span>
                 </label>
                 <input
                   type="number"
                   value={formData.sort_order}
                   onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })}
-                  className="w-full px-4 py-2 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF8811] focus:border-transparent"
+                  className="w-full px-4 py-2 border border-hairline rounded-node focus:outline-none focus:border-plum"
                 />
               </div>
 
@@ -509,9 +509,9 @@ const AdminModels: React.FC = () => {
                     type="checkbox"
                     checked={formData.is_enabled}
                     onChange={(e) => setFormData({ ...formData, is_enabled: e.target.checked })}
-                    className="w-4 h-4 rounded border-stone-300 text-[#FF8811] focus:ring-[#FF8811]"
+                    className="w-4 h-4 rounded border-hairline text-plum focus:ring-0"
                   />
-                  <span className="text-sm text-stone-700">Enabled</span>
+                  <span className="text-sm text-ash">Enabled</span>
                 </label>
 
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -519,9 +519,9 @@ const AdminModels: React.FC = () => {
                     type="checkbox"
                     checked={formData.is_default}
                     onChange={(e) => setFormData({ ...formData, is_default: e.target.checked, is_enabled: e.target.checked ? true : formData.is_enabled })}
-                    className="w-4 h-4 rounded border-stone-300 text-[#FF8811] focus:ring-[#FF8811]"
+                    className="w-4 h-4 rounded border-hairline text-plum focus:ring-0"
                   />
-                  <span className="text-sm text-stone-700">Default</span>
+                  <span className="text-sm text-ash">Default</span>
                 </label>
               </div>
 
@@ -530,7 +530,7 @@ const AdminModels: React.FC = () => {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 px-4 py-2 bg-[#FF8811] text-white rounded-xl hover:bg-[#e67a0f] transition-colors flex items-center justify-center gap-2 font-medium disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-plum text-white rounded-node hover:bg-plum-hover transition-colors flex items-center justify-center gap-2 font-medium disabled:opacity-50"
                 >
                   <Save className="w-4 h-4" />
                   {saving ? 'Saving...' : editingModel ? 'Save Changes' : 'Add Model'}
@@ -538,7 +538,7 @@ const AdminModels: React.FC = () => {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 bg-stone-200 text-stone-700 rounded-xl hover:bg-stone-300 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-panel-2 text-ash rounded-node hover:bg-panel-2 transition-colors flex items-center gap-2"
                 >
                   <RotateCcw className="w-4 h-4" />
                   Cancel

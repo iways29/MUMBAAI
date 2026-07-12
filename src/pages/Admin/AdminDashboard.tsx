@@ -10,10 +10,14 @@ import {
   Calendar,
   BarChart3,
   Mail,
-  Flag
+  Flag,
+  Bot
 } from 'lucide-react'
 import { DatabaseService } from '../../services/databaseService.ts'
 import { supabase } from '../../lib/supabase.ts'
+import { ReactComponent as AnthropicIcon } from '../../assets/anthropic.svg'
+import { ReactComponent as OpenAIIcon } from '../../assets/openai.svg'
+import { ReactComponent as GoogleIcon } from '../../assets/google-gemini.svg'
 
 interface OverviewStats {
   total_users: number
@@ -88,6 +92,13 @@ interface WaitlistByProblemValidation {
   response: string
   count: number
   percentage: number
+}
+
+const ProviderIcon: React.FC<{ provider: string; size?: number }> = ({ provider, size = 13 }) => {
+  if (provider === 'anthropic') return <AnthropicIcon width={size} height={size} className="text-bone" />
+  if (provider === 'openai') return <OpenAIIcon width={size} height={size} className="text-bone" />
+  if (provider === 'google') return <GoogleIcon width={size} height={size} className="text-bone" />
+  return <Bot size={size} className="text-bone" />
 }
 
 const AdminDashboard: React.FC = () => {
@@ -168,15 +179,6 @@ const AdminDashboard: React.FC = () => {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
   }
 
-  const getProviderColor = (provider: string): string => {
-    switch (provider) {
-      case 'anthropic': return 'bg-orange-500'
-      case 'openai': return 'bg-green-500'
-      case 'google': return 'bg-blue-500'
-      default: return 'bg-gray-500'
-    }
-  }
-
   const toggleWaitlistMode = async () => {
     setTogglingWaitlist(true)
     try {
@@ -190,12 +192,6 @@ const AdminDashboard: React.FC = () => {
 
       const newValue = { enabled: !waitlistEnabled }
 
-      console.log('Toggling waitlist mode:', {
-        currentValue: waitlistEnabled,
-        newValue,
-        userId: user.id
-      })
-
       const success = await DatabaseService.updateAppConfig(
         'waitlist_enabled',
         newValue,
@@ -204,7 +200,6 @@ const AdminDashboard: React.FC = () => {
 
       if (success) {
         setWaitlistEnabled(!waitlistEnabled)
-        console.log('Waitlist mode toggled successfully!')
       } else {
         console.error('Failed to toggle waitlist mode - updateAppConfig returned false')
         alert('Failed to toggle waitlist mode. Check console for details.')
@@ -221,15 +216,14 @@ const AdminDashboard: React.FC = () => {
     return (
       <div className="p-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-stone-800">Analytics Dashboard</h1>
-          <p className="text-stone-600 mt-1">Loading analytics...</p>
+          <h1 className="text-[28px] font-extralight text-bone tracking-display">Analytics</h1>
+          <p className="text-smoke text-[14px] mt-1">Loading analytics…</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-white rounded-2xl p-6 animate-pulse">
-              <div className="h-12 w-12 bg-stone-200 rounded-xl mb-4"></div>
-              <div className="h-8 w-16 bg-stone-200 rounded mb-2"></div>
-              <div className="h-4 w-24 bg-stone-200 rounded"></div>
+            <div key={i} className="bg-panel border border-hairline rounded-node p-6 animate-pulse">
+              <div className="h-8 w-16 bg-panel-2 rounded mb-2"></div>
+              <div className="h-4 w-24 bg-panel-2 rounded"></div>
             </div>
           ))}
         </div>
@@ -238,35 +232,34 @@ const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-8 space-y-8 max-w-[1200px]">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-stone-800">Analytics Dashboard</h1>
-        <p className="text-stone-600 mt-1">
+        <h1 className="text-[28px] font-extralight text-bone tracking-display">Analytics</h1>
+        <p className="text-smoke text-[14px] mt-1">
           Platform usage and performance metrics
         </p>
       </div>
 
       {/* Waitlist Mode Toggle & Metrics */}
-      <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden">
-        {/* Toggle Header */}
-        <div className="p-6 border-b border-stone-200 flex items-center justify-between bg-gradient-to-r from-orange-50 to-amber-50">
+      <div className="bg-panel border border-hairline rounded-node overflow-hidden">
+        <div className="p-6 border-b border-hairline flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FF8811] to-[#F4D06F] flex items-center justify-center shadow-lg">
-              <Flag className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 rounded-full border border-hairline flex items-center justify-center">
+              <Flag size={16} className="text-plum" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-stone-800 flex items-center gap-2">
+              <h2 className="text-[15px] font-semibold text-bone flex items-center gap-2">
                 Waitlist Mode
-                <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                <span className={`text-[10px] px-2 py-0.5 rounded-pill border font-semibold uppercase tracking-kicker ${
                   waitlistEnabled
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-stone-100 text-stone-500'
+                    ? 'border-plum text-plum'
+                    : 'border-hairline text-smoke'
                 }`}>
-                  {waitlistEnabled ? 'ACTIVE' : 'DISABLED'}
+                  {waitlistEnabled ? 'Active' : 'Disabled'}
                 </span>
               </h2>
-              <p className="text-sm text-stone-600 mt-0.5">
+              <p className="text-[13px] text-smoke mt-0.5">
                 {waitlistEnabled
                   ? 'Landing page shows waitlist signup form instead of auth'
                   : 'Users can sign in and access the full app'}
@@ -276,97 +269,53 @@ const AdminDashboard: React.FC = () => {
           <button
             onClick={toggleWaitlistMode}
             disabled={togglingWaitlist}
-            className={`relative inline-flex h-10 w-20 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#FF8811] focus:ring-offset-2 ${
-              waitlistEnabled ? 'bg-green-500' : 'bg-stone-300'
+            className={`relative inline-flex h-7 w-12 items-center rounded-pill border transition-colors duration-fast ${
+              waitlistEnabled ? 'bg-plum border-plum' : 'border-hairline-strong'
             } ${togglingWaitlist ? 'opacity-50 cursor-not-allowed' : ''}`}
+            title="Toggle waitlist mode"
           >
             <span
-              className={`inline-block h-8 w-8 transform rounded-full bg-white transition-transform shadow-lg ${
-                waitlistEnabled ? 'translate-x-11' : 'translate-x-1'
+              className={`inline-block h-5 w-5 transform rounded-full bg-bone transition-transform duration-fast ${
+                waitlistEnabled ? 'translate-x-6' : 'translate-x-0.5'
               }`}
             />
           </button>
         </div>
 
-        {/* Waitlist Metrics - Only show if waitlist has signups */}
         {waitlistStats && waitlistStats.total_signups > 0 && (
           <div className="p-6 space-y-6">
-            {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-4 border border-blue-200">
-                <div className="flex items-center gap-2 text-blue-600 mb-1">
-                  <Mail className="w-4 h-4" />
-                  <span className="text-xs font-medium uppercase tracking-wide">Total</span>
-                </div>
-                <div className="text-2xl font-bold text-blue-900">{waitlistStats.total_signups}</div>
-                <div className="text-xs text-blue-700 mt-1">Signups</div>
-              </div>
-
-              <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-4 border border-green-200">
-                <div className="flex items-center gap-2 text-green-600 mb-1">
-                  <TrendingUp className="w-4 h-4" />
-                  <span className="text-xs font-medium uppercase tracking-wide">Today</span>
-                </div>
-                <div className="text-2xl font-bold text-green-900">{waitlistStats.signups_today}</div>
-                <div className="text-xs text-green-700 mt-1">New signups</div>
-              </div>
-
-              <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-xl p-4 border border-amber-200">
-                <div className="flex items-center gap-2 text-amber-600 mb-1">
-                  <Calendar className="w-4 h-4" />
-                  <span className="text-xs font-medium uppercase tracking-wide">This Week</span>
-                </div>
-                <div className="text-2xl font-bold text-amber-900">{waitlistStats.signups_this_week}</div>
-                <div className="text-xs text-amber-700 mt-1">Signups</div>
-              </div>
-
-              <div className="bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-xl p-4 border border-orange-200">
-                <div className="flex items-center gap-2 text-orange-600 mb-1">
-                  <Users className="w-4 h-4" />
-                  <span className="text-xs font-medium uppercase tracking-wide">Companies</span>
-                </div>
-                <div className="text-2xl font-bold text-orange-900">{waitlistStats.unique_companies}</div>
-                <div className="text-xs text-orange-700 mt-1">Unique orgs</div>
-              </div>
+              <MiniStat icon={Mail} label="Total" value={waitlistStats.total_signups} sub="Signups" />
+              <MiniStat icon={TrendingUp} label="Today" value={waitlistStats.signups_today} sub="New signups" />
+              <MiniStat icon={Calendar} label="This week" value={waitlistStats.signups_this_week} sub="Signups" />
+              <MiniStat icon={Users} label="Companies" value={waitlistStats.unique_companies} sub="Unique orgs" />
             </div>
 
-            {/* Problem Validation Breakdown */}
             {waitlistByProblemValidation.length > 0 && (
               <div>
-                <h3 className="text-sm font-semibold text-stone-700 mb-3 flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4" />
-                  Problem Validation: "Are we solving a real problem?"
+                <h3 className="text-[12px] font-semibold uppercase tracking-kicker text-smoke mb-3 flex items-center gap-2">
+                  <BarChart3 size={13} />
+                  "Are we solving a real problem?"
                 </h3>
                 <div className="space-y-2">
-                  {waitlistByProblemValidation.map((item, index) => {
-                    // Color based on response
-                    const colorClass = item.response === 'yes'
-                      ? 'from-green-500 to-green-600'
-                      : item.response === 'no'
-                      ? 'from-red-500 to-red-600'
-                      : 'from-amber-500 to-amber-600'
-
-                    return (
-                      <div key={index} className="flex items-center gap-3">
-                        <div className="w-24 text-sm font-medium text-stone-700 flex-shrink-0 capitalize">
-                          {item.response}
-                        </div>
-                        <div className="flex-1 h-8 bg-stone-100 rounded-lg overflow-hidden">
-                          <div
-                            className={`h-full bg-gradient-to-r ${colorClass} flex items-center justify-end px-3 transition-all duration-500`}
-                            style={{ width: `${item.percentage}%` }}
-                          >
-                            <span className="text-xs font-semibold text-white">
-                              {item.count}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="w-12 text-sm text-stone-500 text-right flex-shrink-0">
-                          {item.percentage}%
+                  {waitlistByProblemValidation.map((item, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <div className="w-20 text-[13px] text-ash flex-shrink-0 capitalize">
+                        {item.response}
+                      </div>
+                      <div className="flex-1 h-5 rounded-pill overflow-hidden" style={{ background: 'var(--color-hairline)' }}>
+                        <div
+                          className={`h-full ${item.response === 'yes' ? 'bg-plum' : 'bg-panel-2'} flex items-center justify-end px-2 transition-all duration-med`}
+                          style={{ width: `${Math.max(item.percentage, 4)}%` }}
+                        >
+                          <span className="text-[11px] font-semibold text-bone">{item.count}</span>
                         </div>
                       </div>
-                    )
-                  })}
+                      <div className="w-10 text-[12px] text-smoke text-right flex-shrink-0">
+                        {item.percentage}%
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -375,44 +324,40 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Users"
           value={overview?.total_users || 0}
           subtitle={`${activityStats?.users_active_today || 0} active today`}
           icon={Users}
-          color="bg-blue-500"
         />
         <StatCard
           title="Conversations"
           value={overview?.total_conversations || 0}
           subtitle={`${conversationStats?.avg_messages_per_conversation?.toFixed(1) || 0} avg nodes`}
           icon={MessageSquare}
-          color="bg-purple-500"
         />
         <StatCard
           title="Total Tokens"
           value={formatNumber(overview?.total_tokens || 0)}
           subtitle={`${formatNumber(conversationStats?.avg_tokens_per_conversation || 0)} avg/convo`}
           icon={Zap}
-          color="bg-amber-500"
         />
         <StatCard
           title="Avg Days Active"
           value={activityStats?.avg_days_active?.toFixed(1) || '0'}
           subtitle={`${activityStats?.users_active_this_week || 0} active this week`}
           icon={Calendar}
-          color="bg-green-500"
         />
       </div>
 
       {/* DAU Chart + User Growth */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Daily Active Users */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <Activity className="w-5 h-5 text-blue-500" />
-            <h2 className="text-lg font-semibold text-stone-800">Daily Active Users</h2>
+        <div className="bg-panel border border-hairline rounded-node p-6">
+          <div className="flex items-center gap-2 mb-5">
+            <Activity size={15} className="text-plum" />
+            <h2 className="text-[13px] font-semibold uppercase tracking-kicker text-smoke">Daily Active Users</h2>
           </div>
           {dailyActiveUsers.length > 0 ? (
             <div className="space-y-2">
@@ -423,56 +368,56 @@ const AdminDashboard: React.FC = () => {
                   return (
                     <div
                       key={i}
-                      className="flex-1 bg-blue-500 rounded-t transition-all hover:bg-blue-600"
-                      style={{ height: `${Math.max(height, 4)}%` }}
+                      className="flex-1 bg-plum hover:bg-plum-hover rounded-t transition-colors duration-fast"
+                      style={{ height: `${Math.max(height, 4)}%`, opacity: 0.5 + (height / 200) }}
                       title={`${formatDate(day.date)}: ${day.active_users} users`}
                     />
                   )
                 })}
               </div>
-              <div className="flex justify-between text-xs text-stone-400">
+              <div className="flex justify-between text-[11px] text-smoke">
                 <span>{dailyActiveUsers.length > 0 && formatDate(dailyActiveUsers[0].date)}</span>
                 <span>Last 14 days</span>
                 <span>{dailyActiveUsers.length > 0 && formatDate(dailyActiveUsers[dailyActiveUsers.length - 1].date)}</span>
               </div>
             </div>
           ) : (
-            <div className="h-32 flex items-center justify-center text-stone-400">
+            <div className="h-32 flex items-center justify-center text-smoke text-[13px]">
               No activity data yet
             </div>
           )}
         </div>
 
         {/* User Growth */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-5 h-5 text-green-500" />
-            <h2 className="text-lg font-semibold text-stone-800">User Growth (Weekly)</h2>
+        <div className="bg-panel border border-hairline rounded-node p-6">
+          <div className="flex items-center gap-2 mb-5">
+            <TrendingUp size={15} className="text-plum" />
+            <h2 className="text-[13px] font-semibold uppercase tracking-kicker text-smoke">User Growth (Weekly)</h2>
           </div>
           {userGrowth.length > 0 ? (
             <div className="space-y-3">
               {userGrowth.slice(-6).map((week, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <span className="text-xs text-stone-500 w-16">{formatDate(week.week)}</span>
-                  <div className="flex-1 bg-stone-100 rounded-full h-4 overflow-hidden">
+                  <span className="text-[11px] text-smoke w-14">{formatDate(week.week)}</span>
+                  <div className="flex-1 h-2 rounded-pill overflow-hidden" style={{ background: 'var(--color-hairline)' }}>
                     <div
-                      className="bg-green-500 h-full rounded-full transition-all"
+                      className="bg-plum h-full rounded-pill transition-all duration-med"
                       style={{
                         width: `${(week.cumulative_users / Math.max(...userGrowth.map(w => w.cumulative_users), 1)) * 100}%`
                       }}
                     />
                   </div>
-                  <span className="text-sm font-medium text-stone-700 w-12 text-right">
+                  <span className="text-[13px] font-medium text-bone w-10 text-right">
                     {week.cumulative_users}
                   </span>
                   {week.new_users > 0 && (
-                    <span className="text-xs text-green-600 w-10">+{week.new_users}</span>
+                    <span className="text-[11px] text-ash w-9">+{week.new_users}</span>
                   )}
                 </div>
               ))}
             </div>
           ) : (
-            <div className="h-32 flex items-center justify-center text-stone-400">
+            <div className="h-32 flex items-center justify-center text-smoke text-[13px]">
               No growth data yet
             </div>
           )}
@@ -480,104 +425,95 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* LLM Usage + Branch Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* LLM Usage Distribution */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <BarChart3 className="w-5 h-5 text-purple-500" />
-            <h2 className="text-lg font-semibold text-stone-800">LLM Usage Distribution</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* LLM Usage Distribution — providers distinguished by icon, not color */}
+        <div className="bg-panel border border-hairline rounded-node p-6">
+          <div className="flex items-center gap-2 mb-5">
+            <BarChart3 size={15} className="text-plum" />
+            <h2 className="text-[13px] font-semibold uppercase tracking-kicker text-smoke">LLM Usage Distribution</h2>
           </div>
           {llmUsage.length > 0 ? (
             <div className="space-y-3">
               {llmUsage.slice(0, 6).map((model, i) => (
                 <div key={i} className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-stone-700 font-medium">{model.model}</span>
-                    <span className="text-stone-500">{model.percentage}%</span>
+                  <div className="flex items-center justify-between text-[13px]">
+                    <span className="flex items-center gap-2 text-ash font-medium">
+                      <span className="w-5 h-5 rounded-full border border-hairline flex items-center justify-center shrink-0">
+                        <ProviderIcon provider={model.provider} size={10} />
+                      </span>
+                      {model.model}
+                    </span>
+                    <span className="text-smoke">{model.percentage}%</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-stone-100 rounded-full h-2 overflow-hidden">
+                    <div className="flex-1 h-1.5 rounded-pill overflow-hidden" style={{ background: 'var(--color-hairline)' }}>
                       <div
-                        className={`${getProviderColor(model.provider)} h-full rounded-full transition-all`}
+                        className="bg-plum h-full rounded-pill transition-all duration-med"
                         style={{ width: `${model.percentage}%` }}
                       />
                     </div>
-                    <span className="text-xs text-stone-400 w-16 text-right">
+                    <span className="text-[11px] text-smoke w-16 text-right">
                       {formatNumber(model.token_count)} tok
                     </span>
                   </div>
                 </div>
               ))}
-              <div className="flex gap-4 mt-4 pt-4 border-t border-stone-100">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                  <span className="text-xs text-stone-500">Anthropic</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-xs text-stone-500">OpenAI</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <span className="text-xs text-stone-500">Google</span>
-                </div>
-              </div>
             </div>
           ) : (
-            <div className="h-32 flex items-center justify-center text-stone-400">
+            <div className="h-32 flex items-center justify-center text-smoke text-[13px]">
               No usage data yet
             </div>
           )}
         </div>
 
         {/* Branch & Merge Stats */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <GitBranch className="w-5 h-5 text-amber-500" />
-            <h2 className="text-lg font-semibold text-stone-800">Splits & Merges</h2>
+        <div className="bg-panel border border-hairline rounded-node p-6">
+          <div className="flex items-center gap-2 mb-5">
+            <GitBranch size={15} className="text-plum" />
+            <h2 className="text-[13px] font-semibold uppercase tracking-kicker text-smoke">Splits & Merges</h2>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-stone-50 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <GitBranch className="w-4 h-4 text-amber-500" />
-                <span className="text-sm text-stone-600">Total Splits</span>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="border border-hairline rounded-node p-4">
+              <div className="flex items-center gap-2 mb-2 text-smoke">
+                <GitBranch size={13} />
+                <span className="text-[12px]">Total Splits</span>
               </div>
-              <div className="text-2xl font-bold text-stone-800">
+              <div className="text-[24px] font-extralight text-bone tracking-display">
                 {conversationStats?.total_splits || 0}
               </div>
-              <div className="text-xs text-stone-500 mt-1">
+              <div className="text-[11px] text-smoke mt-1">
                 ~{branchStats?.avg_splits_per_conversation?.toFixed(1) || 0} per convo
               </div>
             </div>
-            <div className="bg-stone-50 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <GitMerge className="w-4 h-4 text-purple-500" />
-                <span className="text-sm text-stone-600">Total Merges</span>
+            <div className="border border-hairline rounded-node p-4">
+              <div className="flex items-center gap-2 mb-2 text-smoke">
+                <GitMerge size={13} />
+                <span className="text-[12px]">Total Merges</span>
               </div>
-              <div className="text-2xl font-bold text-stone-800">
+              <div className="text-[24px] font-extralight text-bone tracking-display">
                 {conversationStats?.total_merges || 0}
               </div>
-              <div className="text-xs text-stone-500 mt-1">
+              <div className="text-[11px] text-smoke mt-1">
                 ~{branchStats?.avg_merges_per_conversation?.toFixed(1) || 0} per convo
               </div>
             </div>
-            <div className="bg-stone-50 rounded-xl p-4">
-              <div className="text-sm text-stone-600 mb-2">Convos with Splits</div>
-              <div className="text-2xl font-bold text-stone-800">
+            <div className="border border-hairline rounded-node p-4">
+              <div className="text-[12px] text-smoke mb-2">Convos with Splits</div>
+              <div className="text-[24px] font-extralight text-bone tracking-display">
                 {branchStats?.conversations_with_splits || 0}
               </div>
-              <div className="text-xs text-stone-500 mt-1">
+              <div className="text-[11px] text-smoke mt-1">
                 {branchStats?.total_conversations ?
                   `${((branchStats.conversations_with_splits / branchStats.total_conversations) * 100).toFixed(0)}%`
                   : '0%'} of total
               </div>
             </div>
-            <div className="bg-stone-50 rounded-xl p-4">
-              <div className="text-sm text-stone-600 mb-2">Convos with Merges</div>
-              <div className="text-2xl font-bold text-stone-800">
+            <div className="border border-hairline rounded-node p-4">
+              <div className="text-[12px] text-smoke mb-2">Convos with Merges</div>
+              <div className="text-[24px] font-extralight text-bone tracking-display">
                 {branchStats?.conversations_with_merges || 0}
               </div>
-              <div className="text-xs text-stone-500 mt-1">
+              <div className="text-[11px] text-smoke mt-1">
                 {branchStats?.total_conversations ?
                   `${((branchStats.conversations_with_merges / branchStats.total_conversations) * 100).toFixed(0)}%`
                   : '0%'} of total
@@ -588,16 +524,16 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Top Users by Token Usage */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm">
-        <div className="flex items-center gap-2 mb-4">
-          <Users className="w-5 h-5 text-blue-500" />
-          <h2 className="text-lg font-semibold text-stone-800">Top Users by Token Usage</h2>
+      <div className="bg-panel border border-hairline rounded-node p-6">
+        <div className="flex items-center gap-2 mb-5">
+          <Users size={15} className="text-plum" />
+          <h2 className="text-[13px] font-semibold uppercase tracking-kicker text-smoke">Top Users by Token Usage</h2>
         </div>
         {userUsage.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="text-left text-sm text-stone-500 border-b border-stone-100">
+                <tr className="text-left text-[12px] text-smoke border-b border-hairline">
                   <th className="pb-3 font-medium">User</th>
                   <th className="pb-3 font-medium text-right">Conversations</th>
                   <th className="pb-3 font-medium text-right">Messages</th>
@@ -607,21 +543,21 @@ const AdminDashboard: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {userUsage.map((user, i) => (
-                  <tr key={user.user_id} className="border-b border-stone-50 hover:bg-stone-50">
+                {userUsage.map((user) => (
+                  <tr key={user.user_id} className="border-b border-hairline hover:bg-panel-2 transition-colors duration-fast">
                     <td className="py-3">
-                      <div className="font-medium text-stone-800">
+                      <div className="text-[13px] font-medium text-bone">
                         {user.display_name || user.email.split('@')[0]}
                       </div>
-                      <div className="text-xs text-stone-500">{user.email}</div>
+                      <div className="text-[11px] text-smoke">{user.email}</div>
                     </td>
-                    <td className="py-3 text-right text-stone-700">{user.conversation_count}</td>
-                    <td className="py-3 text-right text-stone-700">{user.message_count}</td>
-                    <td className="py-3 text-right font-medium text-stone-800">
+                    <td className="py-3 text-right text-[13px] text-ash">{user.conversation_count}</td>
+                    <td className="py-3 text-right text-[13px] text-ash">{user.message_count}</td>
+                    <td className="py-3 text-right text-[13px] font-medium text-bone">
                       {formatNumber(user.total_tokens)}
                     </td>
-                    <td className="py-3 text-right text-stone-700">{user.days_active}</td>
-                    <td className="py-3 text-right text-stone-500 text-sm">
+                    <td className="py-3 text-right text-[13px] text-ash">{user.days_active}</td>
+                    <td className="py-3 text-right text-[12px] text-smoke">
                       {user.last_active ? formatDate(user.last_active) : 'Never'}
                     </td>
                   </tr>
@@ -630,7 +566,7 @@ const AdminDashboard: React.FC = () => {
             </table>
           </div>
         ) : (
-          <div className="h-32 flex items-center justify-center text-stone-400">
+          <div className="h-32 flex items-center justify-center text-smoke text-[13px]">
             No user data yet
           </div>
         )}
@@ -639,23 +575,39 @@ const AdminDashboard: React.FC = () => {
   )
 }
 
+// Small labeled stat used inside the waitlist card
+const MiniStat: React.FC<{
+  icon: React.ComponentType<{ size?: number; className?: string }>
+  label: string
+  value: number
+  sub: string
+}> = ({ icon: Icon, label, value, sub }) => (
+  <div className="border border-hairline rounded-node p-4">
+    <div className="flex items-center gap-2 text-smoke mb-1">
+      <Icon size={13} />
+      <span className="text-[11px] font-semibold uppercase tracking-kicker">{label}</span>
+    </div>
+    <div className="text-[24px] font-extralight text-bone tracking-display">{value}</div>
+    <div className="text-[11px] text-smoke mt-0.5">{sub}</div>
+  </div>
+)
+
 // Stat Card Component
 interface StatCardProps {
   title: string
   value: number | string
   subtitle: string
-  icon: React.ComponentType<{ className?: string }>
-  color: string
+  icon: React.ComponentType<{ size?: number; className?: string }>
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon: Icon, color }) => (
-  <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
-    <div className={`w-12 h-12 ${color} rounded-xl flex items-center justify-center mb-4`}>
-      <Icon className="w-6 h-6 text-white" />
+const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon: Icon }) => (
+  <div className="bg-panel border border-hairline hover:border-hairline-strong rounded-node p-6 transition-colors duration-fast">
+    <div className="flex items-center gap-2 text-smoke mb-4">
+      <Icon size={14} />
+      <span className="text-[11px] font-semibold uppercase tracking-kicker">{title}</span>
     </div>
-    <div className="text-3xl font-bold text-stone-800 mb-1">{value}</div>
-    <div className="text-sm text-stone-500">{subtitle}</div>
-    <div className="text-xs text-stone-400 mt-2">{title}</div>
+    <div className="text-[32px] font-extralight text-bone tracking-display mb-1 leading-none">{value}</div>
+    <div className="text-[12px] text-smoke mt-2">{subtitle}</div>
   </div>
 )
 

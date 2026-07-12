@@ -195,16 +195,16 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-panel rounded-node w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="p-6 border-b border-stone-200">
+        <div className="p-6 border-b border-hairline">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold text-stone-800">Configure Limits</h2>
-              <p className="text-stone-600 text-sm mt-1">
+              <h2 className="text-[17px] font-semibold text-bone">Configure Limits</h2>
+              <p className="text-ash text-sm mt-1">
                 {userName || userEmail}
                 {isAdmin && (
-                  <span className="ml-2 px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full">
+                  <span className="ml-2 px-2 py-0.5 bg-plum-soft text-plum text-xs rounded-full">
                     Admin (exempt from limits)
                   </span>
                 )}
@@ -212,9 +212,9 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-stone-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-panel-2 rounded-[8px] transition-colors"
             >
-              <X className="w-5 h-5 text-stone-500" />
+              <X className="w-5 h-5 text-smoke" />
             </button>
           </div>
 
@@ -228,10 +228,10 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-[8px] text-sm font-medium transition-colors ${
                   activeTab === tab.id
-                    ? 'bg-[#FF8811] text-white'
-                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                    ? 'bg-plum text-white'
+                    : 'bg-panel-2 text-ash hover:bg-panel-2'
                 }`}
               >
                 <tab.icon className="w-4 h-4" />
@@ -245,14 +245,14 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
         <div className="flex-1 overflow-y-auto p-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF8811]"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-plum"></div>
             </div>
           ) : (
             <>
               {/* Tier Tab */}
               {activeTab === 'tier' && (
                 <div className="space-y-4">
-                  <p className="text-sm text-stone-600 mb-4">
+                  <p className="text-sm text-ash mb-4">
                     Select a tier for this user. Tier limits apply unless overridden.
                   </p>
 
@@ -261,10 +261,10 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
                       <button
                         key={tier.id}
                         onClick={() => setLimits({ ...limits, tier_id: tier.id })}
-                        className={`p-4 rounded-xl border-2 text-left transition-all ${
+                        className={`p-4 rounded-node border text-left transition-all ${
                           limits.tier_id === tier.id
-                            ? 'border-[#FF8811] bg-orange-50'
-                            : 'border-stone-200 hover:border-stone-300'
+                            ? 'border-plum bg-panel-2'
+                            : 'border-hairline hover:border-hairline-strong'
                         }`}
                       >
                         <div className="flex items-center gap-3 mb-2">
@@ -272,14 +272,14 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
                             className="w-3 h-3 rounded-full"
                             style={{ backgroundColor: tier.color }}
                           />
-                          <span className="font-semibold text-stone-800">{tier.display_name}</span>
+                          <span className="font-semibold text-bone">{tier.display_name}</span>
                           {tier.is_default && (
-                            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
+                            <span className="px-2 py-0.5 bg-panel-2 text-ash text-xs rounded-full">
                               Default
                             </span>
                           )}
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-stone-500">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-smoke">
                           <div className="flex items-center gap-1">
                             <Zap className="w-3 h-3" />
                             {formatLimit(tier.daily_token_limit)}/day
@@ -302,36 +302,36 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
                   </div>
 
                   {/* Today's Usage */}
-                  <div className="mt-6 p-4 bg-stone-50 rounded-xl">
-                    <h3 className="font-semibold text-stone-800 mb-3">Today's Usage</h3>
+                  <div className="mt-6 p-4 bg-panel-2 rounded-node">
+                    <h3 className="font-semibold text-bone mb-3">Today's Usage</h3>
                     <div className="grid grid-cols-3 gap-4 text-center">
                       <div>
-                        <div className="text-2xl font-bold text-stone-800">
+                        <div className="text-[24px] font-extralight text-bone tracking-display">
                           {usage.tokens_used.toLocaleString()}
                         </div>
-                        <div className="text-xs text-stone-500">Tokens Used</div>
+                        <div className="text-xs text-smoke">Tokens Used</div>
                         {selectedTier && (
-                          <div className="text-xs text-stone-400 mt-1">
+                          <div className="text-xs text-smoke mt-1">
                             / {formatLimit(getEffectiveLimit(limits.daily_token_limit_override, selectedTier.daily_token_limit))}
                           </div>
                         )}
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-stone-800">
+                        <div className="text-[24px] font-extralight text-bone tracking-display">
                           {usage.merges_performed}
                         </div>
-                        <div className="text-xs text-stone-500">Merges</div>
+                        <div className="text-xs text-smoke">Merges</div>
                         {selectedTier && (
-                          <div className="text-xs text-stone-400 mt-1">
+                          <div className="text-xs text-smoke mt-1">
                             / {formatLimit(getEffectiveLimit(limits.daily_merge_limit_override, selectedTier.daily_merge_limit))}
                           </div>
                         )}
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-stone-800">
+                        <div className="text-[24px] font-extralight text-bone tracking-display">
                           {usage.requests_count}
                         </div>
-                        <div className="text-xs text-stone-500">Requests</div>
+                        <div className="text-xs text-smoke">Requests</div>
                       </div>
                     </div>
                   </div>
@@ -341,20 +341,20 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
               {/* Overrides Tab */}
               {activeTab === 'overrides' && (
                 <div className="space-y-6">
-                  <p className="text-sm text-stone-600 mb-4">
+                  <p className="text-sm text-ash mb-4">
                     Override specific limits for this user. Leave empty to use tier defaults.
                   </p>
 
                   {/* Token Limits */}
                   <div className="space-y-4">
-                    <h3 className="font-semibold text-stone-800 flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-yellow-500" />
+                    <h3 className="font-semibold text-bone flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-amber" />
                       Token Limits
                     </h3>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-stone-600 mb-1">Daily Token Limit</label>
+                        <label className="block text-sm text-ash mb-1">Daily Token Limit</label>
                         <div className="flex items-center gap-2">
                           <input
                             type="number"
@@ -364,11 +364,11 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
                               daily_token_limit_override: e.target.value ? parseInt(e.target.value) : null
                             })}
                             placeholder={selectedTier ? formatLimit(selectedTier.daily_token_limit) : 'Unlimited'}
-                            className="flex-1 px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF8811]/20"
+                            className="flex-1 px-3 py-2 border border-hairline rounded-[8px] focus:outline-none focus:ring-0"
                           />
                           <button
                             onClick={() => setLimits({ ...limits, daily_token_limit_override: null })}
-                            className="p-2 text-stone-400 hover:text-stone-600"
+                            className="p-2 text-smoke hover:text-bone"
                             title="Reset to tier default"
                           >
                             <RotateCcw className="w-4 h-4" />
@@ -377,7 +377,7 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
                       </div>
 
                       <div>
-                        <label className="block text-sm text-stone-600 mb-1">Monthly Token Limit</label>
+                        <label className="block text-sm text-ash mb-1">Monthly Token Limit</label>
                         <div className="flex items-center gap-2">
                           <input
                             type="number"
@@ -387,11 +387,11 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
                               monthly_token_limit_override: e.target.value ? parseInt(e.target.value) : null
                             })}
                             placeholder={selectedTier ? formatLimit(selectedTier.monthly_token_limit) : 'Unlimited'}
-                            className="flex-1 px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF8811]/20"
+                            className="flex-1 px-3 py-2 border border-hairline rounded-[8px] focus:outline-none focus:ring-0"
                           />
                           <button
                             onClick={() => setLimits({ ...limits, monthly_token_limit_override: null })}
-                            className="p-2 text-stone-400 hover:text-stone-600"
+                            className="p-2 text-smoke hover:text-bone"
                             title="Reset to tier default"
                           >
                             <RotateCcw className="w-4 h-4" />
@@ -403,13 +403,13 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
 
                   {/* Merge Limit */}
                   <div className="space-y-4">
-                    <h3 className="font-semibold text-stone-800 flex items-center gap-2">
-                      <GitMerge className="w-4 h-4 text-purple-500" />
+                    <h3 className="font-semibold text-bone flex items-center gap-2">
+                      <GitMerge className="w-4 h-4 text-plum" />
                       Merge Limit
                     </h3>
 
                     <div>
-                      <label className="block text-sm text-stone-600 mb-1">Daily Merge Limit</label>
+                      <label className="block text-sm text-ash mb-1">Daily Merge Limit</label>
                       <div className="flex items-center gap-2">
                         <input
                           type="number"
@@ -419,11 +419,11 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
                             daily_merge_limit_override: e.target.value ? parseInt(e.target.value) : null
                           })}
                           placeholder={selectedTier ? formatLimit(selectedTier.daily_merge_limit) : 'Unlimited'}
-                          className="flex-1 px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF8811]/20"
+                          className="flex-1 px-3 py-2 border border-hairline rounded-[8px] focus:outline-none focus:ring-0"
                         />
                         <button
                           onClick={() => setLimits({ ...limits, daily_merge_limit_override: null })}
-                          className="p-2 text-stone-400 hover:text-stone-600"
+                          className="p-2 text-smoke hover:text-bone"
                           title="Reset to tier default"
                         >
                           <RotateCcw className="w-4 h-4" />
@@ -434,13 +434,13 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
 
                   {/* Rate Limit */}
                   <div className="space-y-4">
-                    <h3 className="font-semibold text-stone-800 flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-blue-500" />
+                    <h3 className="font-semibold text-bone flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-ash" />
                       Rate Limit
                     </h3>
 
                     <div>
-                      <label className="block text-sm text-stone-600 mb-1">Requests per Minute</label>
+                      <label className="block text-sm text-ash mb-1">Requests per Minute</label>
                       <div className="flex items-center gap-2">
                         <input
                           type="number"
@@ -450,11 +450,11 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
                             requests_per_minute_override: e.target.value ? parseInt(e.target.value) : null
                           })}
                           placeholder={selectedTier ? String(selectedTier.requests_per_minute) : '20'}
-                          className="flex-1 px-3 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF8811]/20"
+                          className="flex-1 px-3 py-2 border border-hairline rounded-[8px] focus:outline-none focus:ring-0"
                         />
                         <button
                           onClick={() => setLimits({ ...limits, requests_per_minute_override: null })}
-                          className="p-2 text-stone-400 hover:text-stone-600"
+                          className="p-2 text-smoke hover:text-bone"
                           title="Reset to tier default"
                         >
                           <RotateCcw className="w-4 h-4" />
@@ -465,21 +465,21 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
 
                   {/* Model Access */}
                   <div className="space-y-4">
-                    <h3 className="font-semibold text-stone-800 flex items-center gap-2">
-                      <Bot className="w-4 h-4 text-green-500" />
+                    <h3 className="font-semibold text-bone flex items-center gap-2">
+                      <Bot className="w-4 h-4 text-plum" />
                       Model Access Override
                     </h3>
-                    <p className="text-xs text-stone-500">
+                    <p className="text-xs text-smoke">
                       Leave empty to use tier's model restrictions. Select specific models to override.
                     </p>
 
                     <div className="flex items-center gap-4 mb-2">
                       <button
                         onClick={() => setLimits({ ...limits, allowed_model_ids_override: null })}
-                        className={`px-3 py-1 rounded-lg text-sm ${
+                        className={`px-3 py-1 rounded-[8px] text-sm ${
                           limits.allowed_model_ids_override === null
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-stone-100 text-stone-600'
+                            ? 'bg-panel-2 text-ash'
+                            : 'bg-panel-2 text-ash'
                         }`}
                       >
                         <Infinity className="w-3 h-3 inline mr-1" />
@@ -487,10 +487,10 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
                       </button>
                       <button
                         onClick={() => setLimits({ ...limits, allowed_model_ids_override: [] })}
-                        className={`px-3 py-1 rounded-lg text-sm ${
+                        className={`px-3 py-1 rounded-[8px] text-sm ${
                           limits.allowed_model_ids_override !== null
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-stone-100 text-stone-600'
+                            ? 'bg-panel-2 text-ash'
+                            : 'bg-panel-2 text-ash'
                         }`}
                       >
                         Custom Selection
@@ -498,11 +498,11 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
                     </div>
 
                     {limits.allowed_model_ids_override !== null && (
-                      <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 bg-stone-50 rounded-lg">
+                      <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 bg-panel-2 rounded-[8px]">
                         {models.map(model => (
                           <label
                             key={model.id}
-                            className="flex items-center gap-2 p-2 rounded-lg hover:bg-white cursor-pointer"
+                            className="flex items-center gap-2 p-2 rounded-[8px] hover:bg-panel cursor-pointer"
                           >
                             <input
                               type="checkbox"
@@ -518,10 +518,10 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
                                   })
                                 }
                               }}
-                              className="rounded border-stone-300 text-[#FF8811] focus:ring-[#FF8811]"
+                              className="rounded border-hairline text-plum focus:ring-0"
                             />
-                            <span className="text-sm text-stone-700">{model.display_name}</span>
-                            <span className="text-xs text-stone-400">({model.provider})</span>
+                            <span className="text-sm text-ash">{model.display_name}</span>
+                            <span className="text-xs text-smoke">({model.provider})</span>
                           </label>
                         ))}
                       </div>
@@ -533,23 +533,23 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
               {/* Suspend Tab */}
               {activeTab === 'suspend' && (
                 <div className="space-y-6">
-                  <div className={`p-4 rounded-xl ${limits.is_suspended ? 'bg-red-50 border border-red-200' : 'bg-stone-50'}`}>
+                  <div className={`p-4 rounded-node ${limits.is_suspended ? 'bg-panel-2 border border-danger' : 'bg-panel-2'}`}>
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <Ban className={`w-5 h-5 ${limits.is_suspended ? 'text-red-500' : 'text-stone-400'}`} />
+                        <Ban className={`w-5 h-5 ${limits.is_suspended ? 'text-danger' : 'text-smoke'}`} />
                         <div>
-                          <h3 className="font-semibold text-stone-800">Account Suspension</h3>
-                          <p className="text-sm text-stone-500">
+                          <h3 className="font-semibold text-bone">Account Suspension</h3>
+                          <p className="text-sm text-smoke">
                             {limits.is_suspended ? 'This user is currently suspended' : 'Suspend user access'}
                           </p>
                         </div>
                       </div>
                       <button
                         onClick={() => setLimits({ ...limits, is_suspended: !limits.is_suspended })}
-                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                        className={`px-4 py-2 rounded-[8px] font-medium transition-colors ${
                           limits.is_suspended
-                            ? 'bg-green-500 text-white hover:bg-green-600'
-                            : 'bg-red-500 text-white hover:bg-red-600'
+                            ? 'bg-plum text-white hover:bg-plum-hover'
+                            : 'bg-transparent border border-danger text-white hover:bg-[rgba(240,89,78,0.12)]'
                         }`}
                       >
                         {limits.is_suspended ? 'Unsuspend' : 'Suspend'}
@@ -558,24 +558,24 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
 
                     {limits.is_suspended && (
                       <div>
-                        <label className="block text-sm text-stone-600 mb-1">Suspension Reason</label>
+                        <label className="block text-sm text-ash mb-1">Suspension Reason</label>
                         <textarea
                           value={limits.suspension_reason ?? ''}
                           onChange={e => setLimits({ ...limits, suspension_reason: e.target.value || null })}
                           placeholder="Optional: Enter reason for suspension"
-                          className="w-full px-3 py-2 border border-red-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-200 bg-white"
+                          className="w-full px-3 py-2 border border-danger rounded-[8px] focus:outline-none focus:border-danger bg-panel"
                           rows={3}
                         />
                       </div>
                     )}
                   </div>
 
-                  <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+                  <div className="p-4 bg-panel-2 rounded-node border border-hairline">
                     <div className="flex items-start gap-3">
-                      <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                      <AlertTriangle className="w-5 h-5 text-amber flex-shrink-0 mt-0.5" />
                       <div>
-                        <h4 className="font-medium text-yellow-800">What happens when suspended?</h4>
-                        <ul className="text-sm text-yellow-700 mt-2 space-y-1">
+                        <h4 className="font-medium text-amber">What happens when suspended?</h4>
+                        <ul className="text-sm text-amber mt-2 space-y-1">
                           <li>• User cannot send new messages</li>
                           <li>• User cannot perform merges</li>
                           <li>• User can still view existing conversations</li>
@@ -591,21 +591,21 @@ const UserLimitsModal: React.FC<UserLimitsModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-stone-200 flex items-center justify-between">
+        <div className="p-6 border-t border-hairline flex items-center justify-between">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-stone-600 hover:bg-stone-100 rounded-lg transition-colors"
+            className="px-4 py-2 text-ash hover:bg-panel-2 rounded-[8px] transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={saving || loading}
-            className="flex items-center gap-2 px-6 py-2 bg-[#FF8811] text-white rounded-lg hover:bg-[#e67a0f] transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-2 bg-plum text-white rounded-[8px] hover:bg-plum-hover transition-colors disabled:opacity-50"
           >
             {saving ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border border-white border-t-transparent"></div>
                 Saving...
               </>
             ) : (

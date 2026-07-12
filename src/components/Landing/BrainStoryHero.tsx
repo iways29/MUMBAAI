@@ -9,6 +9,7 @@ import { buildFormations, brainFormation, SCENE_COUNT } from './formations.ts';
 
 interface BrainStoryHeroProps {
   onGetStarted: () => void;
+  waitlistEnabled?: boolean;
 }
 
 interface Beat {
@@ -176,13 +177,13 @@ const BrainPoster: React.FC = () => {
   );
 };
 
-const Cta: React.FC<{ onGetStarted: () => void; centered?: boolean }> = ({ onGetStarted, centered }) => (
+const Cta: React.FC<{ onGetStarted: () => void; centered?: boolean; waitlistEnabled?: boolean }> = ({ onGetStarted, centered, waitlistEnabled }) => (
   <div className={`flex flex-wrap items-center gap-3 mt-10 ${centered ? 'justify-center' : ''}`}>
     <button
       onClick={onGetStarted}
       className="rounded-pill bg-plum hover:bg-plum-hover text-bone text-[13px] font-semibold uppercase tracking-kicker px-7 py-4 transition-colors duration-fast"
     >
-      Start free
+      {waitlistEnabled ? 'Join the waitlist' : 'Start free'}
     </button>
     <a
       href="https://youtu.be/O620a-fz_4g"
@@ -202,7 +203,7 @@ const renderTitle = (title: string) =>
     </span>
   ));
 
-export const BrainStoryHero: React.FC<BrainStoryHeroProps> = ({ onGetStarted }) => {
+export const BrainStoryHero: React.FC<BrainStoryHeroProps> = ({ onGetStarted, waitlistEnabled }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const beatRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -443,7 +444,7 @@ export const BrainStoryHero: React.FC<BrainStoryHeroProps> = ({ onGetStarted }) 
             <p className="text-ash text-lg leading-relaxed mt-8 max-w-[44ch]">
               {BEATS[0].sub}
             </p>
-            <Cta onGetStarted={onGetStarted} />
+            <Cta onGetStarted={onGetStarted} waitlistEnabled={waitlistEnabled} />
           </div>
         </div>
       </section>
@@ -483,7 +484,7 @@ export const BrainStoryHero: React.FC<BrainStoryHeroProps> = ({ onGetStarted }) 
                   >
                     {renderTitle(beat.title)}
                   </h2>
-                  {beat.cta && <Cta onGetStarted={onGetStarted} centered />}
+                  {beat.cta && <Cta onGetStarted={onGetStarted} waitlistEnabled={waitlistEnabled} centered />}
                 </div>
               ) : (
                 <div className="max-w-[440px] text-center md:text-left">
@@ -503,7 +504,7 @@ export const BrainStoryHero: React.FC<BrainStoryHeroProps> = ({ onGetStarted }) 
                       {beat.sub}
                     </p>
                   )}
-                  {beat.cta && <Cta onGetStarted={onGetStarted} />}
+                  {beat.cta && <Cta onGetStarted={onGetStarted} waitlistEnabled={waitlistEnabled} />}
                 </div>
               )}
             </div>

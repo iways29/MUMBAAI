@@ -409,7 +409,11 @@ export const ProInterestButton: React.FC<ProInterestButtonProps> = ({ className 
       `}</style>
 
       {/* Try Pro Button */}
-      <button onClick={handleButtonClick} className={`pro-btn ${large ? 'pro-btn-large' : ''} ${className}`}>
+      <button
+        onClick={handleButtonClick}
+        className={`pro-btn ${large ? 'pro-btn-large' : ''} ${className}`}
+        title="Pro isn't out yet — tap to see what's coming and register interest"
+      >
         <span className="pro-badge">Pro</span>
         <span>Try Pro</span>
       </button>

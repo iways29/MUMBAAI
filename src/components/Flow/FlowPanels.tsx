@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Panel } from 'reactflow';
-import { Sparkles, ChevronDown } from 'lucide-react';
+import { Sparkles, ChevronDown, Check } from 'lucide-react';
 import { MergeTemplate } from '../../utils/api.ts';
 
 interface FlowPanelsProps {
@@ -76,6 +76,7 @@ export const FlowPanels: React.FC<FlowPanelsProps> = ({
             <div className="mb-3 relative" ref={dropdownRef}>
               <div className="flex">
                 <button
+                  data-tutorial-smartmerge
                   onClick={() => onPerformMerge()}
                   className="flex items-center justify-center gap-2 flex-1 px-4 py-2.5 bg-plum hover:bg-plum-hover text-bone rounded-l-pill text-[12px] font-semibold uppercase tracking-kicker transition-colors duration-fast disabled:opacity-50"
                   disabled={isLoading}
@@ -105,7 +106,7 @@ export const FlowPanels: React.FC<FlowPanelsProps> = ({
                       } ${i < arr.length - 1 ? 'border-b border-hairline' : ''}`}
                     >
                       {mergeTemplateLabels[template]}
-                      {template === mergeTemplate && <span className="float-right text-plum">✓</span>}
+                      {template === mergeTemplate && <Check size={12} className="float-right text-plum mt-0.5" />}
                     </button>
                   ))}
                 </div>
@@ -113,9 +114,9 @@ export const FlowPanels: React.FC<FlowPanelsProps> = ({
             </div>
           ) : (
             <p className="text-[13px] text-smoke leading-relaxed mb-3">
-              Hover a node and tap{' '}
-              <Sparkles size={11} className="inline -mt-0.5 text-smoke" /> (or Ctrl+click) on two or
-              more branches, then merge them into one answer.
+              Select 2+ nodes to merge — tap the{' '}
+              <Sparkles size={11} className="inline -mt-0.5 text-smoke" /> circle on each node
+              (or Ctrl+click), then combine them into one answer.
             </p>
           )}
 
@@ -133,16 +134,12 @@ export const FlowPanels: React.FC<FlowPanelsProps> = ({
               Clear
             </button>
           </div>
-        </div>
-      </Panel>
 
-      {/* Status Panel */}
-      <Panel position="bottom-right">
-        <div className="bg-panel rounded-node border border-hairline px-3.5 py-3 text-[12px]">
-          <div className="text-ash font-medium">{allMessagesCount} messages</div>
-          <div className="text-smoke">{selectedNodes.size} in merge set</div>
-          <div className="text-smoke mt-1.5 pt-1.5 border-t border-hairline">
-            Double-click a node to open it
+          {/* Status line — lives here so the minimap owns bottom-right */}
+          <div className="flex items-center gap-3 text-[11px] text-smoke mt-3 pt-3 border-t border-hairline">
+            <span>{allMessagesCount} messages</span>
+            <span>·</span>
+            <span>Double-click a node to open it</span>
           </div>
         </div>
       </Panel>

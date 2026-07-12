@@ -1,5 +1,6 @@
 export { default as AdminLayout } from './AdminLayout.tsx'
 export { default as AdminDashboard } from './AdminDashboard.tsx'
+export { default as AdminActivation } from './AdminActivation.tsx'
 export { default as AdminPrompts } from './AdminPrompts.tsx'
 export { default as AdminModels } from './AdminModels.tsx'
 export { default as AdminTiers } from './AdminTiers.tsx'

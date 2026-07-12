@@ -11,3 +11,6 @@
 .agents
 skills-lock.json
 
+# Local planning docs — not for the repo/remote
+*.md
+

@@ -66,6 +66,10 @@ interface MessageThreadProps {
   bookmarkedNodes: Set<string>;
   onToggleBookmark: (nodeId: string) => void;
   streamingContent?: string;
+  // Branch from this bubble — same behavior as selecting the node on the canvas
+  onBranchFrom?: (messageId: string) => void;
+  // Full-width mode: constrain to a readable centered measure
+  centered?: boolean;
 }
 
 export const MessageThread: React.FC<MessageThreadProps> = ({
@@ -74,7 +78,9 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
   isLoading,
   bookmarkedNodes,
   onToggleBookmark,
-  streamingContent = ''
+  streamingContent = '',
+  onBranchFrom,
+  centered = false
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -124,14 +130,19 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
           <div className="w-12 h-12 mx-auto mb-6 rounded-full border border-hairline flex items-center justify-center">
             <GitBranch size={20} className="text-smoke" />
           </div>
-          <h3 className="text-[17px] font-medium text-bone mb-2">Start a thread</h3>
+          <h3 className="text-[17px] font-medium text-bone mb-2">
+            {centered ? 'Ask anything' : 'Start a thread'}
+          </h3>
           <p className="text-[14px] text-ash leading-relaxed tracking-body mb-4">
-            Type below to begin. Every reply can branch — click any node on the
-            canvas to continue from that point.
+            {centered
+              ? 'Start like any chat. Once the first reply lands, your conversation becomes a map you can branch in every direction.'
+              : 'Type below to begin. Every reply can branch — click any node on the canvas to continue from that point.'}
           </p>
-          <p className="text-[12px] text-smoke">
-            Double-click a node to open it here
-          </p>
+          {!centered && (
+            <p className="text-[12px] text-smoke">
+              Double-click a node to open it here
+            </p>
+          )}
         </div>
       </div>
     );
@@ -139,7 +150,7 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
 
   return (
     <div className="flex-1 overflow-y-auto p-6" ref={containerRef}>
-      <div className="space-y-4">
+      <div className={`space-y-4 ${centered ? 'max-w-3xl mx-auto' : ''}`}>
         {messages.map((message) => (
           <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-2xl px-4 py-3 rounded-node border ${
@@ -190,12 +201,23 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
 
               {/* Message Actions and Info */}
               <div className="flex items-center gap-3 pt-1.5 border-t border-hairline">
-                {/* Response count */}
+                {/* Response count — a doorway to the canvas, not just a stat */}
                 {message.children && message.children.length > 0 && (
-                  <div className="text-[11px] text-smoke flex items-center gap-1">
-                    <GitBranch size={10} />
-                    {message.children.length} {message.children.length > 1 ? 'branches' : 'branch'}
-                  </div>
+                  onBranchFrom ? (
+                    <button
+                      onClick={() => onBranchFrom(message.id)}
+                      className="text-[11px] text-smoke hover:text-plum flex items-center gap-1 transition-colors duration-fast"
+                      title="See this message's branches on the canvas"
+                    >
+                      <GitBranch size={10} />
+                      {message.children.length} {message.children.length > 1 ? 'branches' : 'branch'}
+                    </button>
+                  ) : (
+                    <div className="text-[11px] text-smoke flex items-center gap-1">
+                      <GitBranch size={10} />
+                      {message.children.length} {message.children.length > 1 ? 'branches' : 'branch'}
+                    </div>
+                  )
                 )}
 
                 {/* Merged info */}
@@ -209,6 +231,20 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
 
                 {/* Action buttons */}
                 <div className="flex gap-3 ml-auto">
+                  {onBranchFrom && (
+                    <button
+                      onClick={() => onBranchFrom(message.id)}
+                      className={`text-[11px] flex items-center gap-1 transition-colors duration-fast ${
+                        message.id === selectedMessageId
+                          ? 'text-plum'
+                          : 'text-smoke hover:text-bone'
+                      }`}
+                      title="Reply from this point — your next message branches here"
+                    >
+                      <GitBranch size={10} />
+                      {message.id === selectedMessageId ? 'Branching here' : 'Branch'}
+                    </button>
+                  )}
                   <button
                     onClick={() => handleCopyMessage(message.content)}
                     className="text-[11px] text-smoke hover:text-bone flex items-center gap-1 transition-colors duration-fast"

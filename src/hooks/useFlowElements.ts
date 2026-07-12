@@ -96,7 +96,15 @@ export const useFlowElements = (
     const flowNodes: Node<MessageNodeData>[] = [];
     const flowEdges: Edge[] = [];
     const horizontalSpacing = 400;
-    const verticalSpacing = 250;
+    // Minimum gap between a parent's top and its child's top. Once a node has
+    // been measured we use its real height instead, so tall nodes can never
+    // draw over their children.
+    const verticalSpacing = 300;
+    const childGap = 80;
+    const childYFor = (parentId: string, parentY: number) => {
+      const measured = nodeDimensions[parentId]?.height;
+      return parentY + Math.max(verticalSpacing, (measured || 0) + childGap);
+    };
 
     // Handle empty messages case or invalid state
     if (!messages || messages.length === 0 || !conversationId) {
@@ -131,7 +139,7 @@ export const useFlowElements = (
           const startX = x - childrenWidth / 2;
           message.children.forEach((child, index) => {
             const childX = startX + (index * horizontalSpacing);
-            const childY = y + verticalSpacing;
+            const childY = childYFor(message.id, y);
             processNode(child, childX, childY, level + 1);
           });
         }
@@ -190,7 +198,7 @@ export const useFlowElements = (
 
         message.children.forEach((child, index) => {
           const childX = startX + (index * horizontalSpacing);
-          const childY = y + verticalSpacing;
+          const childY = childYFor(message.id, y);
 
           // Create edge only if both parent and child match the filter
           let childMatchesType = true;
@@ -210,12 +218,12 @@ export const useFlowElements = (
               type: 'smoothstep',
               animated: child.mergedFrom && child.mergedFrom.includes(message.id),
               style: {
-                stroke: child.mergedFrom && child.mergedFrom.includes(message.id) ? '#a855f7' : '#6b7280',
+                stroke: child.mergedFrom && child.mergedFrom.includes(message.id) ? 'var(--color-plum)' : 'rgba(255,255,255,0.18)',
                 strokeWidth: 2,
               },
               markerEnd: {
                 type: MarkerType.ArrowClosed,
-                color: child.mergedFrom && child.mergedFrom.includes(message.id) ? '#a855f7' : '#6b7280',
+                color: child.mergedFrom && child.mergedFrom.includes(message.id) ? '#8052FF' : 'rgba(255,255,255,0.18)',
               }
             });
           }
@@ -235,16 +243,19 @@ export const useFlowElements = (
               type: 'smoothstep',
               animated: true,
               style: {
-                stroke: '#a855f7',
-                strokeWidth: 3,
+                stroke: 'var(--color-plum)',
+                strokeWidth: 2,
                 strokeDasharray: '8,4',
               },
               markerEnd: {
                 type: MarkerType.ArrowClosed,
-                color: '#a855f7',
+                color: '#8052FF',
               },
-              label: '✨ Merge',
-              labelStyle: { fontSize: 11, fill: '#a855f7', fontWeight: 'bold' }
+              label: 'Merge',
+              labelStyle: { fontSize: 11, fill: '#8052FF', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' },
+              labelBgStyle: { fill: '#0A0A0B', fillOpacity: 1 },
+              labelBgPadding: [6, 3] as [number, number],
+              labelBgBorderRadius: 8
             });
           }
         });
